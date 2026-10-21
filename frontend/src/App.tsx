@@ -2,7 +2,7 @@ import { WifiOff } from "lucide-react";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router";
 import { useRegisterSW } from "virtual:pwa-register/react";
-import { Brasao, Fundo } from "./components/Ornamentos";
+import { Fundo, Logo } from "./components/Ornamentos";
 import { ProtecaoTela } from "./components/ProtecaoTela";
 import { Topo } from "./components/Topo";
 import { KioskProvider, useBloqueiosQuiosque } from "./hooks/useKiosk";
@@ -26,9 +26,17 @@ function TelaInterna({ children }: { children: ReactNode }) {
 function Carregando() {
   const { status } = useTotem();
   return (
-    <div className="carregando">
-      <Brasao tamanho={84} className="carregando__brasao" />
-      <p>{status === "offline" ? "Conectando ao servidor do memorial…" : "Carregando o memorial…"}</p>
+    <div className="carregando" role="status">
+      <Logo variante="suave" className="carregando__logo" />
+      <span className="carregando__barra" aria-hidden />
+      {status === "offline" ? (
+        <p>
+          Conectando ao servidor do memorial…
+          <span className="carregando__detalhe">Nova tentativa a cada 10 segundos.</span>
+        </p>
+      ) : (
+        <p>Carregando o memorial…</p>
+      )}
     </div>
   );
 }
@@ -87,8 +95,8 @@ function Totem() {
       )}
       {descanso && data && <ProtecaoTela aoTocar={() => setDescanso(false)} />}
       {status === "offline" && data && (
-        <div className="selo-offline" title="Sem conexão com o servidor: exibindo conteúdo salvo">
-          <WifiOff size={16} aria-hidden /> offline
+        <div className="selo-offline" role="status">
+          <WifiOff size={18} aria-hidden /> Sem conexão · exibindo conteúdo salvo
         </div>
       )}
     </KioskProvider>

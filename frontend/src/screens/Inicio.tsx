@@ -1,6 +1,6 @@
 import { BookOpen, ChevronRight, Film, Images } from "lucide-react";
 import { Link } from "react-router";
-import { Brasao, Divisor, Floreio, Louro } from "../components/Ornamentos";
+import { Divisor, Logo, Louro } from "../components/Ornamentos";
 import { useTotem } from "../hooks/useTotem";
 
 export function Inicio() {
@@ -32,11 +32,7 @@ export function Inicio() {
   return (
     <main className="inicio">
       <div className="inicio__cabeca entrar">
-        <div className="inicio__brasao">
-          <Floreio />
-          <Brasao tamanho={92} />
-          <Floreio espelhado />
-        </div>
+        <Logo variante="suave" className="inicio__logo" />
         <div className="inicio__titulo-linha">
           <Louro className="inicio__louro" />
           <div>
@@ -52,12 +48,12 @@ export function Inicio() {
       <nav className="inicio__secoes" aria-label="Seções do memorial">
         {secoes.map(({ para, titulo, Icone, texto, conta }, idx) => (
           <Link key={para} to={para} className="cartao-secao entrar" style={{ animationDelay: `${120 + idx * 90}ms` }}>
-            <span className="cartao-secao__icone"><Icone size={38} strokeWidth={1.4} /></span>
+            <span className="cartao-secao__icone"><Icone size={40} strokeWidth={1.4} aria-hidden /></span>
             <span className="cartao-secao__titulo">{titulo}</span>
             <span className="cartao-secao__texto">{texto}</span>
             <span className="cartao-secao__rodape">
-              <span>{conta}</span>
-              <ChevronRight size={26} aria-hidden />
+              <span className="cartao-secao__conta">{conta}</span>
+              <span className="cartao-secao__seta"><ChevronRight size={30} strokeWidth={1.8} aria-hidden /></span>
             </span>
           </Link>
         ))}

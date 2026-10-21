@@ -1,0 +1,374 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-21T19:40:12.910Z",
+  "title": "Design System: Memorial UNDB",
+  "extensions": {
+    "colorMeta": {
+      "papel-de-arquivo": {
+        "role": "neutral",
+        "displayName": "Papel de Arquivo",
+        "tonalRamp": [
+          "oklch(15% 0.017 84.6)",
+          "oklch(26% 0.017 84.6)",
+          "oklch(37% 0.017 84.6)",
+          "oklch(48% 0.017 84.6)",
+          "oklch(59% 0.017 84.6)",
+          "oklch(70% 0.017 84.6)",
+          "oklch(82% 0.017 84.6)",
+          "oklch(95% 0.017 84.6)"
+        ]
+      },
+      "papel-envelhecido": {
+        "role": "neutral",
+        "displayName": "Papel Envelhecido",
+        "tonalRamp": [
+          "oklch(15% 0.028 83.5)",
+          "oklch(26% 0.028 83.5)",
+          "oklch(37% 0.028 83.5)",
+          "oklch(48% 0.028 83.5)",
+          "oklch(59% 0.028 83.5)",
+          "oklch(70% 0.028 83.5)",
+          "oklch(82% 0.028 83.5)",
+          "oklch(95% 0.028 83.5)"
+        ]
+      },
+      "folha-nova": {
+        "role": "neutral",
+        "displayName": "Folha Nova",
+        "tonalRamp": [
+          "oklch(15% 0.010 87.5)",
+          "oklch(26% 0.010 87.5)",
+          "oklch(37% 0.010 87.5)",
+          "oklch(48% 0.010 87.5)",
+          "oklch(59% 0.010 87.5)",
+          "oklch(70% 0.010 87.5)",
+          "oklch(82% 0.010 87.5)",
+          "oklch(95% 0.010 87.5)"
+        ]
+      },
+      "vinco-de-papel": {
+        "role": "neutral",
+        "displayName": "Vinco de Papel",
+        "tonalRamp": [
+          "oklch(15% 0.042 85.3)",
+          "oklch(26% 0.042 85.3)",
+          "oklch(37% 0.042 85.3)",
+          "oklch(48% 0.042 85.3)",
+          "oklch(59% 0.042 85.3)",
+          "oklch(70% 0.042 85.3)",
+          "oklch(82% 0.042 85.3)",
+          "oklch(95% 0.030 85.3)"
+        ]
+      },
+      "tinta-ferrogalica": {
+        "role": "primary",
+        "displayName": "Tinta Ferrogálica",
+        "tonalRamp": [
+          "oklch(15% 0.085 262.4)",
+          "oklch(26% 0.085 262.4)",
+          "oklch(37% 0.085 262.4)",
+          "oklch(48% 0.085 262.4)",
+          "oklch(59% 0.085 262.4)",
+          "oklch(70% 0.085 262.4)",
+          "oklch(82% 0.085 262.4)",
+          "oklch(95% 0.030 262.4)"
+        ]
+      },
+      "ferrogalica-diluida": {
+        "role": "primary",
+        "displayName": "Ferrogálica Diluída",
+        "tonalRamp": [
+          "oklch(15% 0.099 260.6)",
+          "oklch(26% 0.099 260.6)",
+          "oklch(37% 0.099 260.6)",
+          "oklch(48% 0.099 260.6)",
+          "oklch(59% 0.099 260.6)",
+          "oklch(70% 0.099 260.6)",
+          "oklch(82% 0.099 260.6)",
+          "oklch(95% 0.030 260.6)"
+        ]
+      },
+      "ouro-de-lombada": {
+        "role": "secondary",
+        "displayName": "Ouro de Lombada",
+        "tonalRamp": [
+          "oklch(15% 0.110 77.3)",
+          "oklch(26% 0.110 77.3)",
+          "oklch(37% 0.110 77.3)",
+          "oklch(48% 0.110 77.3)",
+          "oklch(59% 0.110 77.3)",
+          "oklch(70% 0.110 77.3)",
+          "oklch(82% 0.110 77.3)",
+          "oklch(95% 0.030 77.3)"
+        ]
+      },
+      "ouro-desbotado": {
+        "role": "secondary",
+        "displayName": "Ouro Desbotado",
+        "tonalRamp": [
+          "oklch(15% 0.086 84.4)",
+          "oklch(26% 0.086 84.4)",
+          "oklch(37% 0.086 84.4)",
+          "oklch(48% 0.086 84.4)",
+          "oklch(59% 0.086 84.4)",
+          "oklch(70% 0.086 84.4)",
+          "oklch(82% 0.086 84.4)",
+          "oklch(95% 0.030 84.4)"
+        ]
+      },
+      "ouro-gravado": {
+        "role": "secondary",
+        "displayName": "Ouro Gravado",
+        "tonalRamp": [
+          "oklch(15% 0.094 76.9)",
+          "oklch(26% 0.094 76.9)",
+          "oklch(37% 0.094 76.9)",
+          "oklch(48% 0.094 76.9)",
+          "oklch(59% 0.094 76.9)",
+          "oklch(70% 0.094 76.9)",
+          "oklch(82% 0.094 76.9)",
+          "oklch(95% 0.030 76.9)"
+        ]
+      },
+      "sepia-de-escrita": {
+        "role": "neutral",
+        "displayName": "Sépia de Escrita",
+        "tonalRamp": [
+          "oklch(15% 0.022 75.6)",
+          "oklch(26% 0.022 75.6)",
+          "oklch(37% 0.022 75.6)",
+          "oklch(48% 0.022 75.6)",
+          "oklch(59% 0.022 75.6)",
+          "oklch(70% 0.022 75.6)",
+          "oklch(82% 0.022 75.6)",
+          "oklch(95% 0.022 75.6)"
+        ]
+      },
+      "sepia-esmaecida": {
+        "role": "neutral",
+        "displayName": "Sépia Esmaecida",
+        "tonalRamp": [
+          "oklch(15% 0.029 78.7)",
+          "oklch(26% 0.029 78.7)",
+          "oklch(37% 0.029 78.7)",
+          "oklch(48% 0.029 78.7)",
+          "oklch(59% 0.029 78.7)",
+          "oklch(70% 0.029 78.7)",
+          "oklch(82% 0.029 78.7)",
+          "oklch(95% 0.029 78.7)"
+        ]
+      },
+      "louro-prateado": {
+        "role": "tertiary",
+        "displayName": "Louro Prateado",
+        "tonalRamp": [
+          "oklch(15% 0.045 260.4)",
+          "oklch(26% 0.045 260.4)",
+          "oklch(37% 0.045 260.4)",
+          "oklch(48% 0.045 260.4)",
+          "oklch(59% 0.045 260.4)",
+          "oklch(70% 0.045 260.4)",
+          "oklch(82% 0.045 260.4)",
+          "oklch(95% 0.030 260.4)"
+        ]
+      },
+      "noite-de-exposicao": {
+        "role": "neutral",
+        "displayName": "Noite de Exposição",
+        "tonalRamp": [
+          "oklch(15% 0.030 268.5)",
+          "oklch(26% 0.030 268.5)",
+          "oklch(37% 0.030 268.5)",
+          "oklch(48% 0.030 268.5)",
+          "oklch(59% 0.030 268.5)",
+          "oklch(70% 0.030 268.5)",
+          "oklch(82% 0.030 268.5)",
+          "oklch(95% 0.030 268.5)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Só a palavra MEMORIAL no Início e na proteção de tela."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Títulos de seção ladeados por louros."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Nomes nos cartões de seção e no Topo."
+      },
+      "year": {
+        "displayName": "Ano",
+        "purpose": "Anos da linha do tempo, galeria e lightbox, sempre em Garamond."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descrições e legendas, medida máxima 60ch."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Contagens, links, abas e rótulos em caixa alta."
+      }
+    },
+    "shadows": [
+      {
+        "name": "repouso",
+        "value": "0 1px 2px rgba(60, 45, 20, 0.06), 0 6px 18px rgba(60, 45, 20, 0.08)",
+        "purpose": "Cartões, nós e miniaturas parados."
+      },
+      {
+        "name": "toque",
+        "value": "0 2px 4px rgba(60, 45, 20, 0.08), 0 14px 34px rgba(60, 45, 20, 0.14)",
+        "purpose": "Só durante :active e no período destacado."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Saída exponencial para entradas e respostas ao toque."
+      },
+      {
+        "name": "entrar",
+        "value": "0.6s, translateY(14px) + opacity",
+        "purpose": "Entrada escalonada de cartões e marcos."
+      },
+      {
+        "name": "toque",
+        "value": "0.15–0.2s scale(0.92–0.98)",
+        "purpose": "Resposta ao toque em botões e cartões."
+      },
+      {
+        "name": "ken-burns",
+        "value": "10s linear, scale 1.02→1.14",
+        "purpose": "Fotos da proteção de tela."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "retrato",
+        "value": "(orientation: portrait)"
+      },
+      {
+        "name": "paisagem",
+        "value": "(orientation: landscape)"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botão",
+      "kind": "button",
+      "refersTo": "botao",
+      "description": "Ação principal sobre papel ou fundo escuro (ex.: 'Voltar aos vídeos').",
+      "html": "<button class=\"ds-botao\">Voltar aos vídeos</button>",
+      "css": ".ds-botao { min-height: 3.5rem; padding: 0 2rem; border: 0; border-radius: 999px; background: #d9bb7e; color: #1d3461; font-family: \"Cinzel\", \"Trajan Pro\", Georgia, serif; font-weight: 600; font-size: 1.1rem; letter-spacing: 0.06em; cursor: pointer; transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s; } .ds-botao:active { transform: scale(0.96); background: #e8d3a6; } .ds-botao:focus-visible { outline: 3px solid #b8893b; outline-offset: 3px; }"
+    },
+    {
+      "name": "Botão redondo escuro",
+      "kind": "button",
+      "refersTo": "botao-redondo-escuro",
+      "description": "Fechar, setas e play/pause sobre a noite de exposição (lightbox, player).",
+      "html": "<div class=\"ds-noite\"><button class=\"ds-redondo\" aria-label=\"Fechar\"><svg width=\"32\" height=\"32\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/></svg></button></div>",
+      "css": ".ds-noite { background: #0e1321; padding: 1.5rem; display: inline-block; border-radius: 12px; } .ds-redondo { display: grid; place-items: center; width: 4.5rem; height: 4.5rem; border-radius: 50%; background: rgba(255,255,255,0.14); border: 1.5px solid rgba(255,255,255,0.4); color: #fff; cursor: pointer; transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s; } .ds-redondo:active { transform: scale(0.92); background: rgba(255,255,255,0.3); } .ds-redondo:focus-visible { outline: 3px solid #b8893b; outline-offset: 3px; }"
+    },
+    {
+      "name": "Chip de filtro",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Filtros de vídeo e atalhos de década; o ativo inverte para tinta.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip is-ativo\">Todos</button><button class=\"ds-chip\">Entrevistas</button><button class=\"ds-chip\">Eventos</button></div>",
+      "css": ".ds-chips { display: flex; gap: 0.75rem; flex-wrap: wrap; } .ds-chip { min-height: 3.5rem; padding: 0 1.8rem; border-radius: 999px; border: 1.5px solid #d9bb7e; background: rgba(255,252,245,0.9); color: #1d3461; font-family: \"EB Garamond\", Garamond, Georgia, serif; font-size: 1.3rem; cursor: pointer; transition: background 0.2s, color 0.2s, transform 0.15s; } .ds-chip:active { transform: scale(0.95); } .ds-chip.is-ativo { background: #1d3461; border-color: #1d3461; color: #fff; } .ds-chip:focus-visible { outline: 3px solid #b8893b; outline-offset: 3px; }"
+    },
+    {
+      "name": "Aba de navegação",
+      "kind": "nav",
+      "refersTo": "aba-navegacao",
+      "description": "Abas do Topo; a ativa ganha peso e sublinhado dourado.",
+      "html": "<nav class=\"ds-abas\"><a class=\"ds-aba is-ativa\">História</a><a class=\"ds-aba\">Fotos</a><a class=\"ds-aba\">Vídeos</a></nav>",
+      "css": ".ds-abas { display: flex; gap: 0.75rem; background: rgba(245,239,227,0.86); padding: 0.5rem 1rem; border-bottom: 1px solid #e3d5b8; } .ds-aba { position: relative; display: flex; align-items: center; min-height: 3.5rem; padding: 0 1.25rem; border-radius: 10px; font-family: \"Cinzel\", \"Trajan Pro\", Georgia, serif; font-weight: 500; font-size: 1.1rem; letter-spacing: 0.08em; text-transform: uppercase; color: #1d3461; cursor: pointer; transition: background 0.2s; } .ds-aba:active { background: rgba(184,137,59,0.18); } .ds-aba.is-ativa { font-weight: 600; } .ds-aba.is-ativa::after { content: \"\"; position: absolute; left: 1rem; right: 1rem; bottom: 0.25rem; height: 3px; border-radius: 2px; background: #b8893b; }"
+    },
+    {
+      "name": "Cartão de seção",
+      "kind": "card",
+      "refersTo": "cartao",
+      "description": "Porta de entrada do Início: ícone de medalha, título em Cinzel, contagem e seta de toque.",
+      "html": "<a class=\"ds-cartao\"><span class=\"ds-medalha\"><svg width=\"36\" height=\"36\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 7v14\"/><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"/></svg></span><span class=\"ds-cartao__titulo\">História</span><span class=\"ds-cartao__texto\">A linha do tempo da instituição, marco a marco.</span><span class=\"ds-cartao__rodape\"><span class=\"ds-cartao__conta\">5 marcos</span><span class=\"ds-seta\"><svg width=\"28\" height=\"28\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m9 18 6-6-6-6\"/></svg></span></span></a>",
+      "css": ".ds-cartao { display: flex; flex-direction: column; gap: 0.6rem; max-width: 22rem; padding: 1.75rem 1.75rem 1.4rem; background: rgba(255,252,245,0.9); border: 1px solid #e3d5b8; border-radius: 12px; box-shadow: 0 1px 2px rgba(60,45,20,0.06), 0 6px 18px rgba(60,45,20,0.08); cursor: pointer; transition: transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s, border-color 0.2s; } .ds-cartao:active { transform: scale(0.98); border-color: #b8893b; box-shadow: 0 2px 4px rgba(60,45,20,0.08), 0 14px 34px rgba(60,45,20,0.14); } .ds-medalha { display: grid; place-items: center; width: 4.5rem; height: 4.5rem; border-radius: 50%; border: 1.5px solid #b8893b; color: #b8893b; background: #fffaf0; } .ds-cartao__titulo { font-family: \"Cinzel\", \"Trajan Pro\", Georgia, serif; font-weight: 600; font-size: 2rem; letter-spacing: 0.06em; text-transform: uppercase; color: #1d3461; } .ds-cartao__texto { font-family: \"EB Garamond\", Garamond, Georgia, serif; font-size: 1.25rem; line-height: 1.35; color: #6e6352; } .ds-cartao__rodape { display: flex; justify-content: space-between; align-items: center; padding-top: 0.9rem; border-top: 1px solid #e3d5b8; } .ds-cartao__conta { font-family: \"Cinzel\", \"Trajan Pro\", Georgia, serif; font-size: 0.95rem; letter-spacing: 0.12em; text-transform: uppercase; color: #86601f; } .ds-seta { display: grid; place-items: center; width: 3.25rem; height: 3.25rem; border-radius: 50%; background: #1d3461; color: #fff; transition: transform 0.2s cubic-bezier(0.22,1,0.36,1); } .ds-cartao:active .ds-seta { transform: translateX(4px); }"
+    },
+    {
+      "name": "Marco da linha do tempo",
+      "kind": "custom",
+      "refersTo": "cartao",
+      "description": "Ano em Garamond, nó de medalha e cartão tocável que leva às fotos do período.",
+      "html": "<div class=\"ds-marco\"><span class=\"ds-marco__ano\">1985</span><span class=\"ds-marco__no\"><svg width=\"36\" height=\"36\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 7v14\"/><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"/></svg></span><button class=\"ds-marco__cartao\"><span class=\"ds-marco__titulo\">Fundação da escola.</span><span class=\"ds-marco__desc\">Início das atividades com as primeiras turmas.</span><span class=\"ds-marco__link\">Ver 3 fotos</span></button></div>",
+      "css": ".ds-marco { display: grid; grid-template-columns: 6rem 5rem 1fr; align-items: center; max-width: 44rem; } .ds-marco__ano { font-family: \"EB Garamond\", Garamond, Georgia, serif; font-weight: 500; font-size: 2.4rem; color: #1d3461; text-align: right; padding-right: 1.25rem; font-variant-numeric: lining-nums; } .ds-marco__no { justify-self: center; display: grid; place-items: center; width: 5rem; height: 5rem; border-radius: 50%; background: #fffaf0; border: 2px solid #b8893b; color: #b8893b; box-shadow: 0 0 0 6px #f5efe3; } .ds-marco__cartao { margin-left: 1.25rem; display: flex; flex-direction: column; gap: 0.3rem; padding: 1.15rem 1.5rem; text-align: left; background: rgba(255,252,245,0.9); border: 1px solid #e3d5b8; border-radius: 12px; box-shadow: 0 1px 2px rgba(60,45,20,0.06), 0 6px 18px rgba(60,45,20,0.08); cursor: pointer; transition: transform 0.2s, border-color 0.2s; } .ds-marco__cartao:active { transform: scale(0.985); border-color: #b8893b; } .ds-marco__titulo { font-family: \"EB Garamond\", Garamond, Georgia, serif; font-size: 1.55rem; font-weight: 500; color: #1d3461; } .ds-marco__desc { font-family: \"EB Garamond\", Garamond, Georgia, serif; font-size: 1.25rem; color: #6e6352; } .ds-marco__link { font-family: \"Cinzel\", \"Trajan Pro\", Georgia, serif; font-size: 0.95rem; letter-spacing: 0.12em; text-transform: uppercase; color: #86601f; }"
+    },
+    {
+      "name": "Divisor com losango",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "Filete dourado com losango central; separa título e subtítulo.",
+      "html": "<svg class=\"ds-divisor\" viewBox=\"0 0 300 12\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><line x1=\"0\" y1=\"6\" x2=\"138\" y2=\"6\" stroke=\"#b8893b\" stroke-width=\"1\"/><line x1=\"162\" y1=\"6\" x2=\"300\" y2=\"6\" stroke=\"#b8893b\" stroke-width=\"1\"/><path d=\"M150 0 L156 6 L150 12 L144 6 Z\" fill=\"#b8893b\"/></svg>",
+      "css": ".ds-divisor { display: block; width: 22rem; height: 12px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "O Livro de Honra",
+    "overview": "O totem é um álbum solene e encadernado da instituição, aberto no hall de entrada. O fundo é papel de arquivo creme com aquarelas difusas e uma textura de fibra quase imperceptível. Os títulos são inscrições em capitulares romanas (Cinzel), o texto corre numa Garamond de livro e a ornamentação se limita ao que um encadernador usaria: filetes dourados, um losango no centro do divisor, ramos de louro desenhados e uma onda azul com fio de ouro fechando o rodapé, como a borda de uma capa.\n\nO clima é **solene e acolhedor** ao mesmo tempo. Solene porque trata da memória da instituição com respeito: tinta azul profunda, ouro contido, nenhuma informalidade. Acolhedor porque o papel é quente, os cantos são suaves e cada elemento tocável responde ao dedo. Quem passa com pressa precisa entender em segundos o que é e onde tocar, por isso a ornamentação nunca disputa atenção com a hierarquia.\n\nQuando o acervo entra em cena (lightbox, player, proteção de tela), o livro se fecha e a sala escurece: o fundo vira a noite de exposição, a interface recua e só restam controles brancos e o ouro desbotado nos anos.",
+    "keyCharacteristics": [
+      "Papel creme com aquarela e textura; nunca branco puro como fundo de página.",
+      "Tinta azul-marinho para títulos e ações, ouro para filetes e ornamentos.",
+      "Cinzel em caixa alta e espaçada para títulos; EB Garamond para leitura e anos.",
+      "Ornamento de encadernação: filete, losango, louro e onda com fio de ouro.",
+      "Duas atmosferas: o livro claro para navegar e a sala escura para o acervo.",
+      "Superfícies quase planas que respondem ao toque com firmeza."
+    ],
+    "rules": [
+      {
+        "name": "A Regra do Ouro que Não Fala",
+        "body": "O Ouro de Lombada desenha, mas não escreve. Todo texto dourado sobre papel usa o Ouro Gravado.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra da Tinta Única",
+        "body": "Só existe um azul de ação. Nenhum segundo acento compete com a Tinta Ferrogálica nas telas claras.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra da Inscrição",
+        "body": "Cinzel só em caixa alta e sempre com espaçamento positivo (de 0.06em a 0.12em). Nunca em frases longas.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra do Mínimo de Longe",
+        "body": "Nenhum texto lido no totem fica abaixo de 0.95rem; os textos de leitura ficam a partir de 1.2rem.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra do Papel Pousado",
+        "body": "Uma superfície nunca ganha mais que a sombra de Repouso parada. A sombra mais funda só aparece como resposta ao toque.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** usar Ouro Gravado em todo texto dourado sobre papel, e Ouro de Lombada só em linhas, ícones e ornamentos.",
+      "**Do** dar a todo elemento tocável um `:active` visível (escala, borda dourada ou fundo mais claro), porque não existe hover.",
+      "**Do** manter alvos de no mínimo 3.5rem com 0.75rem de folga.",
+      "**Do** escrever os anos em EB Garamond com algarismos alinhados.",
+      "**Do** escurecer para a Noite de Exposição quando o acervo ocupa a tela inteira (lightbox, player, proteção de tela).",
+      "**Do** respeitar `prefers-reduced-motion`; as animações existentes são curtas e com saída exponencial (`cubic-bezier(0.22, 1, 0.36, 1)`)."
+    ],
+    "donts": [
+      "**Don't** recolorir, distorcer, aplicar filtro ou mudar a proporção do logo oficial da UNDB.",
+      "**Don't** usar Ouro de Lombada em texto pequeno sobre o papel (2,75:1).",
+      "**Don't** usar fundo branco puro nas telas claras; a página é sempre papel.",
+      "**Don't** escrever frases longas em Cinzel nem usar Cinzel sem caixa alta.",
+      "**Don't** aumentar sombras além da de Repouso em superfícies paradas.",
+      "**Don't** carregar fontes, ícones ou scripts de CDN: tudo precisa funcionar offline."
+    ]
+  }
+}

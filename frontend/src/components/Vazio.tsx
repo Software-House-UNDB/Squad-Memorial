@@ -1,9 +1,11 @@
-import { Brasao } from "./Ornamentos";
+import type { ReactNode } from "react";
 
-export function Vazio({ texto }: { texto: string }) {
+/** Seção sem conteúdo: o ícone da própria seção, um filete e o aviso. */
+export function Vazio({ texto, icone }: { texto: string; icone: ReactNode }) {
   return (
     <div className="vazio">
-      <Brasao tamanho={56} className="vazio__brasao" />
+      <span className="vazio__icone" aria-hidden>{icone}</span>
+      <span className="vazio__filete" aria-hidden />
       <p>{texto}</p>
     </div>
   );

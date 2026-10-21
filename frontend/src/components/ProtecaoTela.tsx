@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTotem } from "../hooks/useTotem";
-import { Brasao, Divisor } from "./Ornamentos";
+import { Divisor, Logo } from "./Ornamentos";
 
 const INTERVALO = 8000;
 
@@ -72,7 +72,7 @@ export function ProtecaoTela({ aoTocar }: { aoTocar: () => void }) {
         </div>
       )}
       <div className="protecao__chamada">
-        <Brasao tamanho={72} />
+        <Logo variante="claro" className="protecao__logo" />
         <h1>{data?.config.titulo ?? "Memorial"}</h1>
         <Divisor className="protecao__divisor" />
         <p className="protecao__toque">Toque na tela para explorar</p>

@@ -1,13 +1,34 @@
 import type { CSSProperties } from "react";
+import logoBranca from "../assets/logoundbbranca.png";
+import logoCinza from "../assets/logoundbcinza.png";
+import logoPreta from "../assets/logoundbpreta.png";
 
-export function Brasao({ tamanho = 56, className }: { tamanho?: number; className?: string }) {
+/**
+ * Logo oficial da UNDB. Os arquivos são usados como vieram: sem recolorir,
+ * sem filtro e sempre na proporção original (a altura vem do CSS, a largura acompanha).
+ * - "suave": cinza #363636, padrão nos fundos claros (contraste 9,9:1 sobre o papel)
+ * - "escuro": preta, para quando o fundo claro pedir contraste máximo
+ * - "claro": branca, para fundos escuros (proteção de tela)
+ */
+const LOGOS = {
+  suave: { src: logoCinza, w: 541, h: 163 },
+  escuro: { src: logoPreta, w: 541, h: 163 },
+  claro: { src: logoBranca, w: 552, h: 166 },
+} as const;
+
+export type VarianteLogo = keyof typeof LOGOS;
+
+export function Logo({ variante = "suave", className, decorativo = false }: {
+  variante?: VarianteLogo; className?: string; decorativo?: boolean;
+}) {
+  const { src, w, h } = LOGOS[variante];
   return (
     <img
-      src="/brasao.svg"
-      alt=""
-      width={tamanho}
-      height={tamanho * 1.125}
-      className={className}
+      src={src}
+      alt={decorativo ? "" : "UNDB Centro Universitário"}
+      width={w}
+      height={h}
+      className={`logo ${className ?? ""}`}
       draggable={false}
     />
   );
@@ -50,20 +71,6 @@ export function Divisor({ className }: { className?: string }) {
       <line x1="0" y1="6" x2="138" y2="6" stroke="var(--ouro)" strokeWidth="1" />
       <line x1="162" y1="6" x2="300" y2="6" stroke="var(--ouro)" strokeWidth="1" />
       <path d="M150 0 L156 6 L150 12 L144 6 Z" fill="var(--ouro)" />
-    </svg>
-  );
-}
-
-/** Arabesco que ladeia o brasão nos títulos. */
-export function Floreio({ espelhado = false }: { espelhado?: boolean }) {
-  return (
-    <svg viewBox="0 0 80 24" className="floreio" aria-hidden
-      style={{ transform: espelhado ? "scaleX(-1)" : undefined }}>
-      <path
-        d="M78 12 H46 C40 12 36 4 29 4 C22 4 20 12 26 14 C31 16 33 10 29 9 M46 12 C40 12 37 20 30 20 C24 20 18 16 14 12 H2"
-        fill="none" stroke="var(--ouro)" strokeWidth="1.4" strokeLinecap="round"
-      />
-      <circle cx="2" cy="12" r="1.8" fill="var(--ouro)" />
     </svg>
   );
 }

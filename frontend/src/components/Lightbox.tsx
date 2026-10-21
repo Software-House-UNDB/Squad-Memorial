@@ -32,9 +32,12 @@ export function Lightbox({ fotos, inicio, ano, titulo, aoFechar }: Props) {
     return () => window.removeEventListener("keydown", tecla);
   }, [ir, aoFechar]);
 
-  // Mantém a miniatura ativa visível na tira
+  // Mantém a miniatura ativa centralizada na tira (só rola a tira, nunca a página por baixo)
   useEffect(() => {
-    tiraRef.current?.children[i]?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    const tira = tiraRef.current;
+    const mini = tira?.children[i] as HTMLElement | undefined;
+    if (!tira || !mini) return;
+    tira.scrollTo({ left: mini.offsetLeft - tira.clientWidth / 2 + mini.clientWidth / 2, behavior: "smooth" });
   }, [i]);
 
   const inicioArrasto = (e: React.PointerEvent) => {
@@ -56,9 +59,11 @@ export function Lightbox({ fotos, inicio, ano, titulo, aoFechar }: Props) {
           <span className="lightbox__ano">{ano}</span>
           <span className="lightbox__titulo">{titulo}</span>
         </div>
-        <span className="lightbox__contador">{i + 1} / {fotos.length}</span>
-        <button className="botao-redondo" onClick={aoFechar} aria-label="Fechar">
-          <X size={30} />
+        <span className="lightbox__contador" aria-live="polite">
+          {i + 1} <span aria-hidden>/</span><span className="sr-only"> de </span> {fotos.length}
+        </span>
+        <button className="botao-redondo" onClick={aoFechar} aria-label="Fechar fotos">
+          <X size={34} aria-hidden />
         </button>
       </div>
 
@@ -72,7 +77,7 @@ export function Lightbox({ fotos, inicio, ano, titulo, aoFechar }: Props) {
       >
         {fotos.length > 1 && (
           <button className="lightbox__seta lightbox__seta--esq" onClick={() => ir(-1)} aria-label="Anterior">
-            <ChevronLeft size={44} />
+            <ChevronLeft size={48} aria-hidden />
           </button>
         )}
         <img
@@ -90,7 +95,7 @@ export function Lightbox({ fotos, inicio, ano, titulo, aoFechar }: Props) {
         />
         {fotos.length > 1 && (
           <button className="lightbox__seta lightbox__seta--dir" onClick={() => ir(1)} aria-label="Próxima">
-            <ChevronRight size={44} />
+            <ChevronRight size={48} aria-hidden />
           </button>
         )}
       </div>
@@ -109,7 +114,7 @@ export function Lightbox({ fotos, inicio, ano, titulo, aoFechar }: Props) {
               onClick={() => setI(idx)}
               aria-label={`Foto ${idx + 1}`}
             >
-              <img src={f.miniatura ?? ""} alt="" draggable={false} />
+              <img src={f.miniatura ?? ""} alt="" loading="lazy" draggable={false} />
             </button>
           ))}
         </div>

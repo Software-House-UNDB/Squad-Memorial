@@ -80,7 +80,7 @@ export function PlayerVideo({ video, aoFechar }: { video: Video; aoFechar: () =>
           {video.descricao && <p className="player__desc">{video.descricao}</p>}
         </div>
         <button className="botao-redondo" onClick={aoFechar} aria-label="Fechar vídeo">
-          <X size={30} />
+          <X size={34} aria-hidden />
         </button>
       </div>
 
@@ -93,14 +93,14 @@ export function PlayerVideo({ video, aoFechar }: { video: Video; aoFechar: () =>
         (!tocando || terminou) && (
           <button className="player__centro player__grande" onClick={alternar}
             aria-label={terminou ? "Assistir novamente" : "Reproduzir"}>
-            {terminou ? <RotateCcw size={56} /> : <Play size={60} fill="currentColor" />}
+            {terminou ? <RotateCcw size={56} aria-hidden /> : <Play size={60} fill="currentColor" aria-hidden />}
           </button>
         )
       )}
 
       <div className="player__barra">
         <button className="player__botao" onClick={alternar} aria-label={tocando ? "Pausar" : "Reproduzir"}>
-          {tocando ? <Pause size={30} fill="currentColor" /> : <Play size={30} fill="currentColor" />}
+          {tocando ? <Pause size={32} fill="currentColor" aria-hidden /> : <Play size={32} fill="currentColor" aria-hidden />}
         </button>
         <span className="player__tempo">{duracao(tempo)}</span>
         <input

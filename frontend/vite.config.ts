@@ -11,7 +11,7 @@ export default defineConfig({
     VitePWA({
       registerType: "prompt", // o app decide quando recarregar (só quando o totem está ocioso)
       injectRegister: false,
-      includeAssets: ["brasao.svg"],
+      includeManifestIcons: false, // os ícones já entram pelo globPatterns (png)
       manifest: {
         name: "Memorial UNDB",
         short_name: "Memorial",
@@ -21,10 +21,15 @@ export default defineConfig({
         background_color: "#f5efe3",
         theme_color: "#1d3461",
         start_url: "/",
-        icons: [{ src: "brasao.svg", sizes: "any", type: "image/svg+xml", purpose: "any" }],
+        icons: [
+          { src: "icone-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "icone-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: "icone-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+        ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,woff2}"],
+        // png: logos da UNDB e ícones precisam estar no precache para o modo offline
+        globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api\//, /^\/admin/, /^\/media\//, /^\/static\//],
         cleanupOutdatedCaches: true,

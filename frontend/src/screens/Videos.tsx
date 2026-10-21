@@ -26,7 +26,7 @@ export function Videos() {
       <TituloSecao titulo="Vídeos" subtitulo="Depoimentos e registros históricos" icone={<Film size={34} strokeWidth={1.4} />} />
 
       {videos.length === 0 ? (
-        <Vazio texto="Os vídeos do memorial estarão disponíveis em breve." />
+        <Vazio texto="Os vídeos do memorial estarão disponíveis em breve." icone={<Film size={40} strokeWidth={1.4} />} />
       ) : (
         <>
           {categorias.length > 1 && (
