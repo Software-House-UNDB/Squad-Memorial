@@ -28,13 +28,15 @@ services:
       db:
         condition: service_healthy
 
+  # nginx com o build do frontend do totem embutido (ver nginx/Dockerfile)
   nginx:
-    image: nginx:1.27-alpine
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
     restart: unless-stopped
     ports:
       - "${HTTP_PORT:-8080}:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - media:/var/www/media:ro
       - static:/var/www/static:ro
     depends_on:

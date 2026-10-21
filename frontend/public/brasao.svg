@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 72">
+  <!-- Brasão provisório. Substitua por public/brasao.svg com o logo oficial da UNDB. -->
+  <path d="M32 2 L60 10 V34 C60 52 47 64 32 70 C17 64 4 52 4 34 V10 Z" fill="#1d3461" stroke="#b8893b" stroke-width="3"/>
+  <path d="M32 8 L54 14.5 V34 C54 48.5 44 58.5 32 63.5 C20 58.5 10 48.5 10 34 V14.5 Z" fill="none" stroke="#d8b878" stroke-width="1"/>
+  <g fill="none" stroke="#f5efe3" stroke-width="2.6" stroke-linejoin="round">
+    <path d="M18 24 H46 V46 H18 Z"/>
+    <path d="M32 24 V46 M18 35 H46"/>
+  </g>
+  <circle cx="32" cy="35" r="3.2" fill="#d8b878"/>
+</svg>

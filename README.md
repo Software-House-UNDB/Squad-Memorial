@@ -1,13 +1,17 @@
-# Memorial UNDB — backend do totem
+# Memorial UNDB — totem
 
-Django + DRF servem o conteúdo, PostgreSQL guarda os dados e o Nginx entrega
-fotos e vídeos direto do disco. O conteúdo é cadastrado pelo `/admin`.
+O app do totem é React + Vite (PWA com cache offline). Django + DRF servem o
+conteúdo, PostgreSQL guarda os dados e o Nginx entrega o app, as fotos e os
+vídeos. O conteúdo é cadastrado pelo `/admin`.
 
 ```
-nginx :8080 ──┬── /media/  → volume "media" (fotos e vídeos)
-              ├── /static/ → volume "static" (CSS do admin)
-              └── /        → backend (gunicorn :8000) → db (postgres)
+nginx :8080 ──┬── /             → app do totem (build do frontend/, embutido na imagem)
+              ├── /media/       → volume "media" (fotos e vídeos)
+              ├── /static/      → volume "static" (CSS do admin)
+              └── /api, /admin  → backend (gunicorn :8000) → db (postgres)
 ```
+
+No totem, basta abrir `http://<ip-do-servidor>:8080/` no navegador quiosque.
 
 ## Subir
 
@@ -17,6 +21,7 @@ docker compose up -d --build
 docker compose exec backend python manage.py carregar_exemplo   # opcional: dados de teste
 ```
 
+- Totem: http://localhost:8080/
 - Admin: http://localhost:8080/admin (usuário do `.env`)
 - API:   http://localhost:8080/api/totem/
 
@@ -66,16 +71,48 @@ Exemplo de período em `/api/totem/`:
 `icone` é uma chave (`predio`, `livro`, `ciencia`, `tecnologia`, `camera`,
 `formatura`, `estrela`, `pessoas`); o frontend mapeia para o SVG.
 
+## Frontend do totem (`frontend/`)
+
+Telas: **Início**, **História** (linha do tempo), **Fotos** (galeria por
+período, com visualizador em tela cheia e deslizar para os lados) e **Vídeos**
+(filtros por categoria, player com controles grandes). Funciona em tela
+horizontal ou vertical.
+
+Comportamento de quiosque:
+
+- **Inatividade**: sem toque por `segundos_inatividade`, volta ao início, fecha
+  fotos/vídeos abertos e liga a **proteção de tela** (fotos do acervo em
+  sequência). Enquanto um vídeo toca, o contador fica pausado.
+- **Conteúdo novo**: a cada `segundos_atualizacao` o app consulta
+  `/api/totem/versao/`. Se mudou, baixa tudo, mas só troca o conteúdo quando o
+  totem está ocioso, para não mudar a tela debaixo do dedo de ninguém.
+- **Offline**: o app, os dados, as miniaturas e as capas ficam no cache do
+  service worker. Se o servidor cair, o totem continua funcionando e mostra um
+  selo discreto "offline" no canto. Vídeos e fotos em tamanho grande que não
+  estavam em cache não abrem (a foto cai para a miniatura).
+- **Nova versão do app**: quando você publica um build novo, ele é instalado
+  sozinho no próximo período ocioso.
+- Sem zoom por pinça, sem menu de toque longo, sem arrastar imagens.
+
+**Logo**: o brasão em `frontend/public/brasao.svg` é provisório. Troque pelo
+logo oficial da UNDB (mesmo nome de arquivo) e rode o build de novo.
+
+### Desenvolvimento do frontend
+
+Com o `docker compose` rodando (para ter a API em :8080):
+
+```bash
+cd frontend
+npm install
+npm run dev          # http://localhost:5173, com /api e /media apontando para :8080
+```
+
+Para apontar para outro servidor: `VITE_BACKEND=http://192.168.0.10:8080 npm run dev`.
+
+Depois de mudar o frontend, `docker compose up -d --build nginx` gera o build
+novo dentro da imagem do nginx.
+
 ## Recomendações para o totem Android
-
-**Fluxo de dados sugerido para o frontend**
-
-1. Ao abrir, busca `/api/totem/` e guarda no cache (Service Worker / IndexedDB).
-2. A cada `config.segundos_atualizacao`, consulta `/api/totem/versao/`. Só
-   recarrega quando o valor mudar.
-3. Se a rede cair, continua exibindo o cache, então o totem nunca fica em branco.
-4. Sem toque por `config.segundos_inatividade`, volta para a tela inicial
-   (e mostra a proteção de tela, se `descanso_ativo`).
 
 **Vídeos**: padronize antes de subir. Isso evita vídeo que não toca e arquivo gigante:
 
