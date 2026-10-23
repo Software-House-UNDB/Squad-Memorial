@@ -88,3 +88,9 @@
   transition: transform 160ms var(--curva);
 }
 .m-seta .ico { width: 1.3em; height: 1.3em; }
+/* ===== fluido: rótulos longos quebram em vez de vazar da tela ===== */
+.fluido .m-btn { white-space: normal; text-align: center; line-height: 1.15; padding: .55em 1.4em; max-width: 100%; }
+.fluido .m-btn--g { padding: .55em 1.8em; font-size: 1.05rem; }
+.fluido .m-redondo { font-size: 12px; }
+.fluido .m-redondo .disco .ico { width: 24px; height: 24px; }
+.fluido .m-seta .ico { width: 20px; height: 20px; }

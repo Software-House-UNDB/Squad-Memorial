@@ -7,3 +7,8 @@
   padding-right: 24px;
   -webkit-mask-image: linear-gradient(#000 86%, transparent); mask-image: linear-gradient(#000 86%, transparent);
 }
+/* ===== fluido ===== */
+.fluido .t-conquistas .conquistas-lado { position: static; width: auto; gap: 16px; }
+.fluido .t-conquistas .conquistas-lado .m-titulo-area h1 { font-size: var(--tipo-secao); width: auto; }
+.fluido .t-conquistas .conquistas-lado p { font-size: 19px; }
+.fluido .t-conquistas .conquistas-lista { position: static; padding: 0; -webkit-mask-image: none; mask-image: none; }

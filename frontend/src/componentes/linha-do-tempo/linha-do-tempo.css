@@ -17,3 +17,14 @@
 }
 .m-no .ico { width: 1.5em; height: 1.5em; }
 .m-tempo .fila.is-atual .m-no { background: var(--cor-tinta); border-color: var(--cor-tinta); color: var(--cor-ouro-desbotado); }
+/* ===== fluido estreito: o ano sobe para cima do cartão, ao lado do nó ===== */
+@media (max-width: 699px) {
+  .fluido .m-tempo { gap: 1.25rem; padding: 1.25rem 0 .5rem; }
+  .fluido .m-tempo::before { top: 1.75rem; bottom: 2rem; left: 19px; }
+  .fluido .m-tempo .fila { grid-template-columns: 40px minmax(0, 1fr); grid-template-areas: "no ano" "no cartao"; column-gap: 12px; row-gap: 8px; align-items: start; }
+  .fluido .m-tempo .fila > .ano { grid-area: ano; text-align: left; align-self: center; }
+  .fluido .m-tempo .fila > .m-no { grid-area: no; width: 40px; height: 40px; }
+  .fluido .m-tempo .fila > .m-marco { grid-area: cartao; }
+  .fluido .m-no .ico { width: 20px; height: 20px; }
+}
+.fluido .m-trilho-rolagem { display: none; }

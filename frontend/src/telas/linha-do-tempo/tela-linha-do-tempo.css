@@ -28,3 +28,24 @@
 
 .t-linha-do-tempo .lista::-webkit-scrollbar { display: none; }
 .t-linha-do-tempo .lista-vazia { display: grid; place-items: center; height: 100%; }
+/* ===== fluido: índice de décadas preso no alto, o período e depois os marcos ===== */
+.fluido .t-linha-do-tempo .decadas {
+  position: sticky; top: -1.25rem; height: auto; flex: none;
+  margin: -1.25rem calc(-1 * var(--margem-tela)) 0; padding: 12px var(--margem-tela); gap: 10px;
+}
+.fluido .t-linha-do-tempo .decadas .rot { display: none; }
+.fluido .t-linha-do-tempo .tempo-corpo { position: static; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+.fluido .t-linha-do-tempo .periodo { padding-top: 0; gap: 12px; }
+.fluido .t-linha-do-tempo .periodo h1 { font-size: clamp(26px, 7vw, 40px); }
+.fluido .t-linha-do-tempo .faixa-anos { font-size: 19px; }
+.fluido .t-linha-do-tempo .periodo-foto { height: auto; aspect-ratio: 16 / 9; }
+.fluido .t-linha-do-tempo .periodo-nav { margin-top: 4px; }
+.fluido .t-linha-do-tempo .decada-nav { width: 100%; justify-content: space-between; }
+.fluido .t-linha-do-tempo .lista-moldura { border-top: 1px solid var(--cor-vinco); }
+.fluido .t-linha-do-tempo .lista { position: static; padding: 0; -webkit-mask-image: none; mask-image: none; }
+
+@media (min-width: 1000px) and (orientation: landscape) {
+  .fluido .t-linha-do-tempo .tempo-corpo { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 40px; align-items: start; }
+  .fluido .t-linha-do-tempo .periodo { position: sticky; top: 92px; }
+  .fluido .t-linha-do-tempo .lista-moldura { border-top: 0; }
+}

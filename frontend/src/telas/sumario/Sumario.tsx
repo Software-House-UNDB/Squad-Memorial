@@ -40,7 +40,7 @@ export function Sumario() {
             {areas.map((a) => (
               <li key={a.id}>
                 <button type="button" className="item" onClick={() => ir(a.rota)}>
-                  <Medalha icone={a.icone} tamanho={68} />
+                  <Medalha icone={a.icone} />
                   <span className="txt"><b>{a.nome}</b><span>{a.descricao}</span></span>
                   {a.contagem && <em>{a.contagem}</em>}
                   <SetaToque />

@@ -59,3 +59,31 @@
 .t-galeria .doc-txt em { font: 500 var(--tipo-rotulo)/1 var(--fonte-inscricao); font-style: normal; letter-spacing: .12em; text-transform: uppercase; color: var(--cor-ouro-gravado); }
 
 .t-galeria .galeria-vazia { display: grid; place-items: center; min-height: 600px; }
+/* ===== fluido: filtros numa linha que desliza; cada período em bloco, a tira em três colunas ===== */
+.fluido .t-galeria .filtros {
+  position: static; gap: 10px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x;
+  margin: 0 calc(-1 * var(--margem-tela)); padding: 0 var(--margem-tela) 2px;
+}
+.fluido .t-galeria .filtros::-webkit-scrollbar { display: none; }
+.fluido .t-galeria .filtros .rot { flex: none; margin-right: 4px; }
+.fluido .t-galeria .periodos { position: static; padding: 0; gap: 28px; -webkit-mask-image: none; mask-image: none; }
+.fluido .t-galeria .per { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.fluido .t-galeria .per-cab { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 14px; row-gap: 4px; align-items: center; padding-top: 0; }
+.fluido .t-galeria .per-cab .escudo { grid-row: 1 / span 2; width: 42px; height: 48px; padding-bottom: 10px; font-size: 18px; }
+.fluido .t-galeria .per-cab b { font-size: 26px; }
+.fluido .t-galeria .per-cab .nome { grid-column: 2; font-size: 17px; }
+.fluido .t-galeria .per-cab em { grid-column: 3; grid-row: 1; font-size: 12px; white-space: nowrap; }
+.fluido .t-galeria .tira, .fluido .t-galeria .grade { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding-top: 12px; }
+.fluido .t-galeria .foto .ano-foto { left: 5px; bottom: 5px; padding: 3px 5px; font-size: 13px; }
+.fluido .t-galeria .mais b { font-size: 24px; }
+.fluido .t-galeria .mais span { font-size: 11px; }
+.fluido .t-galeria .docs { grid-template-columns: minmax(0, 1fr); gap: 10px; padding-top: 12px; }
+.fluido .t-galeria .doc { grid-template-columns: 56px minmax(0, 1fr); gap: 14px; padding: 10px 14px 10px 10px; }
+.fluido .t-galeria .doc-folha { width: 56px; height: 72px; }
+.fluido .t-galeria .doc-folha .ico { width: 26px; height: 26px; }
+.fluido .t-galeria .galeria-vazia { min-height: 40dvh; }
+
+@media (min-width: 700px) {
+  .fluido .t-galeria .tira, .fluido .t-galeria .grade { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+  .fluido .t-galeria .docs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

@@ -34,3 +34,8 @@
   background: var(--cor-noite);
 }
 .t-carga img { height: 120px; width: auto; }
+/* no fluido a etiqueta mora no Topo, à direita da marca, longe do conteúdo e das abas */
+.fluido .etiqueta-global { top: calc(env(safe-area-inset-top) + 16px); bottom: auto; right: var(--margem-tela); z-index: 6; padding: 5px 8px; font-size: 10.5px; line-height: 1.15; max-width: 9.5em; text-align: center; }
+@media (min-width: 700px) { .fluido .etiqueta-global { max-width: none; top: calc(env(safe-area-inset-top) + 21px); } }
+.fluido .t-carga { gap: 32px; padding: 24px; }
+.fluido .t-carga img { height: 64px; }

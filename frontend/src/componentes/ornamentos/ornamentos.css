@@ -22,3 +22,7 @@
   font: 600 var(--tipo-secao)/1.05 var(--fonte-inscricao);
   letter-spacing: .07em; text-transform: uppercase; color: var(--cor-tinta);
 }
+/* fluido: a onda vira a crista da barra de abas (ver topo.css) */
+.fluido .m-onda { display: none; }
+.fluido .louro { width: 20px; height: 34px; }
+.fluido .m-titulo-area { gap: 8px; }

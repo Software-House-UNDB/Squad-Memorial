@@ -5,3 +5,14 @@
 /* Voltar sempre no mesmo lugar: canto inferior esquerdo, logo acima da faixa da onda
    (telas de área e de consulta). No livro aberto (detalhe), fica na faixa inferior de navegação. */
 .voltar-fixo { position: absolute; left: var(--margem-tela); bottom: 150px; z-index: 2; }
+/* ===== fluido: o corpo vira uma coluna que rola entre o Topo e as abas ===== */
+.fluido .tela-corpo {
+  inset: var(--altura-topo) 0 var(--altura-abas) 0;
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  display: flex; flex-direction: column; gap: 1.5rem;
+  padding: 1.25rem var(--margem-tela) 2rem;
+}
+.fluido .tela-corpo::-webkit-scrollbar { display: none; }
+.fluido .tela-corpo > * { flex: none; }
+.fluido .voltar-fixo { position: static; order: 99; padding-top: .25rem; }

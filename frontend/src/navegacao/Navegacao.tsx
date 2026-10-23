@@ -188,7 +188,10 @@ export function useMemoriaTela<T>(chave: string, inicial: T | (() => T)): [T, (v
 export function useRolagemMemorizada(ref: React.RefObject<HTMLElement | null>, chave: string, deps: unknown[] = []) {
   const { lerMemoria, gravarMemoria } = useNavegacao();
   useEffect(() => {
-    const el = ref.current;
+    // no palco fluido quem rola é o corpo da tela inteira, não a lista
+    const el = document.documentElement.classList.contains('fluido')
+      ? ref.current?.closest<HTMLElement>('.tela-corpo') ?? ref.current
+      : ref.current;
     if (!el) return;
     const salvo = lerMemoria<number>(`rolagem:${chave}`);
     el.scrollTop = salvo ?? 0;

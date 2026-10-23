@@ -181,6 +181,7 @@ A escala parte do menor lado da tela: `html { font-size: clamp(15px, 0.85vmin + 
 - **Duas orientações**, trocadas por `@media (orientation: portrait)`:
   - **Deitado:** o Topo põe a marca à esquerda e as abas à direita; os cartões do Início ficam em 3 colunas; cada período da galeria tem o texto numa coluna de 12rem e a tira de fotos ao lado.
   - **Em pé:** o Topo centraliza a marca e põe as abas numa linha de largura total; os cartões do Início empilham em linhas horizontais (ícone, texto, seta); o texto do período fica acima da tira de fotos.
+- **Palco fluido (celular, tablet, totem em pé):** o palco fixo de 1920×1080 só é usado com a tela deitada e escala de pelo menos 0,62. Nos outros casos o `<html>` recebe a classe `fluido`: as telas viram uma coluna que rola entre o Topo (só a marca, e a trilha a partir de 700px) e uma barra de abas em Tinta Ferrogálica fixa embaixo, com a crista da onda e o fio de ouro. Na barra, alvos de 56px ou mais. `?palco=fixo|fluido` força um dos modos.
 - **Ritmo:** os grupos internos são apertados (0.3–0.6rem); entre cartões, 1.25–1.5rem; entre blocos, 2rem. O Início é centralizado verticalmente e reserva 14vh embaixo para a onda.
 - **Acervo grande:** com 9 ou mais períodos, um índice de décadas fica fixo no topo da rolagem. A galeria mostra 11 miniaturas por período e um bloco "+N fotos".
 - **Toque:** todo alvo mede no mínimo 3.5rem (60px deitado, 77px em pé), com pelo menos 0.75rem de folga entre vizinhos.

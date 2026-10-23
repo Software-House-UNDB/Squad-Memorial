@@ -34,6 +34,7 @@ export function TelaLinhaDoTempo({ periodoInicial }: { periodoInicial?: string }
     const el = listaRef.current?.querySelector<HTMLElement>(`[data-marco="${id}"]`);
     if (el && listaRef.current) {
       const c = listaRef.current;
+      if (c.scrollHeight <= c.clientHeight) { el.scrollIntoView({ block: 'center' }); return; } // palco fluido
       const topo = el.offsetTop - c.clientHeight / 2 + el.offsetHeight / 2;
       if (topo > c.scrollTop + c.clientHeight - el.offsetHeight || topo < c.scrollTop - el.offsetHeight) c.scrollTop = Math.max(0, topo);
     }
@@ -43,6 +44,7 @@ export function TelaLinhaDoTempo({ periodoInicial }: { periodoInicial?: string }
     if (id === periodoId) return;
     setPeriodoId(id);
     listaRef.current?.scrollTo({ top: 0 });
+    if (document.documentElement.classList.contains('fluido')) listaRef.current?.closest('.tela-corpo')?.scrollTo({ top: 0 });
   };
 
   return (

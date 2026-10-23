@@ -5,6 +5,7 @@
  *   ?aviso=20&contagem=5   (segundos)
  *   ?lightbox=10           (segundos)
  *   ?diag                  (painel de diagnóstico de densidade e escala)
+ *   ?palco=fixo|fluido     (força o palco escalado ou o layout fluido)
  *   ?semtelacheia          (não pedir tela cheia no primeiro toque)
  */
 
@@ -29,6 +30,12 @@ export const quiosque = {
 
   /** Palco lógico de referência, em px CSS (= dp no WebView Android). */
   palco: { largura: 1920, altura: 1080 },
+
+  /**
+   * auto: palco fixo e escalado no totem deitado; fluido (layout em coluna) em celular, tablet,
+   * totem em pé e janelas pequenas. ?palco=fixo ou ?palco=fluido forçam um dos modos.
+   */
+  modoPalco: (['fixo', 'fluido'].includes(parametros.get('palco') ?? '') ? parametros.get('palco') : 'auto') as 'auto' | 'fixo' | 'fluido',
 
   inatividade: {
     /** Sem toque por este tempo, aparece o aviso "Ainda está aí?". DESIGN.md: 90s. */

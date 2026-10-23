@@ -21,3 +21,9 @@
   .m-painel { transform: none; opacity: 0; transition: opacity 120ms; }
   .m-painel-camada.is-aberto .m-painel { opacity: 1; }
 }
+/* ===== fluido: o painel cobre a tela inteira abaixo do Topo e rola sozinho ===== */
+.fluido .m-painel-camada { z-index: 20; }
+.fluido .m-painel { width: 100%; border-left: 0; box-shadow: none; }
+@media (min-width: 700px) { .fluido .m-painel { width: min(100%, 560px); border-left: 1px solid var(--cor-vinco); box-shadow: -24px 0 60px rgb(14 19 33 / .25); } }
+.fluido .m-painel-topo { padding: 12px var(--margem-tela) 0; }
+html.fluido .m-painel-corpo.rola { overflow-y: auto; overscroll-behavior: contain; padding: 12px var(--margem-tela) calc(32px + env(safe-area-inset-bottom)); gap: 1rem; }

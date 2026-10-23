@@ -62,3 +62,30 @@ button:disabled { cursor: default; }
 @media (prefers-reduced-motion: reduce) {
   .tela-entra { animation: none; }
 }
+/* ===== palco fluido =====
+   Fora do totem deitado o palco ocupa a tela real (ver quiosque/Palco.tsx). Cada tela troca as
+   posições absolutas do palco de 1920×1080 por uma coluna que rola inteira, com as abas embaixo. */
+html.fluido { font-size: 16px; }
+@media (min-width: 700px) { html.fluido { font-size: 17px; } }
+@media (min-width: 1000px) and (orientation: portrait) { html.fluido { font-size: 20px; } }
+
+html.fluido .palco {
+  --tipo-display: clamp(2.6rem, 12vw, 6rem);
+  --tipo-secao: clamp(1.9rem, 7.4vw, 3.4rem);
+  --tipo-titulo: 1.6rem;
+  --tipo-ano: 1.6rem;
+  --tipo-marco: 1.2rem;
+  --tipo-texto: 1.1rem;
+  --tipo-legenda: 1rem;
+  --tipo-botao: .95rem;
+  --toque-minimo: 56px;
+  --toque-conforto: 64px;
+  --toque-escuro: 56px;
+  --altura-topo: calc(60px + env(safe-area-inset-top));
+  --altura-abas: calc(68px + env(safe-area-inset-bottom));
+  --margem-tela: 16px;
+}
+@media (min-width: 700px) { html.fluido .palco { --margem-tela: 32px; } }
+
+/* no fluido o corpo da tela é quem rola; as listas internas só fluem */
+html.fluido .rola { overflow: visible; overscroll-behavior: auto; }

@@ -44,6 +44,8 @@ export function registrarErro(mensagem: string) {
 
 export async function pedirTelaCheia() {
   if (!quiosque.telaCheiaNoPrimeiroToque) return;
+  // celular, tablet e totem em pé: não toma a tela nem trava a orientação de quem visita
+  if (document.documentElement.classList.contains('fluido')) return;
   try {
     if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
       await document.documentElement.requestFullscreen({ navigationUI: 'hide' });

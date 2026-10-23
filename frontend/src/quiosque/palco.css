@@ -34,3 +34,5 @@
 }
 .diagnostico b { color: var(--cor-ouro-desbotado); font-weight: 600; }
 .diagnostico .alerta { color: #f0b3a8; }
+/* Palco fluido (celular, tablet, totem em pé): ocupa a tela real, sem escala. */
+.palco--fluido { left: 0; top: 0; width: 100%; height: 100%; }

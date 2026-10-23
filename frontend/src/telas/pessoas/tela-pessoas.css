@@ -17,3 +17,17 @@
 .t-pessoas .m-painel .aparece { display: grid; gap: 12px; }
 .t-pessoas .m-painel .rotulo { font: 500 var(--tipo-rotulo)/1.2 var(--fonte-inscricao); letter-spacing: var(--espaco-inscricao); text-transform: uppercase; color: var(--cor-ouro-gravado); }
 .t-pessoas .m-painel .fonte { font: italic 400 17px/1.4 var(--fonte-livro); color: var(--cor-sepia-esmaecida); border-top: 1px solid var(--cor-vinco); padding-top: 16px; }
+/* ===== fluido ===== */
+.fluido .t-pessoas .pessoas-cab { position: static; width: auto; flex-wrap: wrap; gap: 6px 16px; }
+.fluido .t-pessoas .pessoas-cab .m-titulo-area h1 { font-size: var(--tipo-secao); }
+.fluido .t-pessoas .pessoas-cab i { font-size: 18px; }
+.fluido .t-pessoas .grade-pessoas { position: static; width: auto; padding: 0; -webkit-mask-image: none; mask-image: none; }
+.fluido .t-pessoas .grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; }
+@media (min-width: 560px) { .fluido .t-pessoas .grade { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 900px) { .fluido .t-pessoas .grade { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+.fluido .t-pessoas .m-painel .retrato { gap: 18px; }
+.fluido .t-pessoas .m-painel h2 { font-size: 24px; }
+.fluido .t-pessoas .m-painel .papel { font-size: 18px; margin-top: 4px; }
+.fluido .t-pessoas .m-painel .bio { font-size: 18px; }
+.fluido .t-pessoas .m-painel .fonte { font-size: 15px; }
