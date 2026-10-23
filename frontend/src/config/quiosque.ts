@@ -21,6 +21,12 @@ export const quiosque = {
   /** Endereço da API. Vazio = mesmo servidor que entrega o app (nginx). */
   api: (import.meta.env.VITE_API_URL as string | undefined) ?? '',
 
+  /**
+   * Modo demonstração: sem servidor. O app usa o acervo de exemplo embutido (dados/acervo-demo.ts).
+   * Ligue com VITE_MODO_DEMO=1 no build (ex.: variável de ambiente do Vercel).
+   */
+  demo: (import.meta.env.VITE_MODO_DEMO as string | undefined) === '1',
+
   /** Palco lógico de referência, em px CSS (= dp no WebView Android). */
   palco: { largura: 1920, altura: 1080 },
 

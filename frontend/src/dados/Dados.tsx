@@ -11,6 +11,7 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
 import { aplicarConfigServidor, quiosque } from '../config/quiosque';
 import { useNavegacao } from '../navegacao/Navegacao';
 import { CONFIG_PADRAO, configTotem, definirAcervo } from './acervo';
+import { acervoDemo } from './acervo-demo';
 import type { RespostaTotem } from './tipos';
 
 export type Conexao = 'carregando' | 'online' | 'offline';
@@ -81,10 +82,18 @@ function aplicar(r: RespostaTotem) {
 }
 
 // A cópia guardada é aplicada já na carga do módulo: a capa abre sem esperar a rede.
-const inicial = lerCache();
-if (inicial) aplicar(inicial);
+// No modo demonstração (sem servidor) vale o acervo de exemplo embutido no app.
+const DEMO = quiosque.demo;
+const inicial = DEMO ? null : lerCache();
+if (DEMO) definirAcervo(acervoDemo);
+else if (inicial) aplicar(inicial);
 
 export function DadosProvider({ children }: { children: ReactNode }) {
+  if (DEMO) return <Contexto.Provider value={{ versao: 'demo', conexao: 'online' }}>{children}</Contexto.Provider>;
+  return <DadosServidor>{children}</DadosServidor>;
+}
+
+function DadosServidor({ children }: { children: ReactNode }) {
   const { livro } = useNavegacao();
   const [versao, setVersao] = useState<string | null>(inicial?.versao ?? null);
   const [conexao, setConexao] = useState<Conexao>('carregando');
