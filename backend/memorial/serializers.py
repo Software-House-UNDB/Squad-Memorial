@@ -12,9 +12,11 @@ from .models import (
 
 
 def _url(request, campo):
+    # URL relativa (/media/...): o navegador resolve contra a origem do app, que pode ser o nginx
+    # do compose ou o Vercel (que repassa /media ao servidor). Absoluta quebraria atrás de túnel/proxy.
     if not campo:
         return None
-    return request.build_absolute_uri(campo.url) if request else campo.url
+    return campo.url
 
 
 def _fonte(obj):

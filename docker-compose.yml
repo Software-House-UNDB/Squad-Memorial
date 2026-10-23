@@ -42,6 +42,20 @@ services:
     depends_on:
       - backend
 
+  # Túnel https para o Vercel alcançar o servidor (opcional):
+  #   docker compose --profile tunel up -d
+  # Precisa de TUNNEL_TOKEN no .env (Cloudflare Zero Trust > Networks > Tunnels).
+  # No painel do túnel, aponte o hostname público para http://nginx:80
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles: ["tunel"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    depends_on:
+      - nginx
+
 volumes:
   pgdata:
   media:
