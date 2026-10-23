@@ -1,0 +1,9 @@
+.t-conquistas .conquistas-lado { position: absolute; left: var(--margem-tela); width: 470px; top: 52px; display: grid; gap: 22px; justify-items: start; }
+.t-conquistas .conquistas-lado .m-titulo-area { align-items: flex-start; }
+.t-conquistas .conquistas-lado .m-titulo-area h1 { font-size: 52px; width: min-content; }
+.t-conquistas .conquistas-lado p { font: italic 400 24px/1.35 var(--fonte-livro); color: var(--cor-sepia-esmaecida); max-width: 26ch; }
+.t-conquistas .conquistas-lista {
+  position: absolute; left: calc(var(--margem-tela) + 550px); right: var(--margem-tela); top: 20px; bottom: 120px;
+  padding-right: 24px;
+  -webkit-mask-image: linear-gradient(#000 86%, transparent); mask-image: linear-gradient(#000 86%, transparent);
+}

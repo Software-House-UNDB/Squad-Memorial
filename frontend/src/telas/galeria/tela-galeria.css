@@ -1,0 +1,61 @@
+.t-galeria .filtros { position: absolute; left: var(--margem-tela); right: var(--margem-tela); top: 34px; display: flex; align-items: center; gap: 14px; }
+.t-galeria .filtros .rot { font: 500 var(--tipo-rotulo)/1 var(--fonte-inscricao); letter-spacing: .14em; text-transform: uppercase; color: var(--cor-ouro-gravado); margin-right: 12px; }
+
+.t-galeria .periodos {
+  position: absolute; left: var(--margem-tela); right: calc(var(--margem-tela) - 20px); top: 134px; bottom: 240px;
+  display: grid; gap: 22px; align-content: start; padding: 0 20px 60px 0;
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 90px), transparent calc(100% - 20px)); mask-image: linear-gradient(#000 calc(100% - 90px), transparent calc(100% - 20px));
+}
+.t-galeria .per { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 40px; align-items: start; }
+.t-galeria .per-cab { display: grid; gap: 10px; padding-top: 6px; }
+.t-galeria .per-cab .escudo {
+  width: 50px; height: 58px; padding-bottom: 12px;
+  display: grid; place-items: center;
+  background: var(--cor-tinta); color: var(--cor-ouro-desbotado);
+  clip-path: polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%);
+  font: 500 21px/1 var(--fonte-livro);
+}
+.t-galeria .per-cab b { font: 500 38px/1 var(--fonte-livro); color: var(--cor-tinta); }
+.t-galeria .per-cab .nome { font: 400 20px/1.3 var(--fonte-livro); color: var(--cor-sepia-esmaecida); }
+.t-galeria .per-cab em { font: 500 var(--tipo-rotulo)/1 var(--fonte-inscricao); font-style: normal; letter-spacing: .12em; text-transform: uppercase; color: var(--cor-ouro-gravado); }
+
+.t-galeria .tira, .t-galeria .grade {
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px;
+  border-top: 1px solid var(--cor-vinco); padding-top: 18px;
+}
+.t-galeria .foto { position: relative; aspect-ratio: 3 / 2; border-radius: var(--raio-miniatura); overflow: hidden; box-shadow: var(--sombra-repouso); transition: transform var(--dur-toque) var(--curva), box-shadow var(--dur-toque) var(--curva); }
+.t-galeria .foto .placa { width: 100%; height: 100%; }
+.t-galeria .foto:active { transform: scale(.97); box-shadow: var(--sombra-toque); }
+.t-galeria .foto .ano-foto {
+  position: absolute; left: 8px; bottom: 8px; padding: 5px 8px; border-radius: 4px;
+  background: rgb(14 19 33 / .6); color: var(--cor-papel);
+  font: 500 16px/1 var(--fonte-livro); font-variant-numeric: lining-nums;
+}
+.t-galeria .mais {
+  aspect-ratio: 3 / 2; border-radius: var(--raio-miniatura);
+  border: 1.5px solid var(--cor-ouro-desbotado); background: var(--cor-folha-solida);
+  display: grid; place-content: center; justify-items: center; gap: 6px;
+  transition: transform var(--dur-toque) var(--curva);
+}
+.t-galeria .mais:active { transform: scale(.97); background: var(--cor-papel-envelhecido); }
+.t-galeria .mais b { font: 500 34px/1 var(--fonte-livro); color: var(--cor-tinta); }
+.t-galeria .mais span { font: 500 var(--tipo-rotulo)/1 var(--fonte-inscricao); letter-spacing: .12em; text-transform: uppercase; color: var(--cor-ouro-gravado); }
+
+.t-galeria .per-vazio { border-top: 1px solid var(--cor-vinco); padding-top: 22px; font: italic 400 var(--tipo-legenda)/1.35 var(--fonte-livro); color: var(--cor-sepia-esmaecida); }
+
+.t-galeria .docs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; border-top: 1px solid var(--cor-vinco); padding-top: 18px; }
+.t-galeria .doc {
+  display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 20px; align-items: center; text-align: left;
+  padding: 14px 18px 14px 14px; border-radius: var(--raio-cartao);
+  background: var(--cor-folha); border: 1px solid var(--cor-vinco); box-shadow: var(--sombra-repouso);
+  transition: transform var(--dur-toque) var(--curva), border-color var(--dur-toque) var(--curva);
+}
+.t-galeria .doc:active { transform: scale(.98); border-color: var(--cor-ouro); }
+.t-galeria .doc-folha { width: 76px; height: 96px; border-radius: 4px; background: var(--cor-papel-envelhecido); border: 1px solid var(--cor-vinco); display: grid; place-items: center; color: var(--cor-ouro-gravado); }
+.t-galeria .doc-folha .ico { width: 34px; height: 34px; }
+.t-galeria .doc-txt { display: grid; gap: 6px; }
+.t-galeria .doc-txt b { font: 500 var(--tipo-marco)/1.2 var(--fonte-livro); color: var(--cor-tinta); }
+.t-galeria .doc-txt span { font: 400 var(--tipo-legenda)/1.3 var(--fonte-livro); color: var(--cor-sepia-esmaecida); }
+.t-galeria .doc-txt em { font: 500 var(--tipo-rotulo)/1 var(--fonte-inscricao); font-style: normal; letter-spacing: .12em; text-transform: uppercase; color: var(--cor-ouro-gravado); }
+
+.t-galeria .galeria-vazia { display: grid; place-items: center; min-height: 600px; }

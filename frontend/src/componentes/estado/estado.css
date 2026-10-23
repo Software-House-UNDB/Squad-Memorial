@@ -1,0 +1,27 @@
+.m-estado {
+  display: grid; justify-items: center; text-align: center; gap: .9em;
+  width: 24rem; max-width: 100%; padding: 2.2rem 2rem;
+  background: var(--cor-folha); border: 1px solid var(--cor-vinco); border-radius: var(--raio-cartao);
+}
+.m-estado h3 { font: 600 1.25em/1.25 var(--fonte-inscricao); letter-spacing: .08em; text-transform: uppercase; color: var(--cor-tinta); }
+.m-estado .m-medalha--lacre + h3 { color: var(--cor-lacre); }
+.m-estado p { font: italic 400 1.2em/1.4 var(--fonte-livro); color: var(--cor-sepia-esmaecida); }
+.m-estado .acoes { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--folga-toque); margin-top: .2em; }
+
+.m-estado--escuro { background: rgb(255 255 255 / .06); border-color: rgb(255 255 255 / .18); }
+.m-estado--escuro h3, .m-estado--escuro .m-medalha--lacre + h3 { color: #fff; }
+.m-estado--escuro p { color: rgb(255 255 255 / .86); }
+.m-estado--escuro .m-medalha { background: transparent; border-color: var(--cor-ouro-desbotado); }
+.m-estado--escuro .m-medalha .ico { color: var(--cor-ouro-desbotado); }
+/* erro continua em Lacre também no escuro: disco de Folha Sólida para o Lacre manter 7,6:1.
+   O título fica branco na Mesa porque Lacre sobre a Mesa não tem contraste de leitura. */
+.m-estado--escuro .m-medalha--lacre { background: var(--cor-folha-solida); border-color: var(--cor-lacre); }
+.m-estado--escuro .m-medalha--lacre .ico { color: var(--cor-lacre); }
+
+.m-losangos { display: flex; gap: .8em; height: 4em; align-items: center; }
+.m-losangos i { width: .9em; height: .9em; transform: rotate(45deg); background: var(--cor-ouro); animation: pulsa 1.4s var(--curva) infinite; }
+.m-losangos i:nth-child(2) { animation-delay: .18s; }
+.m-losangos i:nth-child(3) { animation-delay: .36s; }
+@keyframes pulsa { 0%, 100% { opacity: .25; } 40% { opacity: 1; } }
+
+.tela-erro-geral { position: absolute; inset: 0; display: grid; place-items: center; background: var(--cor-papel); }

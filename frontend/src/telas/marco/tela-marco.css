@@ -1,0 +1,40 @@
+.t-marco .livro {
+  position: absolute; left: var(--margem-tela); right: var(--margem-tela); top: 40px; bottom: 160px;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  background: var(--cor-folha); border: 1px solid var(--cor-vinco); border-radius: var(--raio-cartao);
+  box-shadow: var(--sombra-repouso);
+}
+.t-marco .livro::before {
+  content: ""; position: absolute; left: 50%; top: 24px; bottom: 24px; width: 1px;
+  background: var(--cor-vinco); box-shadow: 0 0 18px 6px rgb(60 45 20 / .06);
+}
+
+.t-marco .pag-esq { padding: 44px 48px 36px; display: grid; grid-template-rows: minmax(0, 1fr) auto auto; gap: 16px; min-height: 0; }
+.t-marco .foto-grande { position: relative; display: block; width: 100%; height: 100%; min-height: 0; border-radius: var(--raio-miniatura); overflow: hidden; }
+.t-marco .foto-grande .placa { width: 100%; height: 100%; }
+.t-marco .foto-grande .ampliar {
+  position: absolute; right: 14px; bottom: 14px; display: inline-flex; align-items: center; gap: 8px;
+  min-height: var(--toque-minimo); padding: 0 18px; border-radius: var(--raio-pilula);
+  background: rgb(14 19 33 / .62); color: #fff;
+  font: 600 var(--tipo-rotulo)/1 var(--fonte-inscricao); letter-spacing: .12em; text-transform: uppercase;
+}
+.t-marco .foto-grande:active .ampliar { background: rgb(14 19 33 / .8); }
+.t-marco .foto-grande--vazia { display: grid; place-items: center; background: var(--cor-papel); }
+.t-marco .legenda { font: italic 400 19px/1.35 var(--fonte-livro); color: var(--cor-sepia-esmaecida); }
+.t-marco .legenda b { font: 500 16px/1 var(--fonte-inscricao); font-style: normal; letter-spacing: .12em; text-transform: uppercase; color: var(--cor-ouro-gravado); margin-right: 10px; }
+.t-marco .miniaturas { -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent); mask-image: linear-gradient(90deg, #000 90%, transparent); display: flex; gap: 14px; overflow-x: auto; overscroll-behavior: contain; touch-action: pan-x; scrollbar-width: none; padding: 5px; margin: -5px; }
+.t-marco .miniaturas::-webkit-scrollbar { display: none; }
+.t-marco .mini { flex: none; width: 118px; height: 84px; border-radius: var(--raio-miniatura); overflow: hidden; transition: transform var(--dur-toque) var(--curva); }
+.t-marco .mini .placa { width: 100%; height: 100%; }
+.t-marco .mini:active { transform: scale(.95); }
+.t-marco .mini.is-sel { outline: 3px solid var(--cor-ouro); outline-offset: 3px; }
+.t-marco .mini-doc { width: 84px; display: grid; place-items: center; background: var(--cor-papel-envelhecido); border: 1px solid var(--cor-vinco); color: var(--cor-ouro-gravado); }
+.t-marco .mini-doc .ico { width: 34px; height: 34px; }
+
+.t-marco .pag-dir { padding: 52px 64px 40px 72px; display: grid; align-content: start; gap: 22px; }
+.t-marco .rel { display: flex; flex-wrap: wrap; gap: 14px; }
+.t-marco .fonte-marco { font: italic 400 17px/1.4 var(--fonte-livro); color: var(--cor-sepia-esmaecida); }
+
+.t-marco .navpe { position: absolute; left: var(--margem-tela); right: var(--margem-tela); bottom: 44px; display: flex; align-items: center; gap: 28px; }
+.t-marco .navpe .m-pag { flex: 1; }
+.t-marco .marco-indisponivel { position: absolute; inset: 0; display: grid; place-items: center; }

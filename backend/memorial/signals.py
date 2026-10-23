@@ -2,7 +2,7 @@ from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from .media import capturar_quadro, ler_metadados_video
-from .models import Foto, Video
+from .models import Foto, PaginaDocumento, Video
 
 
 def _apagar(*campos):
@@ -65,3 +65,17 @@ def video_processar(sender, instance, **kwargs):
 @receiver(post_delete, sender=Video)
 def video_apagar_arquivos(sender, instance, **kwargs):
     _apagar(instance.arquivo, instance.capa)
+
+
+@receiver(pre_save, sender=PaginaDocumento)
+def pagina_limpar_antiga(sender, instance, **kwargs):
+    if not instance.pk:
+        return
+    antiga = PaginaDocumento.objects.filter(pk=instance.pk).first()
+    if antiga and antiga.arquivo.name != instance.arquivo.name:
+        _apagar(antiga.arquivo)
+
+
+@receiver(post_delete, sender=PaginaDocumento)
+def pagina_apagar_arquivo(sender, instance, **kwargs):
+    _apagar(instance.arquivo)

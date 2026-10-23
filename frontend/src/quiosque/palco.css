@@ -1,0 +1,36 @@
+.moldura-palco {
+  position: fixed;
+  inset: 0;
+  background: var(--cor-noite);
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+.palco {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: 50% 50%;
+  overflow: hidden;
+  background: var(--cor-papel);
+  color: var(--cor-sepia);
+  contain: layout paint;
+}
+
+.diagnostico {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 9999;
+  display: grid;
+  gap: 4px;
+  max-width: 420px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgb(14 19 33 / .9);
+  color: #fff;
+  font: 400 15px/1.35 ui-monospace, Menlo, Consolas, monospace;
+  pointer-events: none;
+}
+.diagnostico b { color: var(--cor-ouro-desbotado); font-weight: 600; }
+.diagnostico .alerta { color: #f0b3a8; }

@@ -1,0 +1,16 @@
+.t-retorno {
+  position: absolute; inset: 0; z-index: 50;
+  background: rgb(14 19 33 / .95);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  display: grid; place-items: center;
+  animation: aviso-entra var(--dur-abrir) var(--curva) both;
+}
+@keyframes aviso-entra { from { opacity: 0; } to { opacity: 1; } }
+.t-retorno .aviso { width: 1100px; display: grid; justify-items: center; text-align: center; gap: 30px; color: #fff; }
+.t-retorno img { height: 56px; width: auto; }
+.t-retorno h2 { font: 600 84px/1.05 var(--fonte-inscricao); letter-spacing: .07em; color: #fff; }
+.t-retorno p { font: italic 400 32px/1.35 var(--fonte-livro); color: rgb(255 255 255 / .86); }
+.t-retorno p b { font-style: normal; font-weight: 500; color: var(--cor-ouro-desbotado); }
+.t-retorno .ampulheta { width: 620px; height: 4px; background: rgb(255 255 255 / .18); border-radius: 2px; overflow: hidden; }
+.t-retorno .ampulheta i { display: block; height: 100%; background: var(--cor-ouro-desbotado); transform-origin: 0 50%; transition: transform 100ms linear; }
+.t-retorno .botoes { display: flex; gap: 24px; margin-top: 10px; font-size: 20px; }

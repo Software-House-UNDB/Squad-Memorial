@@ -1,0 +1,41 @@
+.m-topo {
+  position: absolute; left: 0; right: 0; top: 0; z-index: 5;
+  height: var(--altura-topo);
+  display: flex; align-items: center; gap: 1.4em;
+  padding: 0 2.8em;
+  background: rgb(245 239 227 / .94);
+  border-bottom: 1px solid var(--cor-vinco);
+}
+
+.m-marca { flex: none; display: flex; align-items: center; gap: 1em; min-height: var(--toque-minimo); padding-right: .5em; }
+.m-marca img { height: 2.3em; width: auto; }
+.m-marca .fil { width: 1.5px; height: 2.3em; background: var(--cor-ouro); }
+.m-marca b { font: 600 1.45em/1 var(--fonte-inscricao); letter-spacing: .1em; color: var(--cor-tinta); }
+.m-marca:active b { color: var(--cor-tinta-diluida); }
+
+.m-trilha { flex: none; display: flex; align-items: center; white-space: nowrap; margin-left: .6em; }
+.m-trilha .passo { display: inline-flex; align-items: center; gap: .3em; }
+.m-trilha .passo + .passo { margin-left: .3em; }
+.m-trilha .ico { width: .9em; height: .9em; color: var(--cor-ouro); }
+.m-trilha span, .m-trilha button { font: italic 400 1.2em/1 var(--fonte-livro); color: var(--cor-sepia-esmaecida); }
+.m-trilha button { min-height: var(--toque-minimo); padding: 0 .35em; border-radius: 6px; }
+.m-trilha button:active { color: var(--cor-tinta); background: var(--cor-papel-envelhecido); }
+.m-trilha b { font: 500 1.2em/1 var(--fonte-livro); color: var(--cor-tinta); padding: 0 .35em; }
+
+
+.m-abas { margin-left: auto; display: flex; gap: .4em; align-items: center; flex: none; }
+.m-aba {
+  position: relative; flex: none; white-space: nowrap;
+  min-height: var(--toque-minimo); padding: 0 1.15em;
+  display: inline-flex; align-items: center; gap: .55em;
+  border-radius: var(--raio-aba);
+  font: 500 1em/1 var(--fonte-inscricao); letter-spacing: .11em; text-transform: uppercase;
+  color: var(--cor-tinta);
+  transition: background-color var(--dur-toque) var(--curva);
+}
+.m-aba .ico { color: var(--cor-ouro); width: 1.3em; height: 1.3em; }
+.m-aba.is-sel { font-weight: 600; }
+.m-aba.is-sel::after { content: ""; position: absolute; left: 1.15em; right: 1.15em; bottom: .45em; height: 3px; border-radius: 2px; background: var(--cor-ouro); }
+.m-aba:active { background: var(--cor-papel-envelhecido); }
+.m-aba--inicio { background: var(--cor-folha-solida); border: 1px solid var(--cor-vinco); }
+.m-aba:focus-visible, .m-marca:focus-visible, .m-trilha button:focus-visible { outline: 3px solid var(--cor-foco); outline-offset: 2px; }

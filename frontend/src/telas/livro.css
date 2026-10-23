@@ -1,0 +1,36 @@
+.livro { position: absolute; inset: 0; perspective: 2600px; }
+.livro-pagina { position: absolute; inset: 0; }
+
+/* acervo demonstrativo: etiqueta discreta no canto, fora de qualquer alvo de toque.
+   Some no lightbox, que traz a própria etiqueta na foto. */
+.livro:has(.m-lightbox) .etiqueta-global { display: none; }
+.etiqueta-global {
+  position: absolute; right: 12px; bottom: 8px; z-index: 45; pointer-events: none;
+  padding: 6px 10px; border-radius: 4px;
+  background: rgb(14 19 33 / .62); color: var(--cor-papel);
+  font: 500 16px/1 var(--fonte-inscricao); letter-spacing: .12em; text-transform: uppercase;
+}
+
+.livro-capa {
+  position: absolute; inset: 0; z-index: 40;
+  transform-origin: 0 50%;
+  backface-visibility: hidden;
+  transition: transform var(--dur-livro) var(--curva), box-shadow var(--dur-livro) var(--curva);
+}
+.livro-capa.is-fechada { transform: none; box-shadow: none; }
+.livro-capa.is-aberta { transform: rotateY(-104deg); box-shadow: 24px 0 60px rgb(14 19 33 / .35); }
+/* durante o gesto, toques na capa são ignorados */
+.livro--abrindo .livro-capa, .livro--fechando .livro-capa { pointer-events: none; }
+.livro--abrindo .livro-capa.is-fechada, .livro--fechando .livro-capa.is-aberta { box-shadow: 24px 0 60px rgb(14 19 33 / .35); }
+
+@media (prefers-reduced-motion: reduce) {
+  .livro-capa { transition: opacity 120ms linear; }
+  .livro-capa.is-aberta { transform: none; opacity: 0; }
+}
+
+/* Primeira abertura, sem cópia guardada do acervo: o tecido da capa com o logo e o estado de carga. */
+.t-carga {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 56px;
+  background: var(--cor-noite);
+}
+.t-carga img { height: 120px; width: auto; }

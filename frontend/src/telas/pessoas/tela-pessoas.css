@@ -1,0 +1,19 @@
+.t-pessoas .pessoas-cab { position: absolute; left: var(--margem-tela); width: 1060px; top: 44px; display: flex; align-items: center; justify-content: space-between; }
+.t-pessoas .pessoas-cab .m-titulo-area h1 { font-size: 52px; }
+.t-pessoas .pessoas-cab i { font: italic 400 22px/1 var(--fonte-livro); color: var(--cor-sepia-esmaecida); }
+
+.t-pessoas .grade-pessoas { position: absolute; left: var(--margem-tela); width: 1080px; top: 140px; bottom: 230px; padding: 4px 20px 24px 0;
+  -webkit-mask-image: linear-gradient(#000 92%, transparent); mask-image: linear-gradient(#000 92%, transparent); }
+.t-pessoas .grade { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+.t-pessoas .grade .m-pessoa { width: 100%; }
+
+
+/* painel */
+.t-pessoas .m-painel .retrato { display: flex; gap: 30px; align-items: center; }
+.t-pessoas .m-painel h2 { font: 600 34px/1.1 var(--fonte-inscricao); letter-spacing: .05em; color: var(--cor-tinta); text-transform: uppercase; }
+.t-pessoas .m-painel .papel { font: italic 400 24px/1.3 var(--fonte-livro); color: var(--cor-sepia-esmaecida); margin-top: 8px; }
+.t-pessoas .m-painel .bio { font: 400 22px/1.45 var(--fonte-livro); color: var(--cor-sepia); }
+.t-pessoas .m-painel .acoes { display: flex; gap: 14px; flex-wrap: wrap; }
+.t-pessoas .m-painel .aparece { display: grid; gap: 12px; }
+.t-pessoas .m-painel .rotulo { font: 500 var(--tipo-rotulo)/1.2 var(--fonte-inscricao); letter-spacing: var(--espaco-inscricao); text-transform: uppercase; color: var(--cor-ouro-gravado); }
+.t-pessoas .m-painel .fonte { font: italic 400 17px/1.4 var(--fonte-livro); color: var(--cor-sepia-esmaecida); border-top: 1px solid var(--cor-vinco); padding-top: 16px; }
