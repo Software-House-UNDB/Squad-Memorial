@@ -1,17 +1,16 @@
+from io import BytesIO
+
 from django import forms
 from django.contrib import admin, messages
+from django.http import HttpResponse
+from django.urls import path, reverse
+from django.utils import timezone
 from django.utils.html import format_html
 
-from .models import (
-    ConfiguracaoTotem, Depoimento, Documento, Foto, Marco, PaginaDocumento, Periodo, Pessoa, Video,
-)
+from .models import Aluno, ConfiguracaoMemorial, Foto, FotoAluno, Marco, Sala, Video
 
 CODECS_OK = {"h264", "vp8", "vp9"}
-
-CAMPOS_FONTE = ("Fonte e publicação", {
-    "fields": ["fonte", "fonte_url", "demonstrativo", "publicado", "ordem"],
-    "classes": ["collapse"],
-})
+TIPOS_VIDEO = ["Depoimento", "Documentário", "Acervo", "Institucional"]
 
 
 def _thumb(campo, altura=60):
@@ -20,8 +19,12 @@ def _thumb(campo, altura=60):
     return format_html('<img src="{}" style="height:{}px;border-radius:4px">', campo.url, altura)
 
 
-class AcervoAdmin(admin.ModelAdmin):
-    """Ações comuns: publicar, despublicar e marcar como conteúdo oficial."""
+def _duracao(segundos):
+    return f"{segundos // 60}:{segundos % 60:02d}" if segundos else "—"
+
+
+class ConteudoAdmin(admin.ModelAdmin):
+    """Ações comuns ao conteúdo das salas."""
 
     actions = ["publicar", "despublicar", "marcar_oficial"]
 
@@ -33,12 +36,27 @@ class AcervoAdmin(admin.ModelAdmin):
     def despublicar(self, request, qs):
         qs.update(publicado=False)
 
-    @admin.action(description="Marcar como conteúdo oficial (não demonstrativo)")
+    @admin.action(description="Marcar como conteúdo oficial (não é exemplo)")
     def marcar_oficial(self, request, qs):
         qs.update(demonstrativo=False)
 
 
-# ---------- envio de várias fotos de uma vez ----------
+class ListaSugestoes(forms.TextInput):
+    """Campo de texto livre com sugestões (datalist do HTML)."""
+
+    def __init__(self, opcoes, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.opcoes = opcoes
+
+    def render(self, name, value, attrs=None, renderer=None):
+        lista = f"{attrs.get('id', name)}_sugestoes" if attrs else f"{name}_sugestoes"
+        attrs = {**(attrs or {}), "list": lista}
+        campo = super().render(name, value, attrs, renderer)
+        opcoes = "".join(format_html('<option value="{}">', o) for o in self.opcoes)
+        return format_html('{}<datalist id="{}">{}</datalist>', campo, lista, format_html(opcoes))
+
+
+# ---------------------------------------------------------------- envio de várias fotos
 
 class MultiplosArquivosInput(forms.ClearableFileInput):
     allow_multiple_selected = True
@@ -56,122 +74,134 @@ class MultiplasImagensField(forms.ImageField):
         return [unico(data, initial)] if data else []
 
 
-class MarcoForm(forms.ModelForm):
+class SalaForm(forms.ModelForm):
     enviar_fotos = MultiplasImagensField(
         required=False, label="Adicionar fotos",
-        help_text="Selecione várias imagens de uma vez (Ctrl/Shift). A legenda de cada uma começa com o "
-        "título do marco e pode ser editada depois.",
+        help_text="Selecione várias imagens de uma vez (Ctrl/Shift). Todas recebem o ano abaixo; "
+        "revise as legendas depois em Fotos.",
+    )
+    ano_das_fotos = forms.IntegerField(
+        required=False, label="Ano das fotos", min_value=1900,
+        help_text="Obrigatório ao adicionar fotos: define o período de 5 anos em que elas aparecem.",
     )
 
     class Meta:
-        model = Marco
+        model = Sala
         fields = "__all__"
 
+    def clean(self):
+        dados = super().clean()
+        if dados.get("enviar_fotos") and not dados.get("ano_das_fotos"):
+            self.add_error("ano_das_fotos", "Informe o ano das fotos enviadas.")
+        return dados
 
-class FotoInline(admin.TabularInline):
-    model = Foto
-    fk_name = "marco"
+
+# ---------------------------------------------------------------- salas
+
+class MarcoInline(admin.TabularInline):
+    model = Marco
     extra = 0
-    fields = ["preview", "imagem", "legenda", "data_texto", "credito", "destaque", "ordem", "publicado"]
-    readonly_fields = ["preview"]
+    fields = ["ano", "titulo", "descricao", "icone", "destaque", "ordem", "publicado", "demonstrativo"]
     show_change_link = True
 
-    @admin.display(description="prévia")
-    def preview(self, obj):
-        return _thumb(obj.miniatura)
+
+class VideoForm(forms.ModelForm):
+    class Meta:
+        model = Video
+        fields = "__all__"
+        widgets = {"tipo": ListaSugestoes(TIPOS_VIDEO)}
 
 
-class VideoInline(admin.TabularInline):
+class VideoInline(admin.StackedInline):
     model = Video
-    fk_name = "marco"
+    form = VideoForm
     extra = 0
-    fields = ["titulo", "arquivo", "ordem", "publicado"]
+    fields = [("titulo", "tipo"), "descricao", "arquivo", ("destaque", "publicado", "demonstrativo", "ordem")]
     show_change_link = True
 
 
-class DocumentoInline(admin.TabularInline):
-    model = Documento
-    extra = 0
-    fields = ["titulo", "tipo", "data_texto", "publicado"]
-    show_change_link = True
-
-
-class DepoimentoInline(admin.StackedInline):
-    model = Depoimento
-    extra = 0
-    fields = ["texto", "autor", "vinculo", "autorizado", "publicado"]
-
-
-@admin.register(Periodo)
-class PeriodoAdmin(AcervoAdmin):
-    list_display = ["inicio", "fim", "titulo", "qtd_marcos", "capa", "demonstrativo", "publicado"]
-    list_display_links = ["inicio", "titulo"]
-    list_editable = ["publicado"]
-    search_fields = ["titulo", "descricao"]
-    autocomplete_fields = ["foto_capa"]
+@admin.register(Sala)
+class SalaAdmin(admin.ModelAdmin):
+    form = SalaForm
+    list_display = ["numero", "nome", "cor_amostra", "tipo", "qtd_marcos", "qtd_fotos", "qtd_videos", "ativa"]
+    list_display_links = ["numero", "nome"]
+    readonly_fields = ["endereco_totem"]
     fieldsets = [
-        (None, {"fields": ["inicio", "fim", "titulo", "descricao", "foto_capa"]}),
-        CAMPOS_FONTE,
+        (None, {"fields": ["numero", "slug", "nome", "titulo", "subtitulo", "cor", "tipo", "ativa", "endereco_totem"]}),
+        ("Fotos", {"fields": ["enviar_fotos", "ano_das_fotos"]}),
     ]
+
+    def has_add_permission(self, request):
+        return Sala.objects.count() < 5
+
+    def get_fieldsets(self, request, obj=None):
+        if obj and obj.tipo == Sala.Tipo.FECHAMENTO:
+            return self.fieldsets[:1]
+        return self.fieldsets
+
+    def get_inlines(self, request, obj):
+        if obj and obj.tipo == Sala.Tipo.FECHAMENTO:
+            return []
+        return [MarcoInline, VideoInline]
+
+    @admin.display(description="cor")
+    def cor_amostra(self, obj):
+        return format_html(
+            '<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:{};'
+            'vertical-align:middle"></span> {}', obj.cor, obj.cor,
+        )
+
+    @admin.display(description="endereço do totem")
+    def endereco_totem(self, obj):
+        if not obj or not obj.pk:
+            return "—"
+        return format_html("<code>/?sala={}</code> (abra este endereço no navegador quiosque do totem)", obj.numero)
 
     @admin.display(description="marcos")
     def qtd_marcos(self, obj):
-        return obj.marcos.count()
-
-    @admin.display(description="capa")
-    def capa(self, obj):
-        return _thumb(obj.foto_capa.miniatura if obj.foto_capa else None, 40)
-
-
-@admin.register(Marco)
-class MarcoAdmin(AcervoAdmin):
-    form = MarcoForm
-    list_display = ["ano", "titulo", "periodo", "tipo", "conquista", "qtd_fotos", "demonstrativo", "publicado"]
-    list_display_links = ["ano", "titulo"]
-    list_editable = ["conquista", "publicado"]
-    list_filter = ["periodo", "tipo", "conquista", "demonstrativo", "publicado"]
-    search_fields = ["titulo", "resumo", "narrativa"]
-    autocomplete_fields = ["pessoas"]
-    inlines = [FotoInline, VideoInline, DocumentoInline, DepoimentoInline]
-    fieldsets = [
-        (None, {"fields": ["ano", "data_texto", "periodo", "titulo", "tipo", "conquista"]}),
-        ("Texto", {"fields": ["resumo", "lede", "narrativa"]}),
-        ("Ligações", {"fields": ["pessoas", "enviar_fotos"]}),
-        CAMPOS_FONTE,
-    ]
+        return obj.marco_set.count()
 
     @admin.display(description="fotos")
     def qtd_fotos(self, obj):
-        return obj.fotos.count()
+        return obj.foto_set.count()
+
+    @admin.display(description="vídeos")
+    def qtd_videos(self, obj):
+        return obj.video_set.count()
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         arquivos = form.cleaned_data.get("enviar_fotos") or []
-        m = form.instance
-        base = m.fotos.order_by("-ordem").values_list("ordem", flat=True).first() or 0
+        ano = form.cleaned_data.get("ano_das_fotos")
+        sala = form.instance
+        base = sala.foto_set.order_by("-ordem").values_list("ordem", flat=True).first() or 0
         for i, arq in enumerate(arquivos, start=1):
-            Foto.objects.create(
-                marco=m, imagem=arq, ordem=base + i, legenda=f"{m.titulo}: fotografia {base + i}",
-                demonstrativo=m.demonstrativo,
-            )
+            Foto.objects.create(sala=sala, imagem=arq, ano=ano, ordem=base + i, legenda=f"Foto de {ano}")
         if arquivos:
-            messages.success(request, f"{len(arquivos)} foto(s) adicionada(s). Revise as legendas.")
+            messages.success(request, f"{len(arquivos)} foto(s) de {ano} adicionada(s). Revise as legendas em Fotos.")
+
+
+@admin.register(Marco)
+class MarcoAdmin(ConteudoAdmin):
+    list_display = ["ano", "titulo", "sala", "icone", "destaque", "demonstrativo", "publicado"]
+    list_display_links = ["ano", "titulo"]
+    list_filter = ["sala", "destaque", "demonstrativo", "publicado"]
+    list_editable = ["publicado"]
+    search_fields = ["titulo", "descricao"]
+    fields = ["sala", "ano", "titulo", "descricao", "icone", "destaque", "ordem", "publicado", "demonstrativo"]
 
 
 @admin.register(Foto)
-class FotoAdmin(AcervoAdmin):
-    list_display = ["preview", "__str__", "marco", "periodo", "destaque", "demonstrativo", "publicado"]
-    list_filter = ["periodo", "marco", "destaque", "demonstrativo", "publicado"]
-    list_editable = ["destaque", "publicado"]
+class FotoAdmin(ConteudoAdmin):
+    list_display = ["preview", "ano", "legenda", "sala", "demonstrativo", "publicado"]
+    list_display_links = ["preview", "legenda"]
+    list_filter = ["sala", "ano", "demonstrativo", "publicado"]
+    list_editable = ["publicado"]
     search_fields = ["legenda", "credito", "alt"]
-    autocomplete_fields = ["marco", "pessoas"]
     readonly_fields = ["preview_grande", "largura", "altura"]
     fieldsets = [
-        (None, {"fields": ["imagem", "preview_grande", "legenda", "alt", "credito"]}),
-        ("Quando e onde", {"fields": ["marco", "periodo", "data_texto", "ano"]}),
-        ("Quem aparece", {"fields": ["pessoas"]}),
-        ("Exibição", {"fields": ["destaque", "largura", "altura"]}),
-        CAMPOS_FONTE,
+        (None, {"fields": ["sala", "imagem", "preview_grande", "ano", "legenda", "alt", "credito"]}),
+        ("Exibição", {"fields": ["ordem", "publicado", "demonstrativo", "largura", "altura"]}),
     ]
 
     @admin.display(description="prévia")
@@ -184,18 +214,18 @@ class FotoAdmin(AcervoAdmin):
 
 
 @admin.register(Video)
-class VideoAdmin(AcervoAdmin):
-    list_display = ["preview", "titulo", "marco", "periodo", "duracao", "aviso_codec", "demonstrativo", "publicado"]
+class VideoAdmin(ConteudoAdmin):
+    form = VideoForm
+    list_display = ["preview", "titulo", "tipo", "sala", "duracao", "aviso_codec", "destaque", "demonstrativo", "publicado"]
     list_display_links = ["preview", "titulo"]
-    list_filter = ["periodo", "demonstrativo", "publicado"]
+    list_filter = ["sala", "tipo", "destaque", "demonstrativo", "publicado"]
     list_editable = ["publicado"]
     search_fields = ["titulo", "descricao"]
-    autocomplete_fields = ["marco"]
     readonly_fields = ["preview_grande", "duracao", "aviso_codec"]
     fieldsets = [
-        (None, {"fields": ["titulo", "descricao", "arquivo", "capa", "preview_grande", "duracao", "aviso_codec"]}),
-        ("Quando e onde", {"fields": ["marco", "periodo", "data_texto", "ano"]}),
-        CAMPOS_FONTE,
+        (None, {"fields": ["sala", "titulo", "tipo", "descricao", "destaque"]}),
+        ("Arquivos", {"fields": ["arquivo", "capa", "preview_grande", "legenda", "duracao", "aviso_codec"]}),
+        ("Exibição", {"fields": ["ordem", "publicado", "demonstrativo"]}),
     ]
 
     @admin.display(description="capa")
@@ -208,8 +238,7 @@ class VideoAdmin(AcervoAdmin):
 
     @admin.display(description="duração")
     def duracao(self, obj):
-        s = obj.duracao_segundos
-        return f"{s // 60}:{s % 60:02d}" if s else "—"
+        return _duracao(obj.duracao_segundos)
 
     @admin.display(description="formato")
     def aviso_codec(self, obj):
@@ -218,8 +247,8 @@ class VideoAdmin(AcervoAdmin):
         if obj.codec in CODECS_OK:
             return format_html('<span style="color:#2e7d32">{} ✓</span>', obj.codec)
         return format_html(
-            '<span style="color:#c62828" title="Pode não tocar no totem. Converta para MP4 H.264.">'
-            "{} ⚠</span>", obj.codec,
+            '<span style="color:#c62828" title="Pode não tocar no totem. Converta para MP4 H.264.">{} ⚠</span>',
+            obj.codec,
         )
 
     def save_model(self, request, obj, form, change):
@@ -233,72 +262,163 @@ class VideoAdmin(AcervoAdmin):
             )
 
 
-class PaginaInline(admin.TabularInline):
-    model = PaginaDocumento
-    extra = 1
-    fields = ["arquivo", "alt", "ordem"]
+# ---------------------------------------------------------------- ex-alunos
 
+class FotoAlunoInline(admin.TabularInline):
+    model = FotoAluno
+    extra = 0
+    fields = ["preview", "legenda", "ano", "status"]
+    readonly_fields = ["preview"]
+    can_delete = True
 
-@admin.register(Documento)
-class DocumentoAdmin(AcervoAdmin):
-    list_display = ["titulo", "tipo", "data_texto", "marco", "qtd_paginas", "demonstrativo", "publicado"]
-    list_filter = ["tipo", "demonstrativo", "publicado"]
-    list_editable = ["publicado"]
-    search_fields = ["titulo", "codigo_acervo", "transcricao"]
-    autocomplete_fields = ["marco"]
-    inlines = [PaginaInline]
-    fieldsets = [
-        (None, {"fields": ["titulo", "tipo", "data_texto", "ano", "codigo_acervo", "marco"]}),
-        ("Transcrição", {"fields": ["transcricao"]}),
-        CAMPOS_FONTE,
-    ]
+    def has_add_permission(self, request, obj=None):
+        return False  # fotos de ex-alunos chegam só pelo check-in
 
-    @admin.display(description="páginas")
-    def qtd_paginas(self, obj):
-        n = obj.paginas.count()
-        return n or "não digitalizado"
-
-
-@admin.register(Pessoa)
-class PessoaAdmin(AcervoAdmin):
-    list_display = ["preview", "nome", "papel", "verificado", "autorizacao_imagem", "demonstrativo", "publicado"]
-    list_display_links = ["preview", "nome"]
-    list_filter = ["verificado", "autorizacao_imagem", "demonstrativo", "publicado"]
-    search_fields = ["nome", "papel"]
-    autocomplete_fields = ["retrato"]
-    fieldsets = [
-        (None, {"fields": ["nome", "papel", "biografia"]}),
-        ("Retrato", {"fields": ["retrato", "autorizacao_imagem"]}),
-        ("Validação", {"fields": ["verificado"]}),
-        CAMPOS_FONTE,
-    ]
-
-    @admin.display(description="retrato")
+    @admin.display(description="foto")
     def preview(self, obj):
-        return _thumb(obj.retrato.miniatura if obj.retrato else None, 40)
+        return _thumb(obj.miniatura, 80)
 
 
-@admin.register(Depoimento)
-class DepoimentoAdmin(AcervoAdmin):
-    list_display = ["autor", "vinculo", "trecho", "marco", "autorizado", "demonstrativo", "publicado"]
-    list_filter = ["autorizado", "demonstrativo", "publicado"]
-    list_editable = ["autorizado", "publicado"]
-    search_fields = ["texto", "autor", "vinculo"]
-    autocomplete_fields = ["marco"]
+@admin.register(Aluno)
+class AlunoAdmin(admin.ModelAdmin):
+    """Ex-alunos. Excluir apaga também a foto de perfil e as fotos enviadas (pedido de remoção / LGPD)."""
+
+    list_display = ["nome", "ano", "turma", "status", "checkin_em", "fotos_pendentes", "origem", "demonstrativo"]
+    list_filter = ["status", "ano", "origem", "demonstrativo"]
+    search_fields = ["nome", "email"]
+    date_hierarchy = "checkin_em"
+    actions = ["aprovar", "ocultar"]
+    inlines = [FotoAlunoInline]
+    readonly_fields = ["avatar", "consentimento", "consentimento_em", "consentimento_versao", "checkin_em", "origem"]
     fieldsets = [
-        (None, {"fields": ["texto", "autor", "vinculo", "marco", "autorizado"]}),
-        CAMPOS_FONTE,
+        (None, {"fields": ["nome", "ano", "turma", "status"]}),
+        ("Contato (privado, nunca aparece no totem)", {"fields": ["email"]}),
+        ("Redes sociais (aparecem no perfil)", {"fields": ["instagram", "facebook"]}),
+        ("Foto de perfil", {"fields": ["foto", "avatar"]}),
+        ("Registro", {"fields": ["checkin_em", "origem", "consentimento", "consentimento_em", "consentimento_versao", "demonstrativo"]}),
     ]
 
-    @admin.display(description="depoimento")
-    def trecho(self, obj):
-        return obj.texto[:80]
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("fotos")
+
+    @admin.display(description="fotos pendentes")
+    def fotos_pendentes(self, obj):
+        n = sum(1 for f in obj.fotos.all() if f.status == FotoAluno.Status.PENDENTE)
+        return n or "—"
+
+    @admin.display(description="avatar")
+    def avatar(self, obj):
+        return _thumb(obj.foto, 96)
+
+    @admin.action(description="Aprovar (aparece na sala 5)")
+    def aprovar(self, request, qs):
+        n = qs.update(status=Aluno.Status.APROVADO)
+        messages.success(request, f"{n} perfil(is) aprovado(s).")
+
+    @admin.action(description="Ocultar da sala 5")
+    def ocultar(self, request, qs):
+        n = qs.update(status=Aluno.Status.OCULTO)
+        messages.success(request, f"{n} perfil(is) oculto(s).")
+
+    def save_model(self, request, obj, form, change):
+        if not change and not obj.consentimento:
+            obj.origem = Aluno.Origem.IMPORTADO
+        super().save_model(request, obj, form, change)
 
 
-@admin.register(ConfiguracaoTotem)
-class ConfiguracaoAdmin(admin.ModelAdmin):
+@admin.register(FotoAluno)
+class FotoAlunoAdmin(admin.ModelAdmin):
+    list_display = ["preview", "aluno", "ano", "legenda", "status", "criado_em"]
+    list_display_links = ["preview", "aluno"]
+    list_filter = ["status", "ano"]
+    list_editable = ["status"]
+    search_fields = ["aluno__nome", "legenda"]
+    actions = ["aprovar", "recusar"]
+    readonly_fields = ["preview_grande", "aluno", "largura", "altura"]
+    fields = ["aluno", "preview_grande", "legenda", "ano", "status", "largura", "altura"]
+
     def has_add_permission(self, request):
-        return not ConfiguracaoTotem.objects.exists()
+        return False  # chegam só pelo check-in
+
+    @admin.display(description="foto")
+    def preview(self, obj):
+        return _thumb(obj.miniatura, 64)
+
+    @admin.display(description="foto")
+    def preview_grande(self, obj):
+        return _thumb(obj.imagem, 360)
+
+    @admin.action(description="Aprovar (aparece no perfil)")
+    def aprovar(self, request, qs):
+        n = qs.update(status=FotoAluno.Status.APROVADA)
+        messages.success(request, f"{n} foto(s) aprovada(s).")
+
+    @admin.action(description="Recusar")
+    def recusar(self, request, qs):
+        n = qs.update(status=FotoAluno.Status.RECUSADA)
+        messages.success(request, f"{n} foto(s) recusada(s).")
+
+
+# ---------------------------------------------------------------- configuração e QR Code
+
+def endereco_checkin(request, config=None):
+    config = config or ConfiguracaoMemorial.atual()
+    return config.url_checkin or request.build_absolute_uri("/checkin")
+
+
+@admin.register(ConfiguracaoMemorial)
+class ConfiguracaoAdmin(admin.ModelAdmin):
+    readonly_fields = ["qr_code"]
+    fieldsets = [
+        (None, {"fields": ["nome", "ano_inicial"]}),
+        ("Totens", {"fields": ["segundos_inatividade", "segundos_contagem", "segundos_lightbox", "segundos_atualizacao", "videos_com_som"]}),
+        ("Check-in e privacidade", {"fields": ["url_checkin", "qr_code", "aprovar_perfis", "termo_texto", "termo_versao", "email_contato"]}),
+    ]
+
+    def has_add_permission(self, request):
+        return not ConfiguracaoMemorial.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def get_urls(self):
+        return [
+            path("qr.png", self.admin_site.admin_view(self.qr_png), name="memorial_qr_png"),
+            path("qr.svg", self.admin_site.admin_view(self.qr_svg), name="memorial_qr_svg"),
+            *super().get_urls(),
+        ]
+
+    @admin.display(description="QR Code do check-in")
+    def qr_code(self, obj):
+        png, svg = reverse("admin:memorial_qr_png"), reverse("admin:memorial_qr_svg")
+        return format_html(
+            '<img src="{}" alt="" style="width:180px;height:180px;background:#fff;border:1px solid #ddd"><br>'
+            '<a class="button" href="{}?baixar=1">Baixar PNG</a> '
+            '<a class="button" href="{}?baixar=1">Baixar SVG</a>'
+            '<p class="help">Para a placa de entrada. Salve a configuração antes de baixar, se mudou o endereço.</p>',
+            png, png, svg,
+        )
+
+    def _qr(self, request, fabrica, tipo, extensao):
+        import qrcode
+
+        dados = endereco_checkin(request)
+        img = qrcode.make(dados, image_factory=fabrica, box_size=20, border=4,
+                          error_correction=qrcode.constants.ERROR_CORRECT_M)
+        buf = BytesIO()
+        img.save(buf)
+        resposta = HttpResponse(buf.getvalue(), content_type=tipo)
+        if request.GET.get("baixar"):
+            data = timezone.localdate().isoformat()
+            resposta["Content-Disposition"] = f'attachment; filename="qr-checkin-memorial-{data}.{extensao}"'
+        return resposta
+
+    def qr_png(self, request):
+        from qrcode.image.pil import PilImage
+
+        return self._qr(request, PilImage, "image/png", "png")
+
+    def qr_svg(self, request):
+        from qrcode.image.svg import SvgPathFillImage
+
+        return self._qr(request, SvgPathFillImage, "image/svg+xml", "svg")

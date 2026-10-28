@@ -1,22 +1,39 @@
-"""Acervo do Memorial UNDB, no mesmo formato do Design System "Livro de Honra"
-(frontend/src/dados/tipos.ts): períodos, marcos, fotos, vídeos, documentos, pessoas e depoimentos.
+"""Memorial Dom Bosco Maria Izabel Rodrigues: cinco salas, um totem por sala.
+
+Salas 1 a 4 têm linha do tempo (Marco), fotos por período (Foto) e vídeos (Video).
+A sala 5 (fechamento) mostra os ex-alunos (Aluno) que fizeram check-in pelo celular, com as fotos
+que eles enviaram (FotoAluno) depois de aprovadas pela equipe.
 """
 
+import re
+import unicodedata
 import uuid
+from datetime import timedelta
 from pathlib import Path
 
-from django.core.validators import FileExtensionValidator
+from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
+from django.db.models import Q
+from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 
 from .media import gerar_versao_imagem
 
-FONTE_PADRAO = "Acervo institucional UNDB"
+ANO_MINIMO = 1900
+
+TERMO_PADRAO = (
+    "Autorizo a exibição do meu nome, ano, turma e redes informadas nos totens do Memorial. "
+    "As fotos enviadas só aparecem depois da aprovação da equipe. O e-mail nunca é mostrado e serve "
+    "apenas para contato do Memorial. Posso pedir a remoção dos meus dados a qualquer momento."
+)
 
 
 @deconstructible
 class _caminho:
-    """Nome de arquivo único preservando a extensão: evita colisão e acentos na URL."""
+    """Nome de arquivo único preservando a extensão: evita colisão e acentos na URL.
+
+    As migrações antigas (0001 a 0006) também usam esta classe; não remova.
+    """
 
     def __init__(self, pasta):
         self.pasta = pasta
@@ -29,9 +46,22 @@ class _caminho:
         return isinstance(other, _caminho) and other.pasta == self.pasta
 
 
-def paragrafos(texto):
-    """Texto do admin → lista de parágrafos (separados por linha em branco)."""
-    return [p.strip() for p in (texto or "").replace("\r\n", "\n").split("\n\n") if p.strip()]
+def normalizar(texto):
+    """Minúsculo, sem acento e com espaços simples: base da busca por nome."""
+    sem_acento = unicodedata.normalize("NFD", texto or "")
+    sem_acento = "".join(c for c in sem_acento if unicodedata.category(c) != "Mn")
+    return re.sub(r"\s+", " ", sem_acento).strip().lower()
+
+
+def chave_turma(turma):
+    """'3º A', '3o a' e '3ª A' viram '3a': compara turmas escritas de jeitos diferentes."""
+    t = normalizar(turma).replace("º", " ").replace("ª", " ").replace("°", " ")
+    t = re.sub(r"(\d)[oa]\s+(?=\S)", r"\1 ", t)  # "3o A" → "3 A" (o "a" de "3 A" é a turma, fica)
+    return re.sub(r"[^0-9a-z]", "", t)
+
+
+def ano_atual():
+    return timezone.localdate().year
 
 
 class Timestamped(models.Model):
@@ -42,140 +72,124 @@ class Timestamped(models.Model):
         abstract = True
 
 
-class ItemAcervo(Timestamped):
-    """Campos comuns a toda peça: fonte documental, marca de conteúdo demonstrativo e publicação."""
+class ItemSala(Timestamped):
+    """Campos comuns ao conteúdo das salas 1 a 4."""
 
-    fonte = models.CharField(
-        max_length=250, blank=True,
-        help_text=f'De onde vem a informação. Ex.: "Acervo institucional UNDB, caixa 12". Vazio = "{FONTE_PADRAO}".',
-    )
-    fonte_url = models.URLField("link da fonte", blank=True)
+    sala = models.ForeignKey("Sala", on_delete=models.CASCADE)
+    publicado = models.BooleanField(default=True)
     demonstrativo = models.BooleanField(
         default=False,
-        help_text="Conteúdo de demonstração, a ser substituído pelo acervo oficial. "
-        'Enquanto existir algum item assim, o totem mostra a etiqueta "Conteúdo demonstrativo".',
+        help_text='Conteúdo de exemplo. Enquanto a sala tiver algum item assim, o totem mostra o selo '
+        '"Conteúdo de exemplo" no rodapé.',
     )
-    publicado = models.BooleanField(default=True)
     ordem = models.PositiveIntegerField(default=0)
 
     class Meta:
         abstract = True
 
 
-# ---------------------------------------------------------------- períodos e marcos
+# ---------------------------------------------------------------- salas
 
-class Periodo(ItemAcervo):
-    """Uma década (ou intervalo) da linha do tempo, que agrupa marcos e fotos."""
-
-    inicio = models.PositiveSmallIntegerField("ano inicial")
-    fim = models.PositiveSmallIntegerField("ano final")
-    titulo = models.CharField("título", max_length=120)
-    descricao = models.TextField(
-        "descrição", blank=True,
-        help_text="Duas ou três frases de contexto sobre o período, sem repetir os marcos.",
-    )
-    foto_capa = models.ForeignKey(
-        "Foto", on_delete=models.SET_NULL, null=True, blank=True, related_name="+",
-        verbose_name="foto de capa",
-        help_text="Aparece na capa do totem e no Sumário. Se vazio, usa a primeira foto do período.",
-    )
-
-    class Meta:
-        ordering = ["inicio", "ordem", "id"]
-        verbose_name = "período"
-
-    def __str__(self):
-        return f"{self.inicio}–{self.fim} · {self.titulo}"
-
-    @classmethod
-    def para_ano(cls, ano):
-        """Período que contém o ano; cria a década se nenhum existir."""
-        p = cls.objects.filter(inicio__lte=ano, fim__gte=ano).order_by("inicio").first()
-        if p:
-            return p
-        decada = ano - ano % 10
-        return cls.objects.create(inicio=decada, fim=decada + 9, titulo=f"Anos {decada}")
-
-
-class Marco(ItemAcervo):
-    """Um acontecimento da linha do tempo (Tela 4 · Detalhe)."""
-
+class Sala(Timestamped):
     class Tipo(models.TextChoices):
-        PREDIO = "predio", "Prédio / espaço"
-        DOCUMENTO = "documento", "Documento / reconhecimento"
-        PESSOA = "pessoa", "Pessoas / cerimônia"
-        FOTO = "foto", "Registro fotográfico"
+        CONTEUDO = "conteudo", "Conteúdo (história, fotos e vídeos)"
+        FECHAMENTO = "fechamento", "Fechamento (busca de ex-alunos)"
 
-    periodo = models.ForeignKey(
-        Periodo, on_delete=models.PROTECT, null=True, blank=True, related_name="marcos",
-        verbose_name="período", help_text="Se vazio, é escolhido pelo ano (cria a década se precisar).",
+    numero = models.PositiveSmallIntegerField(
+        "número", unique=True, validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="O totem desta sala abre em /?sala=N.",
     )
-    ano = models.PositiveSmallIntegerField()
-    data_texto = models.CharField(
-        "data por extenso", max_length=40, blank=True,
-        help_text='Só quando diferente do ano simples: "c. 1998", "março de 1998".',
-    )
+    slug = models.SlugField(unique=True)
+    nome = models.CharField(max_length=40, help_text='Curto, vai no cabeçalho: "Educação".')
     titulo = models.CharField("título", max_length=120)
-    resumo = models.CharField(max_length=200, help_text="Uma frase para o cartão da linha do tempo.")
-    lede = models.CharField(max_length=200, blank=True, help_text="Abertura em itálico, até 20 palavras.")
-    narrativa = models.TextField(
-        blank=True, help_text="Parágrafos curtos, separados por uma linha em branco. Até ~90 palavras visíveis.",
+    subtitulo = models.CharField("subtítulo", max_length=200, blank=True)
+    cor = models.CharField(
+        max_length=7, validators=[RegexValidator(r"^#[0-9A-Fa-f]{6}$", "Use o formato #RRGGBB.")],
+        help_text="Número da sala, aba ativa e destaques. Precisa de contraste 4,5:1 com o marfim (#F3F0EA).",
     )
-    tipo = models.CharField(max_length=20, choices=Tipo.choices, default=Tipo.FOTO)
-    conquista = models.BooleanField(default=False, help_text='Aparece também em "Marcos e conquistas".')
-    pessoas = models.ManyToManyField("Pessoa", blank=True, related_name="marcos")
+    tipo = models.CharField(max_length=12, choices=Tipo.choices, default=Tipo.CONTEUDO)
+    ativa = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ["ano", "ordem", "id"]
+        ordering = ["numero"]
 
     def __str__(self):
-        return f"{self.ano} — {self.titulo}"
+        return f"Sala {self.numero} · {self.nome}"
+
+
+# ---------------------------------------------------------------- conteúdo das salas 1 a 4
+
+class Marco(ItemSala):
+    """Um ponto da linha do tempo da sala (a aba História)."""
+
+    class Icone(models.TextChoices):
+        BOARD = "board", "Quadro"
+        CAP = "cap", "Capelo"
+        BOOK = "book", "Livro"
+        FLASK = "flask", "Laboratório"
+        LAPTOP = "laptop", "Computador"
+        USERS = "users", "Pessoas"
+        APPLE = "apple", "Maçã"
+        TROPHY = "trophy", "Troféu"
+        MEDAL = "medal", "Medalha"
+        STAR = "star", "Estrela"
+        MUSIC = "music", "Música"
+        PALETTE = "palette", "Paleta"
+        MASK = "mask", "Teatro"
+        HEART = "heart", "Coração"
+        IMAGE = "image", "Imagem"
+        DOOR = "door", "Porta"
+
+    ano = models.PositiveSmallIntegerField(validators=[MinValueValidator(ANO_MINIMO)])
+    titulo = models.CharField("título", max_length=60, help_text="Até ~4 palavras.")
+    descricao = models.CharField("descrição curta", max_length=110, help_text="Uma frase, até ~110 caracteres.")
+    icone = models.CharField("ícone", max_length=10, choices=Icone.choices, default=Icone.STAR)
+    destaque = models.BooleanField(
+        "destaque inicial", default=False,
+        help_text="O marco que aparece em destaque quando o totem volta ao início. Um por sala.",
+    )
+
+    class Meta:
+        ordering = ["sala", "ano", "ordem", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["sala"], condition=Q(destaque=True), name="um_marco_destaque_por_sala"),
+        ]
+
+    def __str__(self):
+        return f"{self.ano} · {self.titulo}"
 
     def save(self, *args, **kwargs):
-        if not self.periodo_id and self.ano:
-            self.periodo = Periodo.para_ano(self.ano)
+        if self.destaque:
+            Marco.objects.filter(sala_id=self.sala_id, destaque=True).exclude(pk=self.pk).update(destaque=False)
         super().save(*args, **kwargs)
 
 
-# ---------------------------------------------------------------- mídia
-
-class Foto(ItemAcervo):
-    marco = models.ForeignKey(Marco, on_delete=models.SET_NULL, null=True, blank=True, related_name="fotos")
-    periodo = models.ForeignKey(
-        Periodo, on_delete=models.SET_NULL, null=True, blank=True, related_name="fotos",
-        verbose_name="período", help_text="Se vazio, usa o período do marco.",
-    )
+class Foto(ItemSala):
     imagem = models.ImageField(
         upload_to=_caminho("fotos/original"), blank=True,
-        help_text='Sem imagem, o totem mostra uma placa provisória "Foto do acervo".',
+        help_text="Sem imagem, o totem mostra uma moldura provisória (útil para o conteúdo de exemplo).",
     )
     # Versões geradas automaticamente: o totem nunca baixa o original
     exibicao = models.ImageField(upload_to=_caminho("fotos/exibicao"), blank=True, editable=False)
     miniatura = models.ImageField(upload_to=_caminho("fotos/miniatura"), blank=True, editable=False)
     largura = models.PositiveIntegerField(null=True, blank=True, editable=False)
     altura = models.PositiveIntegerField(null=True, blank=True, editable=False)
+    ano = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(ANO_MINIMO)],
+        help_text="Define o período de 5 anos em que a foto aparece.",
+    )
     legenda = models.CharField(max_length=140, help_text="O que e quem aparece. Até 140 caracteres.")
-    data_texto = models.CharField(
-        "data", max_length=40, blank=True, help_text='"1998", "c. 1990", "Data a confirmar". Vazio = ano do marco.',
-    )
-    ano = models.PositiveSmallIntegerField(null=True, blank=True, help_text="Vazio = ano do marco.")
-    alt = models.CharField(
-        "texto alternativo", max_length=250, blank=True, help_text="Para leitor de tela. Vazio = legenda.",
-    )
-    credito = models.CharField("crédito", max_length=120, blank=True, help_text="Autor da fotografia.")
-    destaque = models.BooleanField(default=False, help_text="Fotos em destaque aparecem primeiro.")
-    pessoas = models.ManyToManyField("Pessoa", blank=True, related_name="fotos")
+    credito = models.CharField("crédito / fonte", max_length=160, blank=True)
+    alt = models.CharField("texto alternativo", max_length=250, blank=True, help_text="Para leitor de tela. Vazio = legenda.")
 
     class Meta:
-        ordering = ["-destaque", "ordem", "id"]
+        ordering = ["sala", "ano", "ordem", "id"]
 
     def __str__(self):
-        return self.legenda or f"Foto #{self.pk}"
+        return f"{self.ano} · {self.legenda}"
 
     def save(self, *args, **kwargs):
-        if not self.periodo_id and self.marco_id:
-            self.periodo_id = Marco.objects.filter(pk=self.marco_id).values_list("periodo_id", flat=True).first()
-        if self._imagem_mudou():
+        if _arquivo_mudou(self, "imagem"):
             if self.imagem:
                 self.exibicao, self.largura, self.altura = gerar_versao_imagem(self.imagem, 2560)
                 self.miniatura, _, _ = gerar_versao_imagem(self.imagem, 480)
@@ -184,20 +198,13 @@ class Foto(ItemAcervo):
                 self.largura = self.altura = None
         super().save(*args, **kwargs)
 
-    def _imagem_mudou(self):
-        if not self.pk:
-            return bool(self.imagem)
-        anterior = Foto.objects.filter(pk=self.pk).values_list("imagem", flat=True).first()
-        return (anterior or "") != (self.imagem.name or "")
 
-
-class Video(ItemAcervo):
-    titulo = models.CharField("título", max_length=120)
-    descricao = models.CharField("descrição", max_length=200, blank=True)
-    marco = models.ForeignKey(Marco, on_delete=models.SET_NULL, null=True, blank=True, related_name="videos")
-    periodo = models.ForeignKey(
-        Periodo, on_delete=models.SET_NULL, null=True, blank=True, related_name="videos",
-        verbose_name="período", help_text="Se vazio, usa o período do marco.",
+class Video(ItemSala):
+    titulo = models.CharField("título", max_length=80)
+    descricao = models.CharField("descrição", max_length=140, blank=True)
+    tipo = models.CharField(
+        max_length=30, default="Depoimento",
+        help_text='Sugestões: Depoimento, Documentário, Acervo, Institucional. Aceita texto livre ("O jogo").',
     )
     arquivo = models.FileField(
         upload_to=_caminho("videos"),
@@ -208,128 +215,179 @@ class Video(ItemAcervo):
         upload_to=_caminho("videos/capas"), blank=True,
         help_text="Se vazio, um quadro do vídeo é capturado automaticamente.",
     )
-    data_texto = models.CharField("data", max_length=40, blank=True, help_text="Vazio = ano do marco.")
-    ano = models.PositiveSmallIntegerField(null=True, blank=True, help_text="Vazio = ano do marco.")
+    legenda = models.FileField(
+        "legenda (WebVTT)", upload_to=_caminho("videos/legendas"), blank=True,
+        validators=[FileExtensionValidator(["vtt"])],
+        help_text="Opcional. Arquivo .vtt com as falas, para quem assiste sem som.",
+    )
+    destaque = models.BooleanField(default=False, help_text="O vídeo grande da aba Vídeos. Um por sala.")
     duracao_segundos = models.PositiveIntegerField(null=True, blank=True, editable=False)
     codec = models.CharField(max_length=30, blank=True, editable=False)
 
     class Meta:
-        ordering = ["ordem", "id"]
+        ordering = ["sala", "-destaque", "ordem", "id"]
         verbose_name = "vídeo"
+        constraints = [
+            models.UniqueConstraint(fields=["sala"], condition=Q(destaque=True), name="um_video_destaque_por_sala"),
+        ]
 
     def __str__(self):
         return self.titulo
 
     def save(self, *args, **kwargs):
-        if not self.periodo_id and self.marco_id:
-            self.periodo_id = Marco.objects.filter(pk=self.marco_id).values_list("periodo_id", flat=True).first()
+        if self.destaque:
+            Video.objects.filter(sala_id=self.sala_id, destaque=True).exclude(pk=self.pk).update(destaque=False)
         super().save(*args, **kwargs)
 
 
-# ---------------------------------------------------------------- documentos
+# ---------------------------------------------------------------- sala 5: ex-alunos
 
-class Documento(ItemAcervo):
-    titulo = models.CharField("título", max_length=160)
-    tipo = models.CharField(max_length=60, help_text="Ata, ofício, portaria, recorte de jornal…")
-    data_texto = models.CharField("data", max_length=40, blank=True, help_text='"1998", "1998 (a confirmar)".')
-    ano = models.PositiveSmallIntegerField(
-        null=True, blank=True, help_text="Para aparecer no período certo da galeria. Vazio = ano do marco.",
-    )
-    codigo_acervo = models.CharField("código no acervo", max_length=60, blank=True)
-    marco = models.ForeignKey(Marco, on_delete=models.SET_NULL, null=True, blank=True, related_name="documentos")
-    transcricao = models.TextField(
-        "transcrição", blank=True, help_text="Texto integral, em parágrafos separados por uma linha em branco.",
-    )
+class Aluno(Timestamped):
+    """Ex-aluno(a) que fez check-in. O e-mail é privado: nunca sai do servidor pela API."""
 
-    class Meta:
-        ordering = ["ano", "ordem", "id"]
+    class Origem(models.TextChoices):
+        CHECKIN = "checkin", "Check-in pelo celular"
+        IMPORTADO = "importado", "Importado pela equipe"
 
-    def __str__(self):
-        return self.titulo
+    class Status(models.TextChoices):
+        PENDENTE = "pendente", "Pendente"
+        APROVADO = "aprovado", "Aprovado (aparece na sala 5)"
+        OCULTO = "oculto", "Oculto"
 
-
-class PaginaDocumento(Timestamped):
-    documento = models.ForeignKey(Documento, on_delete=models.CASCADE, related_name="paginas")
-    arquivo = models.FileField(
-        upload_to=_caminho("documentos"),
-        validators=[FileExtensionValidator(["jpg", "jpeg", "png", "webp", "svg"])],
-        help_text="Página digitalizada (JPG, PNG, WEBP ou SVG).",
-    )
-    alt = models.CharField("texto alternativo", max_length=250, blank=True)
-    ordem = models.PositiveIntegerField(default=0)
-
-    class Meta:
-        ordering = ["ordem", "id"]
-        verbose_name = "página"
-
-    def __str__(self):
-        return f"{self.documento} · página {self.ordem}"
-
-
-# ---------------------------------------------------------------- pessoas e memórias
-
-class Pessoa(ItemAcervo):
     nome = models.CharField(max_length=120)
-    papel = models.CharField(max_length=120, help_text='"Fundadora", "Primeira direção acadêmica"…')
-    biografia = models.TextField(blank=True, help_text="Até ~90 palavras. Parágrafos separados por linha em branco.")
-    retrato = models.ForeignKey(
-        Foto, on_delete=models.SET_NULL, null=True, blank=True, related_name="+",
-        help_text="Uma foto já cadastrada. Só aparece com autorização de uso de imagem.",
+    nome_busca = models.CharField(max_length=120, editable=False, db_index=True)
+    ano = models.PositiveSmallIntegerField("ano em que estudou", validators=[MinValueValidator(ANO_MINIMO)])
+    turma = models.CharField(max_length=30)
+    turma_chave = models.CharField(max_length=30, editable=False, db_index=True)
+    email = models.EmailField("e-mail", blank=True, help_text="Privado. Só aparece aqui no admin.")
+    instagram = models.CharField(max_length=60, blank=True, help_text="Só o usuário, sem @.")
+    facebook = models.CharField(max_length=100, blank=True, help_text="Usuário ou endereço do perfil.")
+    foto = models.ImageField(
+        "foto de perfil", upload_to=_caminho("alunos/perfil"), blank=True,
+        help_text="Opcional, cadastrada pela equipe. Vira um avatar de 480 px, sem metadados.",
     )
-    verificado = models.BooleanField(default=False, help_text="Nome e papel confirmados por fonte.")
-    autorizacao_imagem = models.BooleanField(
-        "autorização de uso de imagem", default=False, help_text="Sem ela, o retrato não é exibido.",
-    )
+    consentimento = models.BooleanField(default=False)
+    consentimento_em = models.DateTimeField("consentimento em", null=True, blank=True)
+    consentimento_versao = models.CharField("versão do termo aceito", max_length=20, blank=True)
+    checkin_em = models.DateTimeField("check-in em", default=timezone.now)
+    origem = models.CharField(max_length=10, choices=Origem.choices, default=Origem.CHECKIN)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.APROVADO)
+    demonstrativo = models.BooleanField(default=False, help_text="Ex-aluno de exemplo (carregar_exemplo).")
 
     class Meta:
-        ordering = ["ordem", "nome", "id"]
+        ordering = ["nome_busca", "id"]
+        verbose_name = "ex-aluno"
+        constraints = [
+            models.UniqueConstraint(fields=["email", "ano"], condition=~Q(email=""), name="aluno_email_ano_unico"),
+        ]
 
     def __str__(self):
-        return f"{self.nome} ({self.papel})"
+        return f"{self.nome} ({self.ano}, {self.turma})"
+
+    def save(self, *args, **kwargs):
+        self.nome = re.sub(r"\s+", " ", self.nome or "").strip()
+        self.nome_busca = normalizar(self.nome)
+        self.turma = re.sub(r"\s+", " ", self.turma or "").strip()
+        self.turma_chave = chave_turma(self.turma)
+        self.email = (self.email or "").strip().lower()
+        if _arquivo_mudou(self, "foto") and self.foto:
+            self.foto, _, _ = gerar_versao_imagem(self.foto, 480)
+        super().save(*args, **kwargs)
+
+    @property
+    def novo(self):
+        return self.checkin_em >= timezone.now() - timedelta(hours=Aluno.HORAS_NOVO)
+
+    @property
+    def recente(self):
+        return self.checkin_em >= timezone.now() - timedelta(hours=Aluno.HORAS_RECENTE)
+
+    # Selo NOVO e topo da lista; "Check-in feito agora" no perfil.
+    HORAS_NOVO = 24
+    HORAS_RECENTE = 2
 
 
-class Depoimento(ItemAcervo):
-    texto = models.TextField(max_length=400, help_text="No máximo duas linhas no totem.")
-    autor = models.CharField(max_length=120)
-    vinculo = models.CharField("vínculo", max_length=120, help_text='"Turma de 1998", "Professora"…')
-    marco = models.ForeignKey(Marco, on_delete=models.SET_NULL, null=True, blank=True, related_name="depoimentos")
-    autorizado = models.BooleanField(
-        default=False, help_text="Autorização registrada. Sem ela, o depoimento não aparece em lugar nenhum.",
-    )
+class FotoAluno(Timestamped):
+    """Foto enviada no check-in. Só aparece no totem depois de aprovada."""
+
+    class Status(models.TextChoices):
+        PENDENTE = "pendente", "Pendente"
+        APROVADA = "aprovada", "Aprovada"
+        RECUSADA = "recusada", "Recusada"
+
+    aluno = models.ForeignKey(Aluno, on_delete=models.CASCADE, related_name="fotos")
+    imagem = models.ImageField(upload_to=_caminho("alunos/fotos"), editable=False)
+    miniatura = models.ImageField(upload_to=_caminho("alunos/miniaturas"), blank=True, editable=False)
+    largura = models.PositiveIntegerField(null=True, blank=True, editable=False)
+    altura = models.PositiveIntegerField(null=True, blank=True, editable=False)
+    legenda = models.CharField(max_length=140, blank=True)
+    ano = models.PositiveSmallIntegerField(null=True, blank=True)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDENTE)
 
     class Meta:
-        ordering = ["ordem", "id"]
+        ordering = ["aluno", "ano", "id"]
+        verbose_name = "foto de ex-aluno"
+        verbose_name_plural = "fotos de ex-alunos"
 
     def __str__(self):
-        return f"{self.autor}: {self.texto[:50]}"
+        return f"Foto de {self.aluno.nome}" + (f": {self.legenda}" if self.legenda else "")
+
+    def save(self, *args, **kwargs):
+        # O original enviado pelo celular nunca é guardado: só a versão reencodada, sem EXIF.
+        if _arquivo_mudou(self, "imagem") and self.imagem:
+            original = self.imagem
+            self.imagem, self.largura, self.altura = gerar_versao_imagem(original, 2560)
+            self.miniatura, _, _ = gerar_versao_imagem(original, 480)
+        super().save(*args, **kwargs)
 
 
 # ---------------------------------------------------------------- configuração
 
-class ConfiguracaoTotem(Timestamped):
-    """Registro único com o comportamento do totem."""
+class ConfiguracaoMemorial(Timestamped):
+    """Registro único com o comportamento dos totens e do check-in."""
 
-    titulo = models.CharField("título da capa", max_length=60, default="Memorial")
-    subtitulo = models.CharField(
-        "subtítulo da capa", max_length=120, default="A história da UNDB, guardada por quem faz parte dela.",
+    nome = models.CharField(max_length=120, default="Memorial Dom Bosco Maria Izabel Rodrigues")
+    ano_inicial = models.PositiveSmallIntegerField(
+        default=1958, help_text="Início dos períodos de 5 anos das fotos e do seletor de ano do check-in.",
     )
     segundos_inatividade = models.PositiveIntegerField(
         "aviso de inatividade após (s)", default=90, help_text='Sem toque por esse tempo, aparece "Ainda está aí?".',
     )
     segundos_contagem = models.PositiveIntegerField(
-        "contagem do aviso (s)", default=15, help_text="Depois dela, o livro fecha e volta à capa.",
+        "contagem do aviso (s)", default=15, help_text="Depois dela, o totem volta ao início da sala.",
     )
     segundos_lightbox = models.PositiveIntegerField(
         "foto ampliada fecha após (s)", default=45, help_text="Sem toque dentro da foto ampliada.",
     )
     segundos_atualizacao = models.PositiveIntegerField("checa conteúdo novo a cada (s)", default=300)
+    videos_com_som = models.BooleanField(
+        "vídeos começam com som", default=True,
+        help_text="Desligado: os vídeos começam mudos (o visitante liga o som no player).",
+    )
+    aprovar_perfis = models.BooleanField(
+        "aprovar perfis antes de aparecer", default=False,
+        help_text="Desligado: o perfil aparece na sala 5 logo após o check-in. As fotos sempre passam por aprovação.",
+    )
+    url_checkin = models.URLField(
+        "endereço do check-in", blank=True,
+        help_text="O que o QR Code abre. Vazio = <endereço deste servidor>/checkin.",
+    )
+    termo_texto = models.TextField("texto do termo de consentimento", default=TERMO_PADRAO)
+    termo_versao = models.CharField(
+        "versão do termo", max_length=20, default="1.0",
+        help_text="Mude a versão sempre que mudar o texto: cada cadastro guarda a versão aceita.",
+    )
+    email_contato = models.EmailField(
+        "e-mail para pedidos de remoção", blank=True,
+        help_text="Aparece na página de check-in para quem quiser pedir a remoção dos dados.",
+    )
 
     class Meta:
-        verbose_name = "configuração do totem"
-        verbose_name_plural = "configuração do totem"
+        verbose_name = "configuração do memorial"
+        verbose_name_plural = "configuração do memorial"
 
     def __str__(self):
-        return "Configuração do totem"
+        return "Configuração do memorial"
 
     def save(self, *args, **kwargs):
         self.pk = 1
@@ -339,3 +397,11 @@ class ConfiguracaoTotem(Timestamped):
     def atual(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+
+def _arquivo_mudou(obj, campo):
+    novo = getattr(obj, campo).name or ""
+    if not obj.pk:
+        return bool(novo)
+    anterior = type(obj).objects.filter(pk=obj.pk).values_list(campo, flat=True).first()
+    return (anterior or "") != novo

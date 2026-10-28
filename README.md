@@ -155,6 +155,20 @@ ffmpeg -i entrada.mov -c:v libx264 -profile:v high -crf 23 -preset slow \
 totem na página, esconde as barras do Android e reinicia sozinho se travar. O botão Voltar do Android
 nunca sai do memorial.
 
+## Atualizando a partir do Memorial UNDB (Livro de Honra)
+
+A migração `0007` **apaga as tabelas do acervo antigo** (períodos, marcos, fotos, vídeos, documentos,
+pessoas e depoimentos) e a `0008` cria as salas novas. O acervo antigo era demonstrativo, mas faça o
+backup antes de subir a versão nova:
+
+```bash
+docker compose exec db pg_dump -U memorial memorial > backup-antes-dom-bosco.sql
+docker compose up -d --build      # aplica as migrações 0007 a 0009
+```
+
+Os arquivos antigos de `/media` (fotos, vídeos, páginas de documento) ficam no volume sem uso; apague
+`fotos/`, `videos/` e `documentos/` do volume `media` depois de conferir o backup, se quiser liberar espaço.
+
 ## Backup
 
 ```bash

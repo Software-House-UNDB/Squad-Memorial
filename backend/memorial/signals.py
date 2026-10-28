@@ -1,8 +1,14 @@
+"""Limpeza de arquivos e processamento de vídeo.
+
+Apagar um registro (no admin ou em lote) remove do disco todas as versões do arquivo. Isso vale
+também para o pedido de remoção de um ex-aluno (LGPD): o perfil, a foto e as fotos enviadas somem.
+"""
+
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from .media import capturar_quadro, ler_metadados_video
-from .models import Foto, PaginaDocumento, Video
+from .models import Aluno, Foto, FotoAluno, Video
 
 
 def _apagar(*campos):
@@ -11,12 +17,16 @@ def _apagar(*campos):
             campo.storage.delete(campo.name)
 
 
+def _anterior(sender, instance):
+    return sender.objects.filter(pk=instance.pk).first() if instance.pk else None
+
+
+# ---------------------------------------------------------------- fotos das salas
+
 @receiver(pre_save, sender=Foto)
 def foto_limpar_antigas(sender, instance, **kwargs):
     """Ao trocar a imagem de uma foto, remove do disco as versões antigas."""
-    if not instance.pk:
-        return
-    antiga = Foto.objects.filter(pk=instance.pk).first()
+    antiga = _anterior(sender, instance)
     if antiga and antiga.imagem.name != instance.imagem.name:
         _apagar(antiga.imagem, antiga.exibicao, antiga.miniatura)
 
@@ -26,17 +36,20 @@ def foto_apagar_arquivos(sender, instance, **kwargs):
     _apagar(instance.imagem, instance.exibicao, instance.miniatura)
 
 
+# ---------------------------------------------------------------- vídeos
+
 @receiver(pre_save, sender=Video)
 def video_marcar_troca(sender, instance, **kwargs):
     instance._arquivo_mudou = True
-    if instance.pk:
-        antigo = Video.objects.filter(pk=instance.pk).first()
-        if antigo:
-            instance._arquivo_mudou = antigo.arquivo.name != instance.arquivo.name
-            if instance._arquivo_mudou:
-                _apagar(antigo.arquivo)
-            if antigo.capa.name and antigo.capa.name != instance.capa.name:
-                _apagar(antigo.capa)
+    antigo = _anterior(sender, instance)
+    if antigo:
+        instance._arquivo_mudou = antigo.arquivo.name != instance.arquivo.name
+        if instance._arquivo_mudou:
+            _apagar(antigo.arquivo)
+        if antigo.capa.name and antigo.capa.name != instance.capa.name:
+            _apagar(antigo.capa)
+        if antigo.legenda.name and antigo.legenda.name != instance.legenda.name:
+            _apagar(antigo.legenda)
 
 
 @receiver(post_save, sender=Video)
@@ -64,18 +77,23 @@ def video_processar(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Video)
 def video_apagar_arquivos(sender, instance, **kwargs):
-    _apagar(instance.arquivo, instance.capa)
+    _apagar(instance.arquivo, instance.capa, instance.legenda)
 
 
-@receiver(pre_save, sender=PaginaDocumento)
-def pagina_limpar_antiga(sender, instance, **kwargs):
-    if not instance.pk:
-        return
-    antiga = PaginaDocumento.objects.filter(pk=instance.pk).first()
-    if antiga and antiga.arquivo.name != instance.arquivo.name:
-        _apagar(antiga.arquivo)
+# ---------------------------------------------------------------- ex-alunos
+
+@receiver(pre_save, sender=Aluno)
+def aluno_limpar_foto_antiga(sender, instance, **kwargs):
+    antigo = _anterior(sender, instance)
+    if antigo and antigo.foto.name and antigo.foto.name != instance.foto.name:
+        _apagar(antigo.foto)
 
 
-@receiver(post_delete, sender=PaginaDocumento)
-def pagina_apagar_arquivo(sender, instance, **kwargs):
-    _apagar(instance.arquivo)
+@receiver(post_delete, sender=Aluno)
+def aluno_apagar_foto(sender, instance, **kwargs):
+    _apagar(instance.foto)
+
+
+@receiver(post_delete, sender=FotoAluno)
+def foto_aluno_apagar_arquivos(sender, instance, **kwargs):
+    _apagar(instance.imagem, instance.miniatura)

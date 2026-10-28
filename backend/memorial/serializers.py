@@ -1,246 +1,206 @@
-"""Monta o acervo no formato exato de frontend/src/dados/tipos.ts.
+"""Formatos da API pública, iguais a frontend/src/dados/tipos.ts.
 
-Os ids viram strings com prefixo por tipo ("p-3", "m-12", "f-40", "v-2", "d-5", "pe-1", "dp-7"),
-porque o frontend relaciona tudo por id. Vídeos entram na lista de fotos com o campo `video`.
+Regra de privacidade: nada aqui lê `email`, IP ou dados de consentimento de um Aluno. Os testes
+(tests.py) conferem que nenhuma resposta da API contém e-mail.
 """
 
-import hashlib
+import re
 
-from .models import (
-    FONTE_PADRAO, ConfiguracaoTotem, Depoimento, Documento, Foto, Marco, Periodo, Pessoa, Video, paragrafos,
-)
+from django.utils import timezone
+from rest_framework import serializers
+
+from .models import Aluno, ConfiguracaoMemorial, FotoAluno, ano_atual
 
 
-def _url(request, campo):
+def _url(campo):
     # URL relativa (/media/...): o navegador resolve contra a origem do app, que pode ser o nginx
     # do compose ou o Vercel (que repassa /media ao servidor). Absoluta quebraria atrás de túnel/proxy.
-    if not campo:
-        return None
-    return campo.url
+    return campo.url if campo else None
 
 
-def _fonte(obj):
-    fonte = {"descricao": obj.fonte or FONTE_PADRAO}
-    if obj.fonte_url:
-        fonte["url"] = obj.fonte_url
-    return fonte
+# ---------------------------------------------------------------- totem
 
-
-def _tom(chave):
-    """Tom estável (1–5) da placa provisória, derivado do id."""
-    return int(hashlib.md5(chave.encode()).hexdigest(), 16) % 5 + 1
-
-
-def _sem_vazios(d):
-    """Remove chaves vazias (campos opcionais do tipos.ts). False é mantido."""
-    return {k: v for k, v in d.items() if v not in (None, "", [])}
-
-
-def _base(obj, prefixo):
-    return {"id": f"{prefixo}-{obj.pk}", "demo": obj.demonstrativo, "fonte": _fonte(obj)}
-
-
-def montar_acervo(request=None):
-    periodos = list(Periodo.objects.filter(publicado=True))
-    ids_periodos = {p.pk for p in periodos}
-
-    marcos = list(
-        Marco.objects.filter(publicado=True, periodo_id__in=ids_periodos)
-        .prefetch_related("pessoas")
-    )
-    ano_marco = {m.pk: m.ano for m in marcos}
-    ids_marcos = set(ano_marco)
-
-    def marco_ok(marco_id):
-        return marco_id if marco_id in ids_marcos else None
-
-    def periodo_ok(periodo_id):
-        return periodo_id if periodo_id in ids_periodos else None
-
-    fotos_qs = list(Foto.objects.filter(publicado=True).prefetch_related("pessoas"))
-    videos_qs = list(Video.objects.filter(publicado=True))
-    documentos_qs = list(Documento.objects.filter(publicado=True).prefetch_related("paginas"))
-    pessoas_qs = list(Pessoa.objects.filter(publicado=True))
-    depoimentos_qs = list(Depoimento.objects.filter(publicado=True))
-    ids_pessoas = {p.pk for p in pessoas_qs}
-
-    # ---- fotos
-    fotos, fotos_por_marco, fotos_por_pessoa, fotos_por_periodo = [], {}, {}, {}
-    for f in fotos_qs:
-        marco_id = marco_ok(f.marco_id)
-        periodo_id = periodo_ok(f.periodo_id)
-        ano = f.ano or ano_marco.get(marco_id)
-        fid = f"f-{f.pk}"
-        pessoas = [p.pk for p in f.pessoas.all() if p.pk in ids_pessoas]
-        fotos.append(_sem_vazios({
-            **_base(f, "f"),
-            "src": _url(request, f.exibicao),
-            "srcMiniatura": _url(request, f.miniatura),
-            "tom": _tom(fid),
-            "legenda": f.legenda,
-            "data": f.data_texto or (str(ano) if ano else "Data a confirmar"),
-            "ano": ano,
-            "alt": f.alt or f.legenda,
-            "credito": f.credito,
-            "periodoId": f"p-{periodo_id}" if periodo_id else None,
-            "marcoId": f"m-{marco_id}" if marco_id else None,
-            "pessoaIds": [f"pe-{p}" for p in pessoas],
-        }))
-        if marco_id:
-            fotos_por_marco.setdefault(marco_id, []).append(fid)
-        if periodo_id and f.exibicao:
-            fotos_por_periodo.setdefault(periodo_id, []).append(fid)
-        for p in pessoas:
-            fotos_por_pessoa.setdefault(p, []).append(fid)
-
-    # ---- vídeos (entram como fotos com `video`)
-    for v in videos_qs:
-        marco_id = marco_ok(v.marco_id)
-        periodo_id = periodo_ok(v.periodo_id)
-        ano = v.ano or ano_marco.get(marco_id)
-        vid = f"v-{v.pk}"
-        legenda = v.titulo + (f". {v.descricao}" if v.descricao else "")
-        fotos.append(_sem_vazios({
-            **_base(v, "v"),
-            "src": _url(request, v.capa),
-            "srcMiniatura": _url(request, v.capa),
-            "tom": _tom(vid),
-            "legenda": legenda[:140],
-            "data": v.data_texto or (str(ano) if ano else "Data a confirmar"),
-            "ano": ano,
-            "alt": f"Vídeo: {v.titulo}",
-            "periodoId": f"p-{periodo_id}" if periodo_id else None,
-            "marcoId": f"m-{marco_id}" if marco_id else None,
-            "video": _sem_vazios({
-                "src": _url(request, v.arquivo),
-                "titulo": v.titulo,
-                "duracao": v.duracao_segundos,
-            }),
-        }))
-        if marco_id:
-            fotos_por_marco.setdefault(marco_id, []).append(vid)
-
-    # ---- documentos
-    documentos, docs_por_marco = [], {}
-    for d in documentos_qs:
-        marco_id = marco_ok(d.marco_id)
-        ano = d.ano or ano_marco.get(marco_id)
-        documentos.append(_sem_vazios({
-            **_base(d, "d"),
-            "titulo": d.titulo,
-            "data": d.data_texto or (str(ano) if ano else "Data a confirmar"),
-            "ano": ano,
-            "tipo": d.tipo,
-            "codigoAcervo": d.codigo_acervo,
-            "marcoId": f"m-{marco_id}" if marco_id else None,
-            "paginas": [
-                {"src": _url(request, pg.arquivo), "alt": pg.alt or f"Página {i} de {d.titulo}"}
-                for i, pg in enumerate(d.paginas.all(), start=1)
-            ],
-            "transcricao": paragrafos(d.transcricao),
-        }))
-        documentos[-1].setdefault("paginas", [])
-        if marco_id:
-            docs_por_marco.setdefault(marco_id, []).append(f"d-{d.pk}")
-
-    # ---- depoimentos (só os autorizados saem do servidor)
-    depoimentos, depoimento_do_marco = [], {}
-    for dp in depoimentos_qs:
-        if not dp.autorizado:
-            continue
-        marco_id = marco_ok(dp.marco_id)
-        depoimentos.append(_sem_vazios({
-            **_base(dp, "dp"),
-            "texto": dp.texto,
-            "autor": dp.autor,
-            "vinculo": dp.vinculo,
-            "marcoId": f"m-{marco_id}" if marco_id else None,
-            "autorizado": True,
-        }))
-        if marco_id:
-            depoimento_do_marco.setdefault(marco_id, f"dp-{dp.pk}")
-
-    # ---- marcos
-    marcos_por_pessoa = {}
-    lista_marcos = []
-    for m in marcos:
-        pessoas = [p.pk for p in m.pessoas.all() if p.pk in ids_pessoas]
-        for p in pessoas:
-            marcos_por_pessoa.setdefault(p, []).append(f"m-{m.pk}")
-        narrativa = paragrafos(m.narrativa) or ([m.resumo] if m.resumo else [])
-        lista_marcos.append(_sem_vazios({
-            **_base(m, "m"),
-            "periodoId": f"p-{m.periodo_id}",
-            "ano": m.ano,
-            "dataTexto": m.data_texto,
-            "titulo": m.titulo,
-            "resumo": m.resumo,
-            "lede": m.lede or m.resumo,
-            "narrativa": narrativa,
-            "tipo": m.tipo,
-            "conquista": m.conquista or None,
-            "fotoIds": fotos_por_marco.get(m.pk, []),
-            "documentoIds": docs_por_marco.get(m.pk, []),
-            "pessoaIds": [f"pe-{p}" for p in pessoas],
-            "depoimentoId": depoimento_do_marco.get(m.pk),
-        }))
-        for chave in ("fotoIds", "documentoIds", "pessoaIds"):
-            lista_marcos[-1].setdefault(chave, [])
-
-    # ---- pessoas
-    ids_fotos = {f["id"] for f in fotos}
-    pessoas = []
-    for p in pessoas_qs:
-        retrato = f"f-{p.retrato_id}" if p.retrato_id and f"f-{p.retrato_id}" in ids_fotos else None
-        pessoas.append(_sem_vazios({
-            **_base(p, "pe"),
-            "nome": p.nome,
-            "papel": p.papel,
-            "biografia": paragrafos(p.biografia),
-            "retratoId": retrato,
-            "marcoIds": marcos_por_pessoa.get(p.pk, []),
-            "fotoIds": fotos_por_pessoa.get(p.pk, []),
-            "verificado": p.verificado or None,
-            "autorizacaoImagem": p.autorizacao_imagem or None,
-        }))
-        for chave in ("biografia", "marcoIds", "fotoIds"):
-            pessoas[-1].setdefault(chave, [])
-
-    # ---- períodos
-    lista_periodos = []
-    for p in periodos:
-        capa = None
-        if p.foto_capa_id and f"f-{p.foto_capa_id}" in ids_fotos:
-            capa = f"f-{p.foto_capa_id}"
-        elif fotos_por_periodo.get(p.pk):
-            capa = fotos_por_periodo[p.pk][0]
-        lista_periodos.append(_sem_vazios({
-            **_base(p, "p"),
-            "titulo": p.titulo,
-            "inicio": p.inicio,
-            "fim": p.fim,
-            "descricao": p.descricao,
-            "fotoId": capa,
-        }))
-        lista_periodos[-1].setdefault("descricao", "")
-
+def montar_config(c: ConfiguracaoMemorial):
     return {
-        "periodos": lista_periodos,
-        "marcos": lista_marcos,
-        "fotos": fotos,
-        "documentos": documentos,
-        "pessoas": pessoas,
-        "depoimentos": depoimentos,
-    }
-
-
-def montar_config():
-    c = ConfiguracaoTotem.atual()
-    return {
-        "titulo": c.titulo,
-        "subtitulo": c.subtitulo,
+        "nome": c.nome,
+        "anoInicial": c.ano_inicial,
         "segundosInatividade": c.segundos_inatividade,
         "segundosContagem": c.segundos_contagem,
         "segundosLightbox": c.segundos_lightbox,
         "segundosAtualizacao": c.segundos_atualizacao,
+        "videosComSom": c.videos_com_som,
+        "urlCheckin": c.url_checkin,
     }
+
+
+def montar_sala(s):
+    return {
+        "numero": s.numero, "slug": s.slug, "nome": s.nome, "titulo": s.titulo,
+        "subtitulo": s.subtitulo, "cor": s.cor.upper(), "tipo": s.tipo,
+    }
+
+
+def montar_marco(m):
+    return {
+        "id": m.pk, "ano": m.ano, "titulo": m.titulo, "descricao": m.descricao,
+        "icone": m.icone, "destaque": m.destaque,
+    }
+
+
+def montar_foto(f):
+    return {
+        "id": f.pk, "ano": f.ano, "legenda": f.legenda, "credito": f.credito, "alt": f.alt or f.legenda,
+        "src": _url(f.exibicao), "miniatura": _url(f.miniatura), "largura": f.largura, "altura": f.altura,
+    }
+
+
+def montar_video(v):
+    return {
+        "id": v.pk, "titulo": v.titulo, "descricao": v.descricao, "tipo": v.tipo,
+        "src": _url(v.arquivo), "capa": _url(v.capa), "duracao": v.duracao_segundos,
+        "destaque": v.destaque, "legenda": _url(v.legenda),
+    }
+
+
+# ---------------------------------------------------------------- sala 5
+
+def montar_aluno_resumo(a: Aluno):
+    return {
+        "id": a.pk, "nome": a.nome, "ano": a.ano, "turma": a.turma, "foto": _url(a.foto),
+        "checkinEm": timezone.localtime(a.checkin_em).isoformat(), "novo": a.novo,
+    }
+
+
+def montar_aluno_perfil(a: Aluno, fotos, colegas):
+    return {
+        **montar_aluno_resumo(a),
+        "recente": a.recente,
+        "instagram": a.instagram,
+        "facebook": a.facebook,
+        "fotos": [
+            {"id": f.pk, "src": _url(f.imagem), "miniatura": _url(f.miniatura), "legenda": f.legenda, "ano": f.ano}
+            for f in fotos
+        ],
+        "colegas": [montar_aluno_resumo(c) for c in colegas],
+    }
+
+
+def montar_config_checkin(c: ConfiguracaoMemorial):
+    return {
+        "anoInicial": c.ano_inicial,
+        "anoAtual": ano_atual(),
+        "termoTexto": c.termo_texto,
+        "termoVersao": c.termo_versao,
+        "emailContato": c.email_contato,
+    }
+
+
+# ---------------------------------------------------------------- check-in (entrada)
+
+MSG = {
+    "nome": "Escreva nome e sobrenome.",
+    "ano": "Escolha o ano em que estudou.",
+    "turma": "Informe a turma, por exemplo 3º A.",
+    "email": "Informe um e-mail válido, por exemplo nome@email.com.",
+    "instagram": "Confira o Instagram: só o nome de usuário, sem espaços.",
+    "facebook": "Confira o Facebook: só o nome de usuário ou o endereço do perfil.",
+    "consentimento": "Marque a autorização para aparecer nos totens.",
+}
+
+
+def _so_usuario(valor, dominio):
+    """'@fulano', 'instagram.com/fulano/' e 'https://www.instagram.com/fulano' viram 'fulano'."""
+    v = (valor or "").strip()
+    v = re.sub(rf"^(https?://)?(www\.|m\.)?{dominio}\.com/", "", v, flags=re.I)
+    return v.strip("/").lstrip("@").strip()
+
+
+class CheckinSerializer(serializers.Serializer):
+    nome = serializers.CharField(max_length=120, allow_blank=True, error_messages={"max_length": MSG["nome"]})
+    ano = serializers.CharField(max_length=4, allow_blank=True)
+    turma = serializers.CharField(max_length=30, allow_blank=True, error_messages={"max_length": MSG["turma"]})
+    email = serializers.CharField(max_length=254, allow_blank=True)
+    instagram = serializers.CharField(max_length=80, required=False, allow_blank=True, default="")
+    facebook = serializers.CharField(max_length=120, required=False, allow_blank=True, default="")
+    consentimento = serializers.BooleanField(required=False, default=False)
+    site = serializers.CharField(required=False, allow_blank=True, default="")  # isca anti-robô
+
+    def __init__(self, *args, config: ConfiguracaoMemorial, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config = config
+
+    def validate_nome(self, v):
+        partes = [p for p in re.sub(r"\s+", " ", v).strip().split(" ") if re.search(r"[^\W\d_]", p)]
+        if len(partes) < 2 or len(" ".join(partes)) < 4:
+            raise serializers.ValidationError(MSG["nome"])
+        return " ".join(partes)
+
+    def validate_ano(self, v):
+        try:
+            ano = int(v)
+        except (TypeError, ValueError):
+            raise serializers.ValidationError(MSG["ano"])
+        if not self.config.ano_inicial <= ano <= ano_atual():
+            raise serializers.ValidationError(MSG["ano"])
+        return ano
+
+    def validate_turma(self, v):
+        v = re.sub(r"\s+", " ", v).strip()
+        if not v:
+            raise serializers.ValidationError(MSG["turma"])
+        return v
+
+    def validate_email(self, v):
+        v = v.strip().lower()
+        try:
+            serializers.EmailField().run_validation(v)
+        except serializers.ValidationError:
+            raise serializers.ValidationError(MSG["email"])
+        return v
+
+    def validate_instagram(self, v):
+        v = _so_usuario(v, "instagram")
+        if v and not re.fullmatch(r"[A-Za-z0-9._]{1,30}", v):
+            raise serializers.ValidationError(MSG["instagram"])
+        return v
+
+    def validate_facebook(self, v):
+        v = _so_usuario(v, "facebook")
+        if v and not re.fullmatch(r"[A-Za-z0-9.\-_/?=]{1,100}", v):
+            raise serializers.ValidationError(MSG["facebook"])
+        return v
+
+    def validate_consentimento(self, v):
+        if not v:
+            raise serializers.ValidationError(MSG["consentimento"])
+        return v
+
+
+def registrar_checkin(dados, imagens, config: ConfiguracaoMemorial):
+    """Cria ou atualiza o cadastro (mesmo e-mail + mesmo ano = mesma pessoa) e guarda as fotos.
+
+    Um perfil oculto pela equipe continua oculto: refazer o check-in não o traz de volta.
+    """
+    agora = timezone.now()
+    campos = {
+        "nome": dados["nome"],
+        "turma": dados["turma"],
+        "instagram": dados["instagram"],
+        "facebook": dados["facebook"],
+        "consentimento": True,
+        "consentimento_em": agora,
+        "consentimento_versao": config.termo_versao,
+        "checkin_em": agora,
+        "origem": Aluno.Origem.CHECKIN,
+    }
+    aluno = Aluno.objects.filter(email=dados["email"], ano=dados["ano"]).first()
+    if aluno:
+        for k, v in campos.items():
+            setattr(aluno, k, v)
+    else:
+        status = Aluno.Status.PENDENTE if config.aprovar_perfis else Aluno.Status.APROVADO
+        aluno = Aluno(email=dados["email"], ano=dados["ano"], status=status, **campos)
+    aluno.save()
+    for imagem in imagens:
+        FotoAluno.objects.create(aluno=aluno, imagem=imagem, ano=dados["ano"])
+    return aluno
