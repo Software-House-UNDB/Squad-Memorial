@@ -3,9 +3,9 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-admin.site.site_header = "Memorial UNDB"
-admin.site.site_title = "Memorial UNDB"
-admin.site.index_title = "Gestão do conteúdo do totem"
+admin.site.site_header = "Memorial Dom Bosco"
+admin.site.site_title = "Memorial Dom Bosco"
+admin.site.index_title = "Salas, ex-alunos e configuração dos totens"
 
 urlpatterns = [
     path("admin/", admin.site.urls),

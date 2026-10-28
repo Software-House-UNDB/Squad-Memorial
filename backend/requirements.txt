@@ -4,3 +4,4 @@ django-cors-headers>=4.4
 psycopg[binary]>=3.2
 Pillow>=10.4
 gunicorn>=23.0
+qrcode>=8.0

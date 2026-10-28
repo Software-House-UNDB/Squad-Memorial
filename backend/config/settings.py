@@ -85,7 +85,8 @@ STATIC_ROOT = BASE_DIR / "static"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Uploads grandes vão para disco temporário em vez de memória
+# Uploads grandes vão para disco temporário em vez de memória.
+# O limite real de cada rota fica no nginx (check-in: 30 MB; admin: 2 GB, por causa dos vídeos).
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 
@@ -96,16 +97,34 @@ USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 CORS_ALLOWED_ORIGINS = env_list("DJANGO_CORS_ALLOWED_ORIGINS")
-CORS_ALLOWED_METHODS = ["GET", "OPTIONS"]
+CORS_ALLOWED_METHODS = ["GET", "POST", "OPTIONS"]
+
+# Cache em arquivo: compartilhado pelos workers do gunicorn no mesmo contêiner (o limite de
+# frequência do check-in precisa enxergar todos os pedidos, não só os de um worker).
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": os.environ.get("DJANGO_CACHE_DIR", "/tmp/memorial-cache"),
+    }
+}
 
 REST_FRAMEWORK = {
-    # A API do totem é só leitura e pública; o conteúdo é editado pelo /admin
+    # A API dos totens é pública; o conteúdo é editado pelo /admin. O único POST é o check-in,
+    # sem sessão (então sem CSRF), protegido por limite de frequência e campo isca.
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_AUTHENTICATION_CLASSES": [],
     "UNAUTHENTICATED_USER": None,
+    "DEFAULT_THROTTLE_RATES": {
+        "checkin_minuto": os.environ.get("CHECKIN_LIMITE_MINUTO", "5/min"),
+        "checkin_hora": os.environ.get("CHECKIN_LIMITE_HORA", "30/hour"),
+    },
+    # Quantos proxies ficam na frente do Django (o IP do visitante é lido do X-Forwarded-For).
+    # nginx sozinho = 1. Com o túnel da Cloudflare na frente do nginx = 2.
+    "NUM_PROXIES": int(os.environ.get("DJANGO_NUM_PROXIES", "1")),
 }
 
+# O corpo das requisições nunca é registrado (o check-in traz dados pessoais).
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

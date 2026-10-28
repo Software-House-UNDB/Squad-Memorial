@@ -1,14 +1,5 @@
-/* Base do aplicativo. Os tokens vêm de ./tokens.css (fonte única, importada em main.tsx).
-   O palco é sempre 1920×1080 px CSS lógicos, escalado para a tela real (ver quiosque/Palco.tsx).
-   Por isso os termos em vmin dos tokens são resolvidos aqui no valor de referência de 1080 px:
-   raiz clamp(15px, .85vmin + 8px, 30px) = 17,18px; display 10vmin = 108px; seção 6,5vmin = 70,2px. */
-html { font-size: 17.18px; }
-
-.palco {
-  --tipo-display: 108px;
-  --tipo-secao: 70.2px;
-}
-
+/* Base do totem. Os tokens vêm de ./tokens.css. O palco é sempre 1600 × 900 px CSS lógicos,
+   escalado para a tela real (quiosque/Palco.tsx), então os tamanhos aqui são em px do palco. */
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body, #raiz {
@@ -19,73 +10,49 @@ html, body, #raiz {
 }
 
 body {
-  background: var(--cor-noite);
-  font: 400 1rem/1.35 var(--fonte-livro);
-  font-kerning: normal;
-  font-variant-numeric: lining-nums;
+  background: var(--grafite-3);
+  color: var(--grafite);
+  font: 400 var(--t-texto)/1.45 var(--sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4, p, figure, blockquote, dl, dd { margin: 0; }
-h1, h2, h3, h4 { text-wrap: balance; font-weight: 600; }
+h1, h2, h3, h4 { text-wrap: balance; }
 ul, ol { margin: 0; padding: 0; list-style: none; }
 img { display: block; max-width: 100%; -webkit-user-drag: none; user-select: none; }
-button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+button {
+  font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; text-align: inherit;
+}
 button:disabled { cursor: default; }
+:focus-visible { outline: 3px solid var(--dourado); outline-offset: 3px; }
 
-/* Barras de rolagem internas no vocabulário do livro */
+.serif { font-family: var(--serif); }
+.num { font-variant-numeric: lining-nums tabular-nums; }
+.sem-quebra { white-space: nowrap; }
+.so-leitor {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* Rolagem interna (lista de períodos, resultados): barra sempre visível e arraste por toque. */
 .rola {
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
   touch-action: pan-y;
-  scrollbar-width: thin;
-  scrollbar-color: var(--cor-ouro-desbotado) transparent;
+  scrollbar-width: auto;
+  scrollbar-color: var(--dourado) var(--linha);
   -webkit-overflow-scrolling: touch;
 }
-.rola::-webkit-scrollbar { width: 5px; }
-.rola::-webkit-scrollbar-thumb { background: var(--cor-ouro-desbotado); border-radius: 3px; }
-.rola::-webkit-scrollbar-track { background: var(--cor-vinco); border-radius: 3px; }
+.rola::-webkit-scrollbar { width: 8px; }
+.rola::-webkit-scrollbar-thumb { background: var(--dourado); border-radius: 4px; }
+.rola::-webkit-scrollbar-track { background: var(--linha); border-radius: 4px; }
 
-/* utilitários */
-.so-leitor {
-  position: absolute; width: 1px; height: 1px; overflow: hidden;
-  clip: rect(0 0 0 0); white-space: nowrap;
-}
-.num { font-variant-numeric: lining-nums tabular-nums; }
-
-/* entrada de tela: conteúdo já visível, só assenta */
-@keyframes tela-entra { from { opacity: .4; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.tela-entra { animation: tela-entra var(--dur-local) var(--curva) both; }
+@keyframes entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.entra { animation: entra .35s var(--curva) both; }
 
 @media (prefers-reduced-motion: reduce) {
-  .tela-entra { animation: none; }
+  *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
 }
-/* ===== palco fluido =====
-   Fora do totem deitado o palco ocupa a tela real (ver quiosque/Palco.tsx). Cada tela troca as
-   posições absolutas do palco de 1920×1080 por uma coluna que rola inteira, com as abas embaixo. */
-html.fluido { font-size: 16px; }
-@media (min-width: 700px) { html.fluido { font-size: 17px; } }
-@media (min-width: 1000px) and (orientation: portrait) { html.fluido { font-size: 20px; } }
-
-html.fluido .palco {
-  --tipo-display: clamp(2.6rem, 12vw, 6rem);
-  --tipo-secao: clamp(1.9rem, 7.4vw, 3.4rem);
-  --tipo-titulo: 1.6rem;
-  --tipo-ano: 1.6rem;
-  --tipo-marco: 1.2rem;
-  --tipo-texto: 1.1rem;
-  --tipo-legenda: 1rem;
-  --tipo-botao: .95rem;
-  --toque-minimo: 56px;
-  --toque-conforto: 64px;
-  --toque-escuro: 56px;
-  --altura-topo: calc(60px + env(safe-area-inset-top));
-  --altura-abas: calc(68px + env(safe-area-inset-bottom));
-  --margem-tela: 16px;
-}
-@media (min-width: 700px) { html.fluido .palco { --margem-tela: 32px; } }
-
-/* no fluido o corpo da tela é quem rola; as listas internas só fluem */
-html.fluido .rola { overflow: visible; overscroll-behavior: auto; }

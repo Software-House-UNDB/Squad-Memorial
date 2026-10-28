@@ -1,266 +1,197 @@
 ---
-name: Memorial UNDB
-description: Totem de memória institucional da UNDB, em papel envelhecido, tinta azul e filetes dourados.
+name: Memorial Dom Bosco
+description: Totens das salas do Memorial Dom Bosco Maria Izabel Rodrigues, em grafite, dourado e marfim, com a assinatura da fundadora.
 colors:
-  papel-de-arquivo: "#f5efe3"
-  papel-envelhecido: "#ece2cf"
-  folha-nova: "rgba(255, 252, 245, 0.9)"
-  vinco-de-papel: "#e3d5b8"
-  tinta-ferrogalica: "#1d3461"
-  ferrogalica-diluida: "#2f4f86"
-  ouro-de-lombada: "#b8893b"
-  ouro-desbotado: "#d9bb7e"
-  ouro-gravado: "#86601f"
-  sepia-de-escrita: "#3b3328"
-  sepia-esmaecida: "#6e6352"
-  louro-prateado: "#9fb0cc"
-  noite-de-exposicao: "#0e1321"
+  grafite: "#2B2A28"
+  grafite-2: "#3D3B38"
+  grafite-3: "#1F1E1C"
+  dourado: "#B08D57"
+  dourado-claro: "#D9C39B"
+  dourado-texto: "#7C6034"
+  dourado-fundo: "#EFE6D6"
+  marfim: "#F3F0EA"
+  areia: "#E9E4DA"
+  cartao: "#FBF9F5"
+  linha: "#E2DCD1"
+  suave: "#5E5A53"
+  suave-2: "#67635D"
+  suave-escuro: "#CFC8BA"
+  erro: "#9A3B2E"
+  sala-1: "#4A4844"
+  sala-2: "#84673A"
+  sala-3: "#8E5444"
+  sala-4: "#5A6650"
+  sala-5: "#2B2A28"
 typography:
-  display:
-    fontFamily: "Cinzel, Trajan Pro, Georgia, serif"
-    fontSize: "clamp(3.4rem, 10vmin, 8.5rem)"
-    fontWeight: 600
-    lineHeight: 1
-    letterSpacing: "0.08em"
-  headline:
-    fontFamily: "Cinzel, Trajan Pro, Georgia, serif"
-    fontSize: "clamp(2.6rem, 6.5vmin, 4.75rem)"
-    fontWeight: 600
-    lineHeight: 1.05
-    letterSpacing: "0.07em"
-  title:
-    fontFamily: "Cinzel, Trajan Pro, Georgia, serif"
-    fontSize: "2rem"
-    fontWeight: 600
-    letterSpacing: "0.06em"
-  year:
-    fontFamily: "EB Garamond, Garamond, Georgia, serif"
-    fontSize: "2.4rem"
-    fontWeight: 500
-    lineHeight: 1
-    fontFeature: "lnum"
-  body:
-    fontFamily: "EB Garamond, Garamond, Georgia, serif"
-    fontSize: "1.25rem"
+  titulo:
+    fontFamily: "Cormorant Garamond, Georgia, serif"
+    fontSize: "58px"
+    fontWeight: 700
+    lineHeight: 1.02
+  ano:
+    fontFamily: "Cormorant Garamond, Georgia, serif"
+    fontSize: "28px (destaque 40px)"
+    fontWeight: 700
+    fontFeature: "lnum tnum"
+  texto:
+    fontFamily: "Montserrat, Helvetica Neue, Arial, sans-serif"
+    fontSize: "18px"
     fontWeight: 400
-    lineHeight: 1.35
-  label:
-    fontFamily: "Cinzel, Trajan Pro, Georgia, serif"
-    fontSize: "0.95rem"
-    fontWeight: 400
-    letterSpacing: "0.12em"
+    lineHeight: 1.45
+  apoio:
+    fontFamily: "Montserrat"
+    fontSize: "16px"
+  rotulo:
+    fontFamily: "Montserrat"
+    fontSize: "14px"
+    fontWeight: 700
+    letterSpacing: "0.2em"
+    textTransform: uppercase
 rounded:
-  miniatura-tira: "6px"
-  miniatura: "8px"
-  aba: "10px"
-  cartao: "12px"
+  cartao: "10px"
+  perfil: "14px"
   pilula: "999px"
 spacing:
-  folga-toque: "0.75rem"
-  grupo: "1.25rem"
-  secao: "1.5rem"
-  bloco: "2rem"
-  toque-minimo: "3.5rem"
+  margem-lateral: "52px"
+  toque-minimo: "56px"
+  folga-toque: "12px"
 components:
-  botao:
-    backgroundColor: "{colors.ouro-desbotado}"
-    textColor: "{colors.tinta-ferrogalica}"
-    typography: "{typography.label}"
+  aba-ativa:
+    backgroundColor: "{colors.sala-N}"
+    textColor: "{colors.marfim}"
     rounded: "{rounded.pilula}"
-    padding: "0 2rem"
-    height: "3.5rem"
-  botao-redondo-escuro:
-    backgroundColor: "rgba(255, 255, 255, 0.14)"
-    textColor: "#ffffff"
-    rounded: "{rounded.pilula}"
-    size: "4.5rem"
-  chip:
-    backgroundColor: "{colors.folha-nova}"
-    textColor: "{colors.tinta-ferrogalica}"
-    rounded: "{rounded.pilula}"
-    padding: "0 1.8rem"
-    height: "3.5rem"
+    height: "56px"
   chip-ativo:
-    backgroundColor: "{colors.tinta-ferrogalica}"
-    textColor: "#ffffff"
+    backgroundColor: "{colors.grafite}"
+    textColor: "{colors.marfim}"
     rounded: "{rounded.pilula}"
+    height: "56px"
   cartao:
-    backgroundColor: "{colors.folha-nova}"
-    textColor: "{colors.sepia-de-escrita}"
+    backgroundColor: "{colors.cartao}"
+    border: "1px {colors.linha}"
     rounded: "{rounded.cartao}"
-    padding: "1.75rem"
-  aba-navegacao:
-    textColor: "{colors.tinta-ferrogalica}"
-    typography: "{typography.label}"
-    rounded: "{rounded.aba}"
-    padding: "0 1.25rem"
-    height: "3.5rem"
-  seta-de-toque:
-    backgroundColor: "{colors.tinta-ferrogalica}"
-    textColor: "#ffffff"
-    rounded: "{rounded.pilula}"
-    size: "3.25rem"
 ---
 
-# Design System: Memorial UNDB
+# Design System: Memorial Dom Bosco
 
 ## Overview
 
-**Creative North Star: "O Livro de Honra"**
+**Norte criativo: "O selo da fundadora".** Cada totem é uma página do mesmo álbum: cabeçalho grafite
+com a assinatura de Maria Izabel Rodrigues, papel marfim, filetes e pontos dourados tirados do
+monograma "1958". A cor de cada sala marca o número da sala, a aba ativa e o destaque, sem disputar com
+o dourado.
 
-O totem é um álbum solene e encadernado da instituição, aberto no hall de entrada. O fundo é papel de arquivo creme com aquarelas difusas e uma textura de fibra quase imperceptível. Os títulos são inscrições em capitulares romanas (Cinzel), o texto corre numa Garamond de livro e a ornamentação se limita ao que um encadernador usaria: filetes dourados, um losango no centro do divisor, ramos de louro desenhados e uma onda azul com fio de ouro fechando o rodapé, como a borda de uma capa.
+Referência de composição: o protótipo `docs/referencia/tour-memorial-dom-bosco.html` (bloco
+`/* totem (1600x900) */`). A composição é a mesma; os tamanhos foram aumentados para leitura de pé, a
+50–80 cm da tela, e o contraste foi corrigido (ver "Contraste").
 
-O clima é **solene e acolhedor** ao mesmo tempo. Solene porque trata da memória da instituição com respeito: tinta azul profunda, ouro contido, nenhuma informalidade. Acolhedor porque o papel é quente, os cantos são suaves e cada elemento tocável responde ao dedo. Quem passa com pressa precisa entender em segundos o que é e onde tocar, por isso a ornamentação nunca disputa atenção com a hierarquia.
+- **Palco lógico 1600 × 900 (16:9)**, escalado para a tela real e centralizado. Em telas 16:10 sobram
+  faixas `--grafite-3` em cima e embaixo. Nada rola na página; só listas internas (períodos, resultados,
+  vídeos) rolam, com barra visível.
+- **Estrutura comum**: cabeçalho 78 px · área principal (margens de 52 px) · rodapé 46 px com a dica de
+  uso da aba e, à direita, o selo "Conteúdo de exemplo · Memorial Dom Bosco" quando a sala tiver
+  conteúdo demonstrativo.
+- **Duas atmosferas**: o marfim para navegar e o grafite (95%) para overlays (foto ampliada, player,
+  QR do check-in, aviso de inatividade).
 
-Quando o acervo entra em cena (lightbox, player, proteção de tela), o livro se fecha e a sala escurece: o fundo vira a noite de exposição, a interface recua e só restam controles brancos e o ouro desbotado nos anos.
+## Cores
 
-**Key Characteristics:**
-- Papel creme com aquarela e textura; nunca branco puro como fundo de página.
-- Tinta azul-marinho para títulos e ações, ouro para filetes e ornamentos.
-- Cinzel em caixa alta e espaçada para títulos; EB Garamond para leitura e anos.
-- Ornamento de encadernação: filete, losango, louro e onda com fio de ouro.
-- Duas atmosferas: o livro claro para navegar e a sala escura para o acervo.
-- Superfícies quase planas que respondem ao toque com firmeza.
+Os tokens ficam em `frontend/src/estilos/tokens.css`; para aplicar o manual da marca, troque só ali.
 
-## Colors
+- **Grafite** (`#2B2A28`): cabeçalho, cartão do perfil, chips ativos, texto principal.
+- **Dourado** (`#B08D57`): **só ornamento** sobre fundo claro (filetes, pontos, anéis, bordas) e texto
+  sobre grafite. Sobre o marfim ele tem 2,72:1 e nunca escreve.
+- **Dourado-texto** (`#7C6034`): todo texto dourado sobre fundo claro (eyebrows, rótulos em caixa-alta,
+  tipo do vídeo, contagem). O protótipo usava `#8A6B3A` (4,35:1).
+- **Dourado-claro** (`#D9C39B`): rótulos e texto dourado sobre grafite.
+- **Suave** / **Suave-2** (`#5E5A53` / `#67635D`): textos de apoio. O protótipo usava `#77736C` (4,15:1).
+- **Cor da sala**: 1 `#4A4844`, 2 `#84673A`, 3 `#8E5444` (terracota), 4 `#5A6650` (verde-oliva),
+  5 `#2B2A28`. Entra no selo do cabeçalho, na aba ativa, no anel e no ano do marco em destaque, na borda
+  do cartão em destaque e no período selecionado. **A sala 2 foi escurecida** de `#A07D47` (marfim sobre
+  ela: 3,35:1) para `#84673A`, mantendo o tom.
 
-Uma paleta de arquivo: papéis em três idades, uma única tinta azul e o ouro em três intensidades, cada uma com uma função.
+### Contraste (valores finais, WCAG 2.1)
 
-### Primary
-- **Tinta Ferrogálica** (tinta-ferrogalica): a tinta de pena dos documentos antigos. Usada nos títulos, nos nomes de seção, na seta de toque dos cartões, nos chips ativos e na onda do rodapé. É a cor da ação e da autoridade.
-- **Ferrogálica Diluída** (ferrogalica-diluida): a segunda camada da onda do rodapé e o fundo das capas de vídeo sem imagem. Nunca aparece em texto.
+Medidos pelo teste `frontend/src/estilos/contraste.test.ts`, que falha se algum par cair abaixo de 4,5:1.
 
-### Secondary
-- **Ouro de Lombada** (ouro-de-lombada): o dourado gravado na lombada. Aparece em filetes, losangos, contornos de ícones, sublinhado da aba ativa e no fio da onda. É ornamento e gráfico, **não texto pequeno** (2,75:1 sobre o papel).
-- **Ouro Gravado** (ouro-gravado): o ouro escurecido para texto pequeno, como contagens ("15 FOTOS"), links ("VER 3 FOTOS"), faixa de anos e rótulos (4,9:1 sobre o papel).
-- **Ouro Desbotado** (ouro-desbotado): bordas de chips e filtros, preenchimento do botão, anos e barra de progresso sobre fundos escuros (10:1 sobre a noite de exposição).
+| Texto | Fundo | Contraste |
+|---|---|---|
+| grafite | marfim / areia | 12,61 / 11,32 |
+| grafite-2 (abas inativas) | areia | 8,81 |
+| suave | marfim / areia | 6,03 / 5,41 |
+| suave-2 | marfim / cartão / areia | 5,25 / 5,67 / 4,71 |
+| dourado-texto | marfim / cartão / areia | 5,16 / 5,58 / 4,63 |
+| dourado-texto (selo NOVO) | dourado-fundo | 4,74 |
+| dourado | grafite / grafite-3 | 4,64 / 5,39 |
+| dourado-claro | grafite / grafite-2 | 8,35 / 6,50 |
+| suave-escuro | grafite | 8,62 |
+| marfim | sala 1 / 2 / 3 / 4 / 5 | 8,02 / 4,64 / 5,27 / 5,35 / 12,61 |
+| erro | marfim | 6,08 |
+| *dourado (só ornamento)* | *marfim* | *2,72* |
 
-### Tertiary
-- **Louro Prateado** (louro-prateado): exclusivo dos ramos de louro, que são decorativos e ficam em segundo plano. Não usar em nenhum outro lugar.
+## Tipografia
 
-### Neutral
-- **Papel de Arquivo** (papel-de-arquivo): o fundo de toda a experiência clara e da faixa fixa do índice de décadas.
-- **Papel Envelhecido** (papel-envelhecido): espaço reservado de imagens que ainda carregam.
-- **Folha Nova** (folha-nova): superfície dos cartões, quase branca e levemente translúcida sobre o papel.
-- **Vinco de Papel** (vinco-de-papel): bordas de cartões, divisória do Topo e do rodapé dos cartões, fio da galeria.
-- **Sépia de Escrita** (sepia-de-escrita): texto corrido principal (10,8:1).
-- **Sépia Esmaecida** (sepia-esmaecida): descrições, legendas e textos de apoio (5,1:1).
-- **Noite de Exposição** (noite-de-exposicao): fundo do lightbox e base da proteção de tela, o modo "sala escura".
+**Cormorant Garamond** (títulos, anos, nomes; 500–700 e itálico) e **Montserrat** (textos, 400–700),
+instaladas com `@fontsource`, nunca por CDN. Anos usam algarismos alinhados (`.num`).
 
-### Named Rules
-**A Regra do Ouro que Não Fala.** O Ouro de Lombada desenha, mas não escreve. Todo texto dourado sobre papel usa o Ouro Gravado.
+Mínimos no palco 1600 × 900 (o protótipo, feito como apresentação, ficava abaixo deles):
 
-**A Regra da Tinta Única.** Só existe um azul de ação. Nenhum segundo acento compete com a Tinta Ferrogálica nas telas claras.
+| Uso | Protótipo | Totem |
+|---|---|---|
+| Texto corrido (subtítulos, descrições, estados vazios) | 12,5–15 px | **18 px** |
+| Texto secundário (legendas, contagens, metadados, dica do rodapé) | 11–13 px | **16 px** |
+| Rótulos em caixa-alta (eyebrow, "PERÍODOS DE 5 ANOS", tipo do vídeo) | 9,5–11,5 px | **14 px** |
+| Botões, abas, chips | 13–14 px | 16–17 px |
+| Título da sala | 58 px | 58 px |
 
-## Typography
+Sobre o grafite (texto grande): títulos dos overlays 32–72 px, nome no perfil 34 px.
 
-**Display Font:** Cinzel (com Trajan Pro, Georgia)
-**Body Font:** EB Garamond (com Garamond, Georgia)
+## Toque
 
-**Character:** Capitulares romanas de inscrição sobre uma Garamond de livro: a pedra gravada e a página impressa. As duas são locais via @fontsource (Cinzel 500/600; EB Garamond 400, 500 e 400 itálico).
+Todo alvo mede **56 px ou mais** (valor do design anterior), com pelo menos 12 px entre vizinhos:
+abas, itens da lista de períodos, chips de década, setas, botão Fechar, Voltar, teclas (62 px), pontos
+da linha do tempo (círculo de 56 px em volta do ponto de 16 px), cartões de pessoa (86 px) e pílulas de
+colega (60 px). Não existe hover: todo elemento tocável tem `:active` (escala, borda dourada ou fundo).
 
-A escala parte do menor lado da tela: `html { font-size: clamp(15px, 0.85vmin + 8px, 30px) }` deitado, e `clamp(16px, 1.3vw + 8px, 34px)` em pé. Na prática, 1rem vale cerca de 17px em 1920×1080 e 22px em 1080×1920, então todos os tamanhos em rem crescem quando o totem fica em pé.
+## Componentes
 
-### Hierarchy
-- **Display** (600, clamp(3.4rem, 10vmin, 8.5rem), 1): apenas a palavra "MEMORIAL" no Início e na proteção de tela. Caixa alta.
-- **Headline** (600, clamp(2.6rem, 6.5vmin, 4.75rem), 1.05): títulos de seção (HISTÓRIA, FOTOS, VÍDEOS), ladeados por louros. Caixa alta.
-- **Title** (600, 2rem): nomes nos cartões de seção do Início; o nome "MEMORIAL" no Topo usa 1.6rem. Caixa alta.
-- **Year** (EB Garamond 500, 2.4rem, algarismos alinhados): anos da linha do tempo, da galeria e do lightbox. Os anos sempre falam em Garamond, nunca em Cinzel.
-- **Body** (400, 1.2–1.4rem, 1.35): descrições, legendas e títulos de marco (1.55rem, 500). Medida máxima de 60ch.
-- **Label** (Cinzel 400–500, 0.95–1.1rem, 0.12em, caixa alta): contagens, links de ação, abas, rótulo do índice de décadas.
-- **Itálico** (EB Garamond itálico): subtítulo do Início, dicas ("Toque em uma seção para começar"), mensagens de espera e de estado vazio.
+- **Cabeçalho** (78 px, grafite): assinatura com 46 px de altura, divisor, selo redondo com o número na
+  cor da sala, "SALA N" + nome em serif, e à direita "PERCURSO", cinco pontos e "Sala N de 5". **Os
+  pontos são indicadores, não botões**: cada totem conhece só a própria sala.
+- **Abas em pílula** (História, Fotos, Vídeos) sobre a areia; a ativa é preenchida com a cor da sala.
+- **Linha do tempo**: fio com degradê dourado, marcos alternando acima e abaixo, ponto na linha, ano em
+  serif e cartão (ícone, título, descrição de até 3 linhas). Destaque: ano maior na cor da sala, anel e
+  borda do cartão na cor da sala. 4 a 10 marcos cabem na tela; acima disso, rolagem lateral com encaixe.
+- **Polaroide**: moldura branca, rotação de ±0,6°, legenda "**ano** *legenda*". Sem imagem, uma moldura
+  provisória (degradê quente com o ícone da sala).
+- **Overlays**: grafite a 95%, botão Fechar em pílula dourada no canto, legenda "ANO · FOTO i DE n".
+  O player tem tocar/pausar, barra de progresso, tempo, som (mudo e volume) e legenda WebVTT.
+- **Cartão de perfil** (400 px): grafite, moldura dourada interna, monograma a 5% ao fundo, anel dourado
+  com o avatar (foto ou iniciais em serif), blocos ANO EM QUE ESTUDOU e TURMA, redes informadas.
+- **Teclado virtual**: grafite, fixo embaixo, letras, espaço, Apagar, Limpar e Pronto. Com ele aberto,
+  o título recolhe para os resultados subirem.
 
-### Named Rules
-**A Regra da Inscrição.** Cinzel só em caixa alta e sempre com espaçamento positivo (de 0.06em a 0.12em). Nunca em frases longas.
+## Marcas
 
-**A Regra do Mínimo de Longe.** Nenhum texto lido no totem fica abaixo de 0.95rem; os textos de leitura ficam a partir de 1.2rem.
+Em `frontend/src/assets/memorial/`, extraídas do protótipo:
 
-## Layout
+- `assinatura.png` (900 × 229, **versão clara**): cabeçalho de todos os totens e do check-in.
+- `monograma.png` (520 × 537, dourado): ícones do PWA (sobre `#1F1E1C`), aviso de inatividade e marca
+  d'água do perfil (5%).
+- `icone.png` (120 × 124, **versão escura**): selo do rodapé.
+- `placa-checkin.jpg`: a placa de entrada do protótipo, como referência (o QR de verdade vem do admin).
 
-- **Base:** o app ocupa a tela inteira sem rolagem do documento. As telas internas têm o Topo fixo e uma área de conteúdo que rola sozinha. A coluna de conteúdo usa `min(100% - 3rem, 70rem)`, centralizada; a linha do tempo se limita a 52rem.
-- **Duas orientações**, trocadas por `@media (orientation: portrait)`:
-  - **Deitado:** o Topo põe a marca à esquerda e as abas à direita; os cartões do Início ficam em 3 colunas; cada período da galeria tem o texto numa coluna de 12rem e a tira de fotos ao lado.
-  - **Em pé:** o Topo centraliza a marca e põe as abas numa linha de largura total; os cartões do Início empilham em linhas horizontais (ícone, texto, seta); o texto do período fica acima da tira de fotos.
-- **Palco fluido (celular, tablet, totem em pé):** o palco fixo de 1920×1080 só é usado com a tela deitada e escala de pelo menos 0,62. Nos outros casos o `<html>` recebe a classe `fluido`: as telas viram uma coluna que rola entre o Topo (só a marca, e a trilha a partir de 700px) e uma barra de abas em Tinta Ferrogálica fixa embaixo, com a crista da onda e o fio de ouro. Na barra, alvos de 56px ou mais. `?palco=fixo|fluido` força um dos modos.
-- **Ritmo:** os grupos internos são apertados (0.3–0.6rem); entre cartões, 1.25–1.5rem; entre blocos, 2rem. O Início é centralizado verticalmente e reserva 14vh embaixo para a onda.
-- **Acervo grande:** com 9 ou mais períodos, um índice de décadas fica fixo no topo da rolagem. A galeria mostra 11 miniaturas por período e um bloco "+N fotos".
-- **Toque:** todo alvo mede no mínimo 3.5rem (60px deitado, 77px em pé), com pelo menos 0.75rem de folga entre vizinhos.
+## Movimento
 
-## Elevation & Depth
-
-Quase plano. A profundidade vem do papel em camadas: cartões translúcidos de Folha Nova sobre o Papel de Arquivo, contornados pelo Vinco de Papel. As sombras existentes são baixas, quentes e difusas, só para descolar o cartão do fundo; não sinalizam hierarquia.
-
-### Shadow Vocabulary
-- **Repouso** (`box-shadow: 0 1px 2px rgba(60, 45, 20, 0.06), 0 6px 18px rgba(60, 45, 20, 0.08)`): cartões, nós da linha do tempo, miniaturas.
-- **Toque** (`box-shadow: 0 2px 4px rgba(60, 45, 20, 0.08), 0 14px 34px rgba(60, 45, 20, 0.14)`): só durante `:active` e no período destacado ao chegar pela linha do tempo.
-
-### Named Rules
-**A Regra do Papel Pousado.** Uma superfície nunca ganha mais que a sombra de Repouso parada. A sombra mais funda só aparece como resposta ao toque.
-
-## Shapes
-
-- **Cantos suaves e contidos:** cartões com 12px, miniaturas com 8px, abas com 10px e miniaturas do lightbox com 6px. Tudo o que é ação discreta (chips, filtros, décadas, botões, setas, fechar) é pílula ou círculo.
-- **Círculos de medalha:** os ícones de seção e de estado vazio ficam em círculos de Folha Nova com contorno dourado de 1.5px; os nós da linha do tempo, em círculos com contorno de 2px.
-- **Escudo:** marca os períodos na galeria (um escudo de Tinta Ferrogálica, recortado com `clip-path`).
-- **Losango:** o centro de todo divisor.
-
-## Components
-
-### Buttons
-Táteis e firmes: afundam um pouco ao toque.
-- **Shape:** pílula (999px), altura mínima de 3.5rem.
-- **Primary:** fundo de Ouro Desbotado e texto em Tinta Ferrogálica, em Cinzel 600, 1.1rem. Hoje aparece no erro do player ("Voltar aos vídeos").
-- **Redondo escuro:** círculo de 4.5rem com fundo branco a 14% e contorno branco a 40%, usado sobre a noite de exposição (fechar, setas do lightbox, play/pause).
-- **Active:** `scale(0.92–0.96)` e fundo mais claro (branco a 30% nos escuros). Não existe hover.
-
-### Chips
-- **Style:** pílula de Folha Nova com borda de 1.5px em Ouro Desbotado e texto em Tinta Ferrogálica (filtros de vídeo em 1.3rem, décadas em 1.35rem Garamond).
-- **State:** o ativo inverte para fundo de Tinta Ferrogálica com texto branco. No toque, `scale(0.95)`.
-
-### Cards / Containers
-- **Corner Style:** 12px.
-- **Background:** Folha Nova, com borda de 1px em Vinco de Papel.
-- **Shadow Strategy:** Repouso parado e Toque no `:active` (ver Elevation & Depth).
-- **Toque:** `scale(0.98)` e a borda passa a Ouro de Lombada: o filete dourado "acende".
-- **Internal Padding:** cerca de 1.75rem nos cartões de seção e 1.15–1.5rem nos marcos.
-
-### Navigation
-- **Topo:** papel translúcido com desfoque e linha de Vinco embaixo. À esquerda ficam o logo da UNDB, um filete dourado vertical e "MEMORIAL"; tocar nessa marca volta ao Início.
-- **Abas:** Cinzel 1.1rem em caixa alta, com ícone dourado. A ativa tem peso 600 e sublinhado dourado de 3px. A aba "Início" é uma caixa de Folha Nova.
-
-### Cartão de seção do Início (signature)
-Ícone em círculo de medalha, título em Cinzel, descrição em Garamond e um rodapé com a contagem em Ouro Gravado. A **seta de toque** é um círculo de Tinta Ferrogálica com chevron branco, o "botão" visível que mostra onde tocar sem precisar de hover. No toque, a seta anda 4px para a direita. Em pé, o cartão vira uma linha horizontal.
-
-### Linha do tempo (signature)
-Três colunas: o ano em Garamond, um nó circular com ícone e o cartão do marco. Um fio dourado vertical liga os nós. O cartão inteiro é tocável e leva às fotos do período.
-
-### Divisor e ornamentos (signature)
-- **Divisor:** duas linhas de 1px em Ouro de Lombada com um losango no centro.
-- **Louro:** ramo procedural em Louro Prateado, espelhado nos dois lados dos títulos.
-- **Onda do rodapé:** duas camadas de azul com fio de ouro de 3px, fixa no rodapé de todas as telas claras.
-
-### Logo UNDB
-Vem dos arquivos oficiais, sem recolorir nem filtrar; o CSS define só a altura.
-- **Cinza (#363636):** sobre o papel (Topo, Início, Carregando).
-- **Branca:** sobre fundos escuros (proteção de tela).
-- **Preta:** reservada.
-
-O logo fica sempre com respiro de pelo menos metade da própria altura.
+Curto e com saída suave (`cubic-bezier(.22, 1, .36, 1)`, 240 ms). Entrada de conteúdo com 8 px de
+deslocamento. `prefers-reduced-motion` desliga tudo.
 
 ## Do's and Don'ts
 
-### Do:
-- **Do** usar Ouro Gravado em todo texto dourado sobre papel, e Ouro de Lombada só em linhas, ícones e ornamentos.
-- **Do** dar a todo elemento tocável um `:active` visível (escala, borda dourada ou fundo mais claro), porque não existe hover.
-- **Do** manter alvos de no mínimo 3.5rem com 0.75rem de folga.
-- **Do** escrever os anos em EB Garamond com algarismos alinhados.
-- **Do** escurecer para a Noite de Exposição quando o acervo ocupa a tela inteira (lightbox, player, proteção de tela).
-- **Do** respeitar `prefers-reduced-motion`; as animações existentes são curtas e com saída exponencial (`cubic-bezier(0.22, 1, 0.36, 1)`).
-
-### Don't:
-- **Don't** recolorir, distorcer, aplicar filtro ou mudar a proporção do logo oficial da UNDB.
-- **Don't** usar Ouro de Lombada em texto pequeno sobre o papel (2,75:1).
-- **Don't** usar fundo branco puro nas telas claras; a página é sempre papel.
-- **Don't** escrever frases longas em Cinzel nem usar Cinzel sem caixa alta.
-- **Don't** aumentar sombras além da de Repouso em superfícies paradas.
+- **Do** usar `--dourado-texto` em todo texto dourado sobre fundo claro.
+- **Do** manter alvos de 56 px e texto corrido de 18 px no palco.
+- **Do** mostrar o selo "Conteúdo de exemplo" enquanto a sala tiver conteúdo demonstrativo.
+- **Don't** escrever com `--dourado` sobre marfim, areia ou cartão.
+- **Don't** pôr texto marfim sobre a cor original da sala 2 (`#A07D47`).
 - **Don't** carregar fontes, ícones ou scripts de CDN: tudo precisa funcionar offline.
+- **Don't** mostrar e-mail de ex-aluno em lugar nenhum da interface.

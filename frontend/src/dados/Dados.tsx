@@ -1,68 +1,55 @@
 /**
- * Carrega o acervo do backend e o mantém atualizado, sem nunca mudar a tela debaixo do dedo:
- * - Abre com a última cópia guardada (localStorage), então o totem funciona mesmo sem servidor.
- * - Busca /api/totem/ ao abrir e, depois, consulta /api/totem/versao/ periodicamente e sempre
- *   que o livro fecha (a capa mostra o conteúdo mais recente).
- * - Conteúdo novo só é aplicado com o livro fechado (na capa). Idem para uma versão nova do app.
+ * Dados da sala deste totem, sem nunca mudar a tela debaixo do dedo:
+ * - Abre com a última cópia guardada (localStorage), então as salas 1 a 4 funcionam sem servidor.
+ * - Busca /api/memorial/sala/N/ ao abrir e depois consulta /versao/?sala=N periodicamente.
+ * - Conteúdo novo só é aplicado quando o totem volta ao estado inicial da sala, ou depois de 30 s
+ *   sem toque. Idem para uma versão nova do app (service worker) e para a recarga diária.
  * - Miniaturas e capas são baixadas em segundo plano para o cache do service worker (offline).
  */
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { aplicarConfigServidor, quiosque } from '../config/quiosque';
-import { useNavegacao } from '../navegacao/Navegacao';
-import { CONFIG_PADRAO, configTotem, definirAcervo } from './acervo';
-import { acervoDemo } from './acervo-demo';
-import type { RespostaTotem } from './tipos';
+import { ultimaAtividade } from '../quiosque/atividade';
+import { criarVerificadorDeRecarga } from '../quiosque/guardas';
+import { fonte } from './fonte';
+import type { RespostaSala } from './tipos';
 
 export type Conexao = 'carregando' | 'online' | 'offline';
 
 interface EstadoDados {
-  /** Versão do acervo aplicado; null enquanto nada foi carregado. */
-  versao: string | null;
+  /** Dados aplicados; null enquanto nada foi carregado. */
+  dados: RespostaSala | null;
   conexao: Conexao;
+  /** O totem avisa quando está no estado inicial da sala (ponto seguro para trocar o conteúdo). */
+  informarInicio: (emInicio: boolean) => void;
 }
 
-const Contexto = createContext<EstadoDados>({ versao: null, conexao: 'carregando' });
-const CHAVE_CACHE = 'memorial:acervo';
+const Contexto = createContext<EstadoDados | null>(null);
 const NOVA_TENTATIVA_MS = 10_000;
+const chaveCache = (n: number) => `memorial:sala:${n}`;
 
-async function buscar<T>(caminho: string, limiteMs: number): Promise<T> {
-  const ctrl = new AbortController();
-  const t = window.setTimeout(() => ctrl.abort(), limiteMs);
+function lerCache(n: number): RespostaSala | null {
   try {
-    const r = await fetch(`${quiosque.api}${caminho}`, { signal: ctrl.signal, cache: 'no-store' });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return (await r.json()) as T;
-  } finally {
-    window.clearTimeout(t);
-  }
-}
-
-function lerCache(): RespostaTotem | null {
-  try {
-    const bruto = localStorage.getItem(CHAVE_CACHE);
-    return bruto ? (JSON.parse(bruto) as RespostaTotem) : null;
+    const bruto = localStorage.getItem(chaveCache(n));
+    return bruto ? (JSON.parse(bruto) as RespostaSala) : null;
   } catch {
     return null;
   }
 }
 
-function salvarCache(r: RespostaTotem) {
+function salvarCache(n: number, r: RespostaSala) {
   try {
-    localStorage.setItem(CHAVE_CACHE, JSON.stringify(r));
+    localStorage.setItem(chaveCache(n), JSON.stringify(r));
   } catch {
     /* sem espaço: o service worker ainda guarda a resposta da API */
   }
 }
 
 /** Baixa miniaturas e capas em segundo plano, para que apareçam offline. */
-async function aquecerCache(r: RespostaTotem) {
+async function aquecerCache(r: RespostaSala) {
   const urls = new Set<string>();
-  for (const f of r.acervo.fotos) if (f.srcMiniatura) urls.add(f.srcMiniatura);
-  for (const p of r.acervo.periodos) {
-    const capa = r.acervo.fotos.find((f) => f.id === p.fotoId);
-    if (capa?.src) urls.add(capa.src);
-  }
+  for (const f of r.fotos) if (f.miniatura) urls.add(f.miniatura);
+  for (const v of r.videos) if (v.capa) urls.add(v.capa);
   const fila = [...urls];
   const trabalhador = async () => {
     while (fila.length) {
@@ -76,58 +63,52 @@ async function aquecerCache(r: RespostaTotem) {
   await Promise.all([trabalhador(), trabalhador(), trabalhador()]);
 }
 
-function aplicar(r: RespostaTotem) {
-  definirAcervo(r.acervo, r.config);
-  aplicarConfigServidor(r.config ?? CONFIG_PADRAO);
-}
+const ocioso = (cb: () => void) =>
+  ((window as Window & { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback
+    ?? ((f: () => void) => window.setTimeout(f, 2000)))(cb);
 
-// A cópia guardada é aplicada já na carga do módulo: a capa abre sem esperar a rede.
-// No modo demonstração (sem servidor) vale o acervo de exemplo embutido no app.
-const DEMO = quiosque.demo;
-const inicial = DEMO ? null : lerCache();
-if (DEMO) definirAcervo(acervoDemo);
-else if (inicial) aplicar(inicial);
-
-export function DadosProvider({ children }: { children: ReactNode }) {
-  if (DEMO) return <Contexto.Provider value={{ versao: 'demo', conexao: 'online' }}>{children}</Contexto.Provider>;
-  return <DadosServidor>{children}</DadosServidor>;
-}
-
-function DadosServidor({ children }: { children: ReactNode }) {
-  const { livro } = useNavegacao();
-  const [versao, setVersao] = useState<string | null>(inicial?.versao ?? null);
+export function DadosProvider({ sala, children }: { sala: number; children: ReactNode }) {
+  const [dados, setDados] = useState<RespostaSala | null>(() => {
+    const c = quiosque.demo ? null : lerCache(sala);
+    if (c) aplicarConfigServidor(c.config);
+    return c;
+  });
   const [conexao, setConexao] = useState<Conexao>('carregando');
-  const pendente = useRef<RespostaTotem | null>(null);
-  const versaoRef = useRef(versao);
-  versaoRef.current = versao;
-  const livroRef = useRef(livro);
-  livroRef.current = livro;
+  const pendente = useRef<RespostaSala | null>(null);
+  const atual = useRef(dados);
+  atual.current = dados;
+  const emInicio = useRef(true);
 
-  const receber = useCallback((r: RespostaTotem) => {
-    salvarCache(r);
-    if (versaoRef.current === null || livroRef.current === 'fechado') {
-      pendente.current = null;
-      aplicar(r);
-      setVersao(r.versao);
-      const ocioso = (window as Window & { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback
-        ?? ((cb: () => void) => window.setTimeout(cb, 2000));
-      ocioso(() => void aquecerCache(r));
-    } else {
-      pendente.current = r; // entra quando o livro fechar
-    }
+  const aplicar = useCallback((r: RespostaSala) => {
+    pendente.current = null;
+    aplicarConfigServidor(r.config);
+    setDados(r);
+    if (!quiosque.demo) ocioso(() => void aquecerCache(r));
   }, []);
+
+  /** Ponto seguro: no início da sala, ou ninguém tocou há 30 s. */
+  const podeTrocar = useCallback(
+    () => emInicio.current || performance.now() - ultimaAtividade() >= quiosque.aplicarConteudoAposMs,
+    [],
+  );
+
+  const receber = useCallback((r: RespostaSala) => {
+    if (!quiosque.demo) salvarCache(sala, r);
+    if (atual.current === null || podeTrocar()) aplicar(r);
+    else if (r.versao !== atual.current.versao) pendente.current = r;
+  }, [sala, aplicar, podeTrocar]);
 
   // Carga inicial: insiste até o servidor responder.
   useEffect(() => {
     let vivo = true;
     let t: number;
     const tentar = () =>
-      buscar<RespostaTotem>('/api/totem/', 15_000)
+      fonte.sala(sala)
         .then((r) => {
           if (!vivo) return;
           receber(r);
           // a resposta pode ter vindo do cache do service worker: confirma a rede
-          buscar('/api/totem/versao/', 5_000)
+          fonte.versao(sala)
             .then(() => vivo && setConexao('online'))
             .catch(() => vivo && setConexao('offline'));
         })
@@ -141,27 +122,28 @@ function DadosServidor({ children }: { children: ReactNode }) {
       vivo = false;
       window.clearTimeout(t);
     };
-  }, [receber]);
+  }, [sala, receber]);
 
   const checar = useCallback(async () => {
+    if (quiosque.demo) return;
     try {
-      const { versao: v } = await buscar<{ versao: string }>('/api/totem/versao/', 5_000);
+      const v = await fonte.versao(sala);
       setConexao('online');
-      const conhecida = pendente.current?.versao ?? versaoRef.current;
-      if (v !== conhecida) receber(await buscar<RespostaTotem>('/api/totem/', 15_000));
+      const conhecida = pendente.current?.versao ?? atual.current?.versao;
+      if (v !== conhecida) receber(await fonte.sala(sala));
     } catch {
       setConexao('offline');
     }
-  }, [receber]);
+  }, [sala, receber]);
 
   // Checagem periódica de versão.
-  const intervalo = Math.max(configTotem.segundosAtualizacao, 15) * 1000;
+  const intervalo = Math.max(dados?.config.segundosAtualizacao ?? 300, 15) * 1000;
   useEffect(() => {
     const t = window.setInterval(() => void checar(), intervalo);
     return () => window.clearInterval(t);
   }, [intervalo, checar]);
 
-  // Versão nova do app (service worker): instalada só com o livro fechado.
+  // Versão nova do app (service worker): instalada só num ponto seguro.
   const {
     needRefresh: [appNovo],
     updateServiceWorker,
@@ -171,20 +153,30 @@ function DadosServidor({ children }: { children: ReactNode }) {
     },
   });
 
-  // Com o livro fechado: aplica o conteúdo pendente (ou busca o mais recente) e a versão nova do app.
+  // A cada 5 s: aplica o conteúdo pendente, a versão nova do app ou a recarga diária, se puder.
+  const recarregarHoje = useRef(criarVerificadorDeRecarga());
   useEffect(() => {
-    if (livro !== 'fechado') return;
-    if (appNovo) {
-      void updateServiceWorker(true);
-      return;
-    }
-    if (pendente.current) receber(pendente.current);
-    else if (versaoRef.current !== null) void checar();
-  }, [livro, appNovo, updateServiceWorker, receber, checar]);
+    const t = window.setInterval(() => {
+      if (!podeTrocar()) return;
+      if (appNovo) void updateServiceWorker(true);
+      else if (pendente.current) aplicar(pendente.current);
+      else if (emInicio.current && recarregarHoje.current()) location.reload();
+    }, 5_000);
+    return () => window.clearInterval(t);
+  }, [appNovo, updateServiceWorker, aplicar, podeTrocar]);
 
-  return <Contexto.Provider value={{ versao, conexao }}>{children}</Contexto.Provider>;
+  const informarInicio = useCallback((v: boolean) => {
+    const voltou = v && !emInicio.current;
+    emInicio.current = v;
+    if (voltou && pendente.current) aplicar(pendente.current);
+    if (voltou) void checar();
+  }, [aplicar, checar]);
+
+  return <Contexto.Provider value={{ dados, conexao, informarInicio }}>{children}</Contexto.Provider>;
 }
 
 export function useDados(): EstadoDados {
-  return useContext(Contexto);
+  const c = useContext(Contexto);
+  if (!c) throw new Error('useDados fora do DadosProvider');
+  return c;
 }

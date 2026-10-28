@@ -1,12 +1,13 @@
 /**
  * Configuração local do quiosque.
- * Os tempos de inatividade vêm do admin (Configuração do totem) e são aplicados por
- * `aplicarConfigServidor`. A URL tem prioridade sobre o admin, para testes e manutenção:
- *   ?aviso=20&contagem=5   (segundos)
- *   ?lightbox=10           (segundos)
- *   ?diag                  (painel de diagnóstico de densidade e escala)
- *   ?palco=fixo|fluido     (força o palco escalado ou o layout fluido)
- *   ?semtelacheia          (não pedir tela cheia no primeiro toque)
+ * Os tempos vêm do admin (Configuração do memorial) e são aplicados por `aplicarConfigServidor`.
+ * A URL tem prioridade sobre o admin, para testes e manutenção:
+ *   ?sala=N              (sala deste totem, 1 a 5; fica guardada no aparelho)
+ *   ?aviso=20&contagem=5 (segundos)
+ *   ?lightbox=10         (segundos)
+ *   ?diag                (painel de diagnóstico de densidade e escala)
+ *   ?semtelacheia        (não pedir tela cheia no primeiro toque)
+ *   ?tecladonativo       (usa o teclado do sistema na busca, para testar no computador)
  */
 
 const parametros = new URLSearchParams(typeof location !== 'undefined' ? location.search : '');
@@ -23,51 +24,43 @@ export const quiosque = {
   api: (import.meta.env.VITE_API_URL as string | undefined) ?? '',
 
   /**
-   * Modo demonstração: sem servidor. O app usa o acervo de exemplo embutido (dados/acervo-demo.ts).
-   * Ligue com VITE_MODO_DEMO=1 no build (ex.: variável de ambiente do Vercel).
+   * Modo demonstração: sem servidor. O app usa o conjunto de exemplo embutido (dados/demo.ts) e o
+   * check-in grava no próprio navegador. Ligue com VITE_MODO_DEMO=1 no build (ex.: Vercel).
    */
   demo: (import.meta.env.VITE_MODO_DEMO as string | undefined) === '1',
 
-  /** Palco lógico de referência, em px CSS (= dp no WebView Android). */
-  palco: { largura: 1920, altura: 1080 },
-
-  /**
-   * auto: palco fixo e escalado no totem deitado; fluido (layout em coluna) em celular, tablet,
-   * totem em pé e janelas pequenas. ?palco=fixo ou ?palco=fluido forçam um dos modos.
-   */
-  modoPalco: (['fixo', 'fluido'].includes(parametros.get('palco') ?? '') ? parametros.get('palco') : 'auto') as 'auto' | 'fixo' | 'fluido',
+  /** Palco lógico de referência, em px CSS (= dp no WebView Android). 16:9. */
+  palco: { largura: 1600, altura: 900 },
 
   inatividade: {
-    /** Sem toque por este tempo, aparece o aviso "Ainda está aí?". DESIGN.md: 90s. */
+    /** Sem toque por este tempo, aparece o aviso "Ainda está aí?". */
     avisoMs: segundos('aviso', 90_000),
-    /** Duração da contagem do aviso antes de fechar o livro. DESIGN.md: 15s. */
+    /** Duração da contagem do aviso antes de voltar ao início da sala. */
     contagemMs: segundos('contagem', 15_000),
-    /** Sem toque dentro do lightbox, ele volta à galeria. DESIGN.md: 45s. */
+    /** Sem toque dentro da foto ampliada, ela fecha. */
     lightboxMs: segundos('lightbox', 45_000),
   },
 
-  capa: {
-    /** Troca da foto da prancha na proteção de tela. DESIGN.md: 8s. */
-    trocaFotoMs: 8_000,
-  },
+  /** Conteúdo novo entra quando a sala volta ao início, ou depois deste tempo sem toque. */
+  aplicarConteudoAposMs: 30_000,
 
-  /**
-   * Mostra a etiqueta "Conteúdo demonstrativo" enquanto houver item marcado como demonstrativo
-   * no admin. false desliga a etiqueta de vez.
-   */
-  modoDemonstracao: true,
+  /** Na busca da sala 5, a lista é atualizada a cada N ms para novos check-ins aparecerem. */
+  atualizarBuscaMs: 10_000,
 
-  /** Tenta tela cheia e orientação paisagem no primeiro toque na capa. */
+  /** Tenta tela cheia e orientação paisagem no primeiro toque. */
   telaCheiaNoPrimeiroToque: !parametros.has('semtelacheia'),
 
-  /** Recarrega o app uma vez por dia, só quando estiver na capa (HH:MM local). null desativa. */
-  recarregarDiariamenteAs: '04:00' as string | null,
+  /** Usa o teclado do sistema em vez do teclado virtual (testes no computador). */
+  tecladoNativo: parametros.has('tecladonativo'),
 
-  /** Falhas de renderização seguidas antes de recarregar o app. DESIGN.md: 3. */
-  falhasAntesDeRecarregar: 3,
+  /** Recarrega o app uma vez por dia, só no início da sala (HH:MM local). null desativa. */
+  recarregarDiariamenteAs: '04:00' as string | null,
 
   /** Exibe o painel de diagnóstico. */
   diagnostico: parametros.has('diag'),
+
+  /** Valor bruto de ?sala na URL (lido por config/sala.ts). */
+  salaNaUrl: parametros.get('sala'),
 };
 
 export type ConfigQuiosque = typeof quiosque;

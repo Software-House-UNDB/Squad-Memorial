@@ -1,0 +1,972 @@
+{
+ "salas": {
+  "1": {
+   "name": "Educação",
+   "color": "#4A4844",
+   "title": "Retrospectiva da educação",
+   "sub": "Como se ensina e se aprende aqui, de 1958 até hoje"
+  },
+  "2": {
+   "name": "Troféus",
+   "color": "#A07D47",
+   "title": "Sala de troféus",
+   "sub": "Conquistas esportivas, culturais e acadêmicas"
+  },
+  "3": {
+   "name": "Artes",
+   "color": "#8E5444",
+   "title": "Artes",
+   "sub": "Música, teatro, dança e artes visuais na escola"
+  },
+  "4": {
+   "name": "Professoras",
+   "color": "#5A6650",
+   "title": "Nossas professoras",
+   "sub": "As mulheres que ensinaram gerações de alunos"
+  },
+  "5": {
+   "name": "Fechamento",
+   "color": "#2B2A28",
+   "title": "Encontre seus colegas",
+   "sub": "Todos que fizeram check-in no Memorial. Pesquise por nome ou por ano."
+  }
+ },
+ "hist": {
+  "1": {
+   "years": [
+    1958,
+    1966,
+    1971,
+    1984,
+    1996,
+    2005,
+    2020,
+    2026
+   ],
+   "hi": 3,
+   "cards": [
+    [
+     "board",
+     "Primeiras turmas",
+     "Aulas expositivas, lousa, cartilha e caderno de caligrafia."
+    ],
+    [
+     "book",
+     "Livro didático na sala",
+     "Coleções didáticas passam a guiar o planejamento das aulas."
+    ],
+    [
+     "cap",
+     "Ensino de 1º e 2º graus",
+     "A Lei 5.692 reorganiza as etapas e as disciplinas do currículo."
+    ],
+    [
+     "flask",
+     "Laboratório de ciências",
+     "Experimentos práticos entram na rotina das turmas."
+    ],
+    [
+     "apple",
+     "Nova LDB",
+     "A Lei 9.394 abre espaço para projetos pedagógicos próprios."
+    ],
+    [
+     "laptop",
+     "Sala de informática",
+     "Computadores e pesquisa na internet chegam às aulas."
+    ],
+    [
+     "laptop",
+     "Ensino remoto",
+     "Aulas a distância durante a pandemia de covid-19."
+    ],
+    [
+     "users",
+     "Metodologias ativas",
+     "Projetos, sala invertida e aprendizagem colaborativa."
+    ]
+   ]
+  },
+  "2": {
+   "years": [
+    1962,
+    1970,
+    1979,
+    1988,
+    1997,
+    2009,
+    2016,
+    2025
+   ],
+   "hi": 3,
+   "cards": [
+    [
+     "trophy",
+     "Primeiros jogos internos",
+     "O interclasses reúne todas as turmas pela primeira vez."
+    ],
+    [
+     "medal",
+     "Título regional de vôlei",
+     "A equipe feminina conquista o primeiro troféu fora da escola."
+    ],
+    [
+     "medal",
+     "Olimpíada estudantil",
+     "Medalhas no atletismo e na natação."
+    ],
+    [
+     "trophy",
+     "Campeões de futsal",
+     "A primeira taça estadual da escola."
+    ],
+    [
+     "star",
+     "Prêmio de redação",
+     "Aluna premiada em concurso nacional de redação."
+    ],
+    [
+     "medal",
+     "Olimpíada de matemática",
+     "Medalhas na OBMEP para três alunos."
+    ],
+    [
+     "star",
+     "Robótica",
+     "Equipe classificada para a etapa nacional."
+    ],
+    [
+     "trophy",
+     "Jogos escolares",
+     "A delegação mais premiada da história da escola."
+    ]
+   ]
+  },
+  "3": {
+   "years": [
+    1959,
+    1967,
+    1975,
+    1983,
+    1994,
+    2004,
+    2014,
+    2024
+   ],
+   "hi": 2,
+   "cards": [
+    [
+     "music",
+     "Coral da escola",
+     "O primeiro coral se apresenta na festa de fim de ano."
+    ],
+    [
+     "mask",
+     "Grupo de teatro",
+     "Primeira peça montada pelos alunos no auditório."
+    ],
+    [
+     "music",
+     "Festival de música",
+     "Bandas de alunos levam composições próprias ao palco."
+    ],
+    [
+     "palette",
+     "Ateliê de artes visuais",
+     "Pintura, gravura e cerâmica no contraturno."
+    ],
+    [
+     "star",
+     "Quadrilha junina",
+     "A festa junina vira um dos maiores eventos do ano."
+    ],
+    [
+     "users",
+     "Mostra de dança",
+     "Grupos de dança contemporânea e regional."
+    ],
+    [
+     "book",
+     "Sarau literário",
+     "Poesia e música ao vivo, aberto às famílias."
+    ],
+    [
+     "image",
+     "Galeria permanente",
+     "Obras de alunos expostas no corredor principal."
+    ]
+   ]
+  },
+  "4": {
+   "years": [
+    1958,
+    1964,
+    1973,
+    1982,
+    1995,
+    2008,
+    2018,
+    2026
+   ],
+   "hi": 3,
+   "cards": [
+    [
+     "users",
+     "Primeiro corpo docente",
+     "Professoras normalistas assumem as primeiras turmas."
+    ],
+    [
+     "cap",
+     "Escola normal",
+     "A formação de professoras começa na própria escola."
+    ],
+    [
+     "board",
+     "Coordenação pedagógica",
+     "Uma professora assume a primeira coordenação."
+    ],
+    [
+     "star",
+     "Primeira diretora",
+     "A escola passa a ser dirigida por uma ex-professora."
+    ],
+    [
+     "book",
+     "Formação continuada",
+     "Encontros semanais de estudo entre docentes."
+    ],
+    [
+     "heart",
+     "Homenagem às pioneiras",
+     "A sala das professoras ganha o nome de uma fundadora."
+    ],
+    [
+     "cap",
+     "Mestras e doutoras",
+     "Professoras com pós-graduação em todas as áreas."
+    ],
+    [
+     "users",
+     "Memória viva",
+     "Depoimentos gravados para o acervo do Memorial."
+    ]
+   ]
+  }
+ },
+ "fotos": {
+  "1": {
+   "act": 5,
+   "items": [
+    [
+     "board",
+     1984,
+     "Inauguração do laboratório"
+    ],
+    [
+     "book",
+     1984,
+     "Aula prática de química"
+    ],
+    [
+     "apple",
+     1985,
+     "Feira de ciências"
+    ],
+    [
+     "flask",
+     1985,
+     "Turma do 2º grau"
+    ],
+    [
+     "laptop",
+     1986,
+     "Biblioteca escolar"
+    ],
+    [
+     "cap",
+     1986,
+     "Aula de caligrafia"
+    ],
+    [
+     "board",
+     1987,
+     "Mural de projetos"
+    ],
+    [
+     "book",
+     1987,
+     "Formatura do 2º grau"
+    ]
+   ]
+  },
+  "2": {
+   "act": 6,
+   "items": [
+    [
+     "trophy",
+     1988,
+     "A taça estadual de futsal"
+    ],
+    [
+     "medal",
+     1988,
+     "Pódio estadual"
+    ],
+    [
+     "star",
+     1989,
+     "Equipe de vôlei"
+    ],
+    [
+     "trophy",
+     1989,
+     "Final do interclasses"
+    ],
+    [
+     "medal",
+     1990,
+     "Medalhas de atletismo"
+    ],
+    [
+     "trophy",
+     1991,
+     "Vôlei feminino"
+    ],
+    [
+     "star",
+     1991,
+     "Desfile dos atletas"
+    ],
+    [
+     "medal",
+     1992,
+     "Premiação dos jogos"
+    ]
+   ]
+  },
+  "3": {
+   "act": 3,
+   "items": [
+    [
+     "palette",
+     1975,
+     "Festival de música"
+    ],
+    [
+     "music",
+     1975,
+     "Banda no palco"
+    ],
+    [
+     "mask",
+     1976,
+     "Ensaio do teatro"
+    ],
+    [
+     "star",
+     1976,
+     "Dança de fim de ano"
+    ],
+    [
+     "palette",
+     1977,
+     "Cenário pintado pelos alunos"
+    ],
+    [
+     "music",
+     1977,
+     "Apresentação do coral"
+    ],
+    [
+     "palette",
+     1977,
+     "Oficina de pintura"
+    ],
+    [
+     "music",
+     1977,
+     "Coral no auditório"
+    ]
+   ]
+  },
+  "4": {
+   "act": 4,
+   "items": [
+    [
+     "users",
+     1978,
+     "Corpo docente reunido"
+    ],
+    [
+     "heart",
+     1980,
+     "Reunião pedagógica"
+    ],
+    [
+     "book",
+     1979,
+     "Professora e turma do 1º ano"
+    ],
+    [
+     "apple",
+     1981,
+     "Planejamento anual"
+    ],
+    [
+     "cap",
+     1979,
+     "Festa do Dia do Professor"
+    ],
+    [
+     "users",
+     1980,
+     "Aula de literatura"
+    ],
+    [
+     "users",
+     1982,
+     "Corpo docente reunido"
+    ],
+    [
+     "heart",
+     1982,
+     "Encontro com ex-alunas"
+    ]
+   ]
+  }
+ },
+ "vids": {
+  "1": [
+   [
+    "Depoimento",
+    "6:40",
+    "Como era a sala de aula em 1958",
+    "Depoimento de ex-alunas da primeira turma."
+   ],
+   [
+    [
+     "Documentário",
+     "9:12",
+     "Do quadro-negro à lousa digital",
+     "As ferramentas de ensino ao longo das décadas."
+    ],
+    [
+     "Acervo",
+     "4:05",
+     "A primeira feira de ciências",
+     "Registro em vídeo de 1985, restaurado."
+    ],
+    [
+     "Depoimento",
+     "7:28",
+     "Aulas na pandemia",
+     "Professores contam como foi o ensino remoto."
+    ],
+    [
+     "Institucional",
+     "3:50",
+     "Um dia de aula em 2026",
+     "Metodologias ativas na prática."
+    ]
+   ]
+  ],
+  "2": [
+   [
+    "O jogo",
+    "5:18",
+    "A final de 1988",
+    "Os melhores momentos da conquista estadual."
+   ],
+   [
+    [
+     "Depoimento",
+     "8:02",
+     "Histórias da galeria de troféus",
+     "Ex-atletas contam a origem de cada taça."
+    ],
+    [
+     "Documentário",
+     "6:44",
+     "Interclasses: tradição desde 1962",
+     "Como os jogos internos começaram."
+    ],
+    [
+     "Depoimento",
+     "4:21",
+     "Medalhistas da matemática",
+     "Os alunos premiados na OBMEP."
+    ],
+    [
+     "Institucional",
+     "3:15",
+     "Jogos escolares 2025",
+     "A delegação mais premiada."
+    ]
+   ]
+  ],
+  "3": [
+   [
+    "O acervo",
+    "7:30",
+    "O primeiro festival de música",
+    "Gravação original de 1975."
+   ],
+   [
+    [
+     "Documentário",
+     "9:40",
+     "Ensaios do grupo de teatro",
+     "Bastidores das montagens dos anos 1980."
+    ],
+    [
+     "Depoimento",
+     "6:05",
+     "Ex-alunos no palco hoje",
+     "Artistas que começaram na escola."
+    ],
+    [
+     "Acervo",
+     "5:12",
+     "Sarau literário 2014",
+     "Poesias e canções do primeiro sarau."
+    ],
+    [
+     "Institucional",
+     "2:58",
+     "A nova galeria de arte",
+     "Visita guiada às obras dos alunos."
+    ]
+   ]
+  ],
+  "4": [
+   [
+    "O depoimento",
+    "11:20",
+    "Vozes das pioneiras",
+    "Professoras dos primeiros anos contam sua história."
+   ],
+   [
+    [
+     "Documentário",
+     "8:30",
+     "A primeira diretora",
+     "Uma trajetória da sala de aula à direção."
+    ],
+    [
+     "Depoimento",
+     "5:45",
+     "Cartas para minha professora",
+     "Ex-alunos leem mensagens de agradecimento."
+    ],
+    [
+     "Acervo",
+     "4:10",
+     "Dia do Professor em 1980",
+     "Registro da festa, restaurado."
+    ],
+    [
+     "Institucional",
+     "3:40",
+     "Quem ensina hoje",
+     "As professoras do corpo docente atual."
+    ]
+   ]
+  ]
+ },
+ "periods": [
+  [
+   "1958 – 1962",
+   11
+  ],
+  [
+   "1963 – 1967",
+   10
+  ],
+  [
+   "1968 – 1972",
+   9
+  ],
+  [
+   "1973 – 1977",
+   8
+  ],
+  [
+   "1978 – 1982",
+   7
+  ],
+  [
+   "1983 – 1987",
+   12
+  ],
+  [
+   "1988 – 1992",
+   5
+  ],
+  [
+   "1993 – 1997",
+   4
+  ],
+  [
+   "1998 – 2002",
+   3
+  ],
+  [
+   "2003 – 2007",
+   11
+  ],
+  [
+   "2008 – 2012",
+   10
+  ],
+  [
+   "2013 – 2017",
+   9
+  ],
+  [
+   "2018 – 2022",
+   8
+  ],
+  [
+   "2023 – 2026",
+   7
+  ]
+ ],
+ "captions": {
+  "1": [
+   "Aula de leitura",
+   "Turma no pátio",
+   "Sala de aula",
+   "Feira de ciências",
+   "Biblioteca",
+   "Aula de caligrafia",
+   "Formatura",
+   "Mural da turma",
+   "Laboratório",
+   "Recreio",
+   "Aula de geografia",
+   "Visita de estudo"
+  ],
+  "2": [
+   "Final do interclasses",
+   "Equipe de vôlei",
+   "Pódio dos jogos",
+   "Taça estadual",
+   "Time de futsal",
+   "Medalhas de atletismo",
+   "Desfile dos atletas",
+   "Olimpíada de matemática",
+   "Equipe de robótica",
+   "Galeria de troféus",
+   "Torcida na quadra",
+   "Premiação"
+  ],
+  "3": [
+   "Coral no auditório",
+   "Ensaio de teatro",
+   "Festival de música",
+   "Quadrilha junina",
+   "Mostra de dança",
+   "Oficina de pintura",
+   "Sarau literário",
+   "Cenário dos alunos",
+   "Banda da escola",
+   "Exposição de arte",
+   "Figurinos da peça",
+   "Apresentação de fim de ano"
+  ],
+  "4": [
+   "Corpo docente",
+   "Reunião pedagógica",
+   "Professora e turma",
+   "Dia do Professor",
+   "Planejamento anual",
+   "Formação de professoras",
+   "Aula de literatura",
+   "Encontro com ex-alunas",
+   "Homenagem às pioneiras",
+   "Sala das professoras",
+   "Conselho de classe",
+   "Aula inaugural"
+  ]
+ },
+ "people": [
+  {
+   "name": "Ana Beatriz Silva Moura",
+   "year": 1998,
+   "turma": "3º A",
+   "pic": true,
+   "ck": "23/10/2026",
+   "social": [
+    [
+     "insta",
+     "instagram.com/anabeatriz.moura"
+    ],
+    [
+     "fb",
+     "facebook.com/anabeatrizmoura"
+    ]
+   ],
+   "fotos": [
+    [
+     "users",
+     1998,
+     "Turma do 3º A na escadaria"
+    ],
+    [
+     "flask",
+     1998,
+     "Feira de ciências"
+    ],
+    [
+     "door",
+     2024,
+     "Visita ao Memorial"
+    ]
+   ]
+  },
+  {
+   "name": "Juliana Silva Pinheiro",
+   "year": 1998,
+   "turma": "3º A",
+   "ck": "22/10/2026",
+   "social": [
+    [
+     "insta",
+     "instagram.com/jupinheiro"
+    ]
+   ],
+   "fotos": [
+    [
+     "cap",
+     1998,
+     "Formatura do 3º A"
+    ]
+   ]
+  },
+  {
+   "name": "Lucas Andrade Costa",
+   "year": 1998,
+   "turma": "3º A",
+   "ck": "21/10/2026",
+   "social": [],
+   "fotos": []
+  },
+  {
+   "name": "Mariana Fontenele Reis",
+   "year": 1998,
+   "turma": "3º A",
+   "pic": true,
+   "ck": "20/10/2026",
+   "social": [
+    [
+     "insta",
+     "instagram.com/mari.fontenele"
+    ]
+   ],
+   "fotos": []
+  },
+  {
+   "name": "Maria Clara Silva Fontenele",
+   "year": 1998,
+   "turma": "3º C",
+   "pic": true,
+   "ck": "22/10/2026",
+   "social": [],
+   "fotos": []
+  },
+  {
+   "name": "Carlos Eduardo Silva",
+   "year": 1985,
+   "turma": "8ª B",
+   "ck": "19/10/2026",
+   "social": [],
+   "fotos": [
+    [
+     "trophy",
+     1985,
+     "Time de futsal"
+    ]
+   ]
+  },
+  {
+   "name": "João Pedro da Silva Sales",
+   "year": 2007,
+   "turma": "2º B",
+   "ck": "23/10/2026",
+   "social": [
+    [
+     "insta",
+     "instagram.com/joaopedrosales"
+    ]
+   ],
+   "fotos": []
+  },
+  {
+   "name": "Rafael Silva Nogueira",
+   "year": 2007,
+   "turma": "3º A",
+   "ck": "18/10/2026",
+   "social": [],
+   "fotos": []
+  },
+  {
+   "name": "Pedro Henrique da Silva",
+   "year": 2016,
+   "turma": "9º A",
+   "pic": true,
+   "ck": "17/10/2026",
+   "social": [],
+   "fotos": []
+  },
+  {
+   "name": "Fernanda Silva Rocha",
+   "year": 2011,
+   "turma": "3º B",
+   "ck": "16/10/2026",
+   "social": [
+    [
+     "fb",
+     "facebook.com/fernandarocha"
+    ]
+   ],
+   "fotos": []
+  },
+  {
+   "name": "Antônio Silva Façanha",
+   "year": 1962,
+   "turma": "4ª série",
+   "ck": "15/10/2026",
+   "social": [],
+   "fotos": [
+    [
+     "book",
+     1962,
+     "Caderno de caligrafia"
+    ]
+   ]
+  },
+  {
+   "name": "Luiza Albuquerque Silva",
+   "year": 2019,
+   "turma": "3º A",
+   "pic": true,
+   "ck": "14/10/2026",
+   "social": [],
+   "fotos": []
+  },
+  {
+   "name": "Marcos Vinícius Silva",
+   "year": 2001,
+   "turma": "3º B",
+   "ck": "13/10/2026",
+   "social": [],
+   "fotos": []
+  },
+  {
+   "name": "Helena Silva Cavalcante",
+   "year": 1974,
+   "turma": "2º colegial",
+   "ck": "12/10/2026",
+   "social": [],
+   "fotos": []
+  },
+  {
+   "name": "Beatriz Coelho Lima",
+   "year": 1992,
+   "turma": "8ª A",
+   "ck": "12/10/2026",
+   "social": [],
+   "fotos": []
+  },
+  {
+   "name": "Gustavo Ribeiro Mendes",
+   "year": 2004,
+   "turma": "3º C",
+   "ck": "11/10/2026",
+   "social": [],
+   "fotos": []
+  },
+  {
+   "name": "Larissa Moraes Viana",
+   "year": 2013,
+   "turma": "3º A",
+   "pic": true,
+   "ck": "10/10/2026",
+   "social": [],
+   "fotos": []
+  },
+  {
+   "name": "Rodrigo Teixeira Dias",
+   "year": 1988,
+   "turma": "7ª C",
+   "ck": "09/10/2026",
+   "social": [],
+   "fotos": []
+  },
+  {
+   "name": "Camila Ferreira Duarte",
+   "year": 2022,
+   "turma": "3º B",
+   "ck": "08/10/2026",
+   "social": [],
+   "fotos": []
+  },
+  {
+   "name": "Eduardo Lopes Barros",
+   "year": 1979,
+   "turma": "3º colegial",
+   "ck": "07/10/2026",
+   "social": [],
+   "fotos": []
+  },
+  {
+   "name": "Isabela Rocha Martins",
+   "year": 1966,
+   "turma": "Jardim",
+   "pic": true,
+   "ck": "06/10/2026",
+   "social": [],
+   "fotos": []
+  },
+  {
+   "name": "Thiago Nunes Carvalho",
+   "year": 1995,
+   "turma": "3º A",
+   "ck": "05/10/2026",
+   "social": [],
+   "fotos": []
+  }
+ ],
+ "decades": [
+  "Todos",
+  "1958–1969",
+  "1970–1979",
+  "1980–1989",
+  "1990–1999",
+  "2000–2009",
+  "2010–2019",
+  "2020–2026"
+ ],
+ "tabtxt": {
+  "2": {
+   "h": "Dos jogos internos de 1962 aos jogos escolares de 2025.",
+   "f": "Taças, equipes e premiações de 5 em 5 anos.",
+   "v": "Finais históricas e ex-atletas contando cada conquista."
+  },
+  "3": {
+   "h": "Do coral de 1959 à galeria permanente de 2024.",
+   "f": "Festivais, peças e ensaios de 5 em 5 anos.",
+   "v": "Gravações dos festivais e artistas que começaram aqui."
+  },
+  "4": {
+   "h": "Do primeiro corpo docente, em 1958, aos dias de hoje.",
+   "f": "Professoras e suas turmas de 5 em 5 anos.",
+   "v": "Depoimentos das pioneiras e recados de ex-alunos."
+  }
+ },
+ "roomcolor": {
+  "2": "dourado",
+  "3": "terracota",
+  "4": "verde-oliva"
+ }
+}

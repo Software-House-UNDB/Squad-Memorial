@@ -1,20 +1,21 @@
 {
-  "name": "memorial-undb",
+  "name": "memorial-dom-bosco",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Memorial Interativo UNDB · Livro de Honra · app do totem (React + Vite + PWA), alimentado pela API Django",
+  "description": "Memorial Dom Bosco Maria Izabel Rodrigues · totens das 5 salas e check-in pelo celular (React + Vite + PWA), alimentados pela API Django",
   "scripts": {
     "dev": "vite --host",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host --port 4173",
     "typecheck": "tsc -b --noEmit",
-    "test:dados": "vitest run",
+    "test:unit": "vitest run",
     "test:e2e": "node testes/e2e.mjs"
   },
   "dependencies": {
-    "@fontsource/cinzel": "^5.3.0",
-    "@fontsource/eb-garamond": "^5.3.0",
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@fontsource/montserrat": "^5.3.0",
+    "qrcode-generator": "^2.0.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -25,7 +26,7 @@
     "playwright": "^1.56.0",
     "typescript": "^5.6.3",
     "vite": "^5.4.11",
-    "vitest": "^2.1.8",
-    "vite-plugin-pwa": "^0.21.2"
+    "vite-plugin-pwa": "^0.21.2",
+    "vitest": "^2.1.8"
   }
 }

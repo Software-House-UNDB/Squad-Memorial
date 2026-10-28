@@ -9,9 +9,45 @@ from io import BytesIO
 from pathlib import Path
 
 from django.core.files.base import ContentFile
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 log = logging.getLogger(__name__)
+
+# Imagens gigantes (bomba de descompressão) viram erro em vez de travar o servidor.
+Image.MAX_IMAGE_PIXELS = 60_000_000
+
+# Fotos enviadas pelo celular no check-in
+FORMATOS_ACEITOS = {"JPEG", "PNG", "WEBP"}
+TAMANHO_MAXIMO = 10 * 1024 * 1024  # por foto
+MEGAPIXELS_MAXIMO = 40_000_000
+
+
+class ImagemInvalida(ValueError):
+    pass
+
+
+def validar_imagem_enviada(arquivo):
+    """Confere tamanho, formato real (não a extensão) e dimensões de uma foto enviada pelo público.
+
+    Levanta ImagemInvalida com uma mensagem para o visitante. A foto aceita é depois reencodada
+    em JPEG sem metadados (gerar_versao_imagem), e o original nunca é guardado.
+    """
+    if arquivo.size > TAMANHO_MAXIMO:
+        raise ImagemInvalida("Cada foto pode ter até 10 MB.")
+    try:
+        arquivo.seek(0)
+        with Image.open(arquivo) as img:
+            formato = img.format
+            largura, altura = img.size
+            img.verify()
+    except (UnidentifiedImageError, OSError, SyntaxError, Image.DecompressionBombError):
+        raise ImagemInvalida("Não conseguimos abrir uma das fotos. Envie em JPG, PNG ou WEBP.")
+    finally:
+        arquivo.seek(0)
+    if formato not in FORMATOS_ACEITOS:
+        raise ImagemInvalida("Envie as fotos em JPG, PNG ou WEBP.")
+    if largura * altura > MEGAPIXELS_MAXIMO:
+        raise ImagemInvalida("Uma das fotos é grande demais. Envie em até 40 megapixels.")
 
 
 def gerar_versao_imagem(campo, lado_maior):

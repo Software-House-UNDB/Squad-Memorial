@@ -1,153 +1,160 @@
 /**
- * Modelo de dados do acervo do Memorial.
- * Toda peça tem id único, fonte documental e a marca `demo` enquanto não vier do acervo oficial.
- * Os relacionamentos são sempre por id, para que o acervo possa vir de um JSON externo no futuro.
+ * Contrato da API pública (/api/memorial/). O backend monta exatamente estes formatos
+ * (backend/memorial/serializers.py), e o conjunto de demonstração (dados/demo.ts) também.
+ * URLs de mídia são relativas (/media/...).
  */
 
-export type Id = string;
+export type TipoSala = 'conteudo' | 'fechamento';
 
-export interface Fonte {
-  /** Ex.: "Acervo institucional UNDB, caixa 12" ou "Conteúdo demonstrativo". */
-  descricao: string;
-  url?: string;
-}
-
-export interface ItemBase {
-  id: Id;
-  /** true = conteúdo demonstrativo, a ser substituído pelo acervo oficial. */
-  demo: boolean;
-  fonte: Fonte;
-}
-
-/** Tom da placa provisória exibida enquanto não há imagem real (1–5). */
-export type TomPlaca = 1 | 2 | 3 | 4 | 5;
-
-/** Vídeo do acervo. Entra na lista de fotos (com a capa em `src`) e abre no lightbox. */
-export interface VideoAcervo {
-  src: string;
-  titulo: string;
-  /** Duração em segundos, quando conhecida. */
-  duracao?: number;
-}
-
-export interface Foto extends ItemBase {
-  /** Caminho da imagem derivada (WebP/AVIF, lado maior 2560px). Sem src, exibe a placa provisória. */
-  src?: string;
-  /** Miniatura de 480px. Se ausente, usa `src`. */
-  srcMiniatura?: string;
-  tom: TomPlaca;
-  /** Legenda curta, até 140 caracteres. */
-  legenda: string;
-  /** Data como deve ser exibida: "1998", "c. 1990", "Data a confirmar". */
-  data: string;
-  /** Ano numérico para ordenação, quando conhecido. */
-  ano?: number;
-  /** Texto alternativo para leitor de tela (normalmente igual à legenda). */
-  alt: string;
-  periodoId?: Id;
-  marcoId?: Id;
-  pessoaIds?: Id[];
-  /** Autor da fotografia, quando conhecido. */
-  credito?: string;
-  /** Presente quando o item é um vídeo; `src` passa a ser a capa. */
-  video?: VideoAcervo;
-}
-
-export interface PaginaDocumento {
-  src?: string;
-  alt: string;
-}
-
-export interface Documento extends ItemBase {
-  titulo: string;
-  data: string;
-  ano?: number;
-  /** Ata, ofício, fotografia de documento, recorte de jornal… */
-  tipo: string;
-  codigoAcervo?: string;
-  marcoId?: Id;
-  /** Páginas digitalizadas. Vazio = documento ainda não digitalizado. */
-  paginas: PaginaDocumento[];
-  /** Transcrição em parágrafos, quando houver. */
-  transcricao?: string[];
-}
-
-export interface Periodo extends ItemBase {
-  titulo: string;
-  inicio: number;
-  fim: number;
-  descricao: string;
-  fotoId?: Id;
-}
-
-export type TipoMarco = 'predio' | 'documento' | 'pessoa' | 'foto';
-
-export interface Marco extends ItemBase {
-  periodoId: Id;
-  ano: number;
-  /** Data exibida quando diferente do ano simples ("c. 1998", "março de 1998"). */
-  dataTexto?: string;
-  titulo: string;
-  /** Uma frase para o cartão. */
-  resumo: string;
-  /** Lead em itálico, até 20 palavras. */
-  lede: string;
-  /** Corpo em parágrafos curtos, até ~90 palavras no total visível. */
-  narrativa: string[];
-  tipo: TipoMarco;
-  /** Aparece também em "Marcos e conquistas". */
-  conquista?: boolean;
-  fotoIds: Id[];
-  documentoIds: Id[];
-  pessoaIds: Id[];
-  depoimentoId?: Id;
-}
-
-export interface Pessoa extends ItemBase {
+export interface Sala {
+  numero: number;
+  slug: string;
   nome: string;
-  /** Papel na instituição: "Fundadora", "Primeira direção acadêmica"… */
-  papel: string;
-  biografia: string[];
-  retratoId?: Id;
-  marcoIds: Id[];
-  fotoIds: Id[];
-  /** Nome e papel confirmados por fonte pública ou institucional. */
-  verificado?: boolean;
-  /** Autorização de uso de imagem registrada. Sem ela, o retrato não é exibido. */
-  autorizacaoImagem?: boolean;
-}
-
-export interface Depoimento extends ItemBase {
-  texto: string;
-  autor: string;
-  vinculo: string;
-  marcoId?: Id;
-  /** Sem autorização registrada, o depoimento não entra (DESIGN.md). */
-  autorizado: boolean;
-}
-
-/** Configuração do totem cadastrada no admin. */
-export interface ConfigTotem {
   titulo: string;
   subtitulo: string;
+  /** Cor da sala em hexadecimal (#RRGGBB). */
+  cor: string;
+  tipo: TipoSala;
+}
+
+export interface ConfigMemorial {
+  nome: string;
+  anoInicial: number;
   segundosInatividade: number;
   segundosContagem: number;
   segundosLightbox: number;
   segundosAtualizacao: number;
+  /** Vídeos começam com som (true) ou mudos (false). */
+  videosComSom: boolean;
+  /** Endereço que o QR Code do check-in abre. Vazio = <origem do app>/checkin. */
+  urlCheckin: string;
 }
 
-/** Resposta de GET /api/totem/. */
-export interface RespostaTotem {
+export interface Marco {
+  id: number;
+  ano: number;
+  titulo: string;
+  descricao: string;
+  icone: string;
+  /** Destaque inicial da linha do tempo (um por sala). */
+  destaque: boolean;
+}
+
+export interface Foto {
+  id: number;
+  ano: number;
+  legenda: string;
+  credito: string;
+  alt: string;
+  /** Versão de exibição (lado maior 2560 px). null = foto de exemplo sem imagem. */
+  src: string | null;
+  /** Miniatura (480 px). */
+  miniatura: string | null;
+  largura: number | null;
+  altura: number | null;
+}
+
+export interface Video {
+  id: number;
+  titulo: string;
+  descricao: string;
+  /** "Depoimento", "Documentário", "Acervo", "Institucional" ou texto livre. */
+  tipo: string;
+  src: string | null;
+  capa: string | null;
+  /** Em segundos. */
+  duracao: number | null;
+  destaque: boolean;
+  /** Legenda opcional em WebVTT. */
+  legenda: string | null;
+}
+
+export interface RespostaSala {
   versao: string;
-  config: ConfigTotem;
-  acervo: Acervo;
-}
-
-export interface Acervo {
-  periodos: Periodo[];
+  config: ConfigMemorial;
+  sala: Sala;
+  /** Algum item desta sala é conteúdo de exemplo (mostra o selo no rodapé). */
+  demonstrativo: boolean;
   marcos: Marco[];
   fotos: Foto[];
-  documentos: Documento[];
-  pessoas: Pessoa[];
-  depoimentos: Depoimento[];
+  videos: Video[];
 }
+
+// ---------------------------------------------------------------- sala 5
+
+export interface AlunoResumo {
+  id: number | string;
+  nome: string;
+  ano: number;
+  turma: string;
+  /** Miniatura da foto de perfil, ou null (o avatar usa as iniciais). */
+  foto: string | null;
+  /** ISO 8601. */
+  checkinEm: string;
+  /** Check-in recente: selo NOVO e topo da lista. */
+  novo: boolean;
+}
+
+export interface FotoAluno {
+  id: number | string;
+  src: string | null;
+  miniatura: string | null;
+  legenda: string;
+  ano: number | null;
+}
+
+export interface AlunoPerfil extends AlunoResumo {
+  /** Check-in feito há pouco ("Check-in feito agora"). */
+  recente: boolean;
+  instagram: string;
+  facebook: string;
+  /** Só fotos aprovadas pela equipe. */
+  fotos: FotoAluno[];
+  /** Até 4 colegas com o mesmo ano e a mesma turma. */
+  colegas: AlunoResumo[];
+}
+
+export interface FiltroAlunos {
+  q: string;
+  /** Ano exato, ou null. */
+  ano: number | null;
+  /** Intervalo de anos (chip de década), ou null. */
+  decada: [number, number] | null;
+  pagina: number;
+}
+
+export interface PaginaAlunos {
+  total: number;
+  pagina: number;
+  paginas: number;
+  porPagina: number;
+  /** Anos que existem no diretório (para o seletor). */
+  anos: number[];
+  resultados: AlunoResumo[];
+}
+
+// ---------------------------------------------------------------- check-in
+
+export interface ConfigCheckin {
+  anoInicial: number;
+  anoAtual: number;
+  termoTexto: string;
+  termoVersao: string;
+  /** Para pedidos de remoção dos dados. Pode vir vazio. */
+  emailContato: string;
+}
+
+export interface DadosCheckin {
+  nome: string;
+  ano: string;
+  turma: string;
+  email: string;
+  instagram: string;
+  facebook: string;
+  consentimento: boolean;
+  fotos: File[];
+  /** Campo isca: pessoas não veem, robôs preenchem. */
+  site: string;
+}
+
+export type ErrosCheckin = Partial<Record<keyof DadosCheckin | 'geral', string>>;

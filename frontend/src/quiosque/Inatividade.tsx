@@ -1,21 +1,21 @@
 /**
- * Retorno por inatividade, global ao app.
- * - Só corre com o livro aberto (a capa já é a proteção de tela).
+ * Retorno por inatividade, global ao totem.
+ * - Só corre fora do estado inicial da sala (no início não há nada para desfazer).
  * - avisoMs sem atividade → aviso "Ainda está aí?" com contagem de contagemMs.
- * - Qualquer toque no aviso continua; ao zerar, o livro fecha e volta à capa.
- * - Pausa durante o gesto do livro para não provocar transições cruzadas.
+ * - Qualquer toque no aviso continua; ao zerar, o totem volta ao estado inicial da sala
+ *   (aba História, primeiro destaque, overlays fechados, busca e perfil limpos).
+ * - Vídeo tocando emite atividade a cada segundo (useVideo), então o aviso não aparece.
  * - Todos os temporizadores e ouvintes são limpos ao desmontar.
  */
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { quiosque } from '../config/quiosque';
-import { useNavegacao } from '../navegacao/Navegacao';
 import { aoAtividade } from './atividade';
 
 interface EstadoInatividade {
   avisoAberto: boolean;
   /** Segundos restantes na contagem (inteiro, para exibição). */
   restante: number;
-  /** 0 a 1, para a ampulheta. */
+  /** 0 a 1, para a barra. */
   fracao: number;
   continuar: () => void;
   voltarAgora: () => void;
@@ -23,8 +23,15 @@ interface EstadoInatividade {
 
 const Contexto = createContext<EstadoInatividade | null>(null);
 
-export function InatividadeProvider({ children }: { children: ReactNode }) {
-  const { livro, fecharLivro } = useNavegacao();
+interface Props {
+  /** false no estado inicial da sala. */
+  ativo: boolean;
+  /** Volta ao estado inicial da sala. */
+  aoEsgotar: () => void;
+  children: ReactNode;
+}
+
+export function InatividadeProvider({ ativo, aoEsgotar, children }: Props) {
   const { avisoMs, contagemMs } = quiosque.inatividade;
   const [avisoAberto, setAvisoAberto] = useState(false);
   const [restanteMs, setRestanteMs] = useState(contagemMs);
@@ -33,6 +40,8 @@ export function InatividadeProvider({ children }: { children: ReactNode }) {
   const fimContagem = useRef(0);
   const avisoRef = useRef(false);
   avisoRef.current = avisoAberto;
+  const esgotar = useRef(aoEsgotar);
+  esgotar.current = aoEsgotar;
 
   const limpar = useCallback(() => {
     window.clearTimeout(tAviso.current);
@@ -50,10 +59,10 @@ export function InatividadeProvider({ children }: { children: ReactNode }) {
       if (r <= 0) {
         window.clearInterval(tContagem.current);
         setAvisoAberto(false);
-        fecharLivro();
+        esgotar.current();
       }
     }, 100);
-  }, [contagemMs, fecharLivro]);
+  }, [contagemMs]);
 
   const armar = useCallback(() => {
     window.clearTimeout(tAviso.current);
@@ -69,11 +78,11 @@ export function InatividadeProvider({ children }: { children: ReactNode }) {
   const voltarAgora = useCallback(() => {
     limpar();
     setAvisoAberto(false);
-    fecharLivro();
-  }, [fecharLivro, limpar]);
+    esgotar.current();
+  }, [limpar]);
 
   useEffect(() => {
-    if (livro !== 'aberto') {
+    if (!ativo) {
       limpar();
       setAvisoAberto(false);
       return;
@@ -87,7 +96,7 @@ export function InatividadeProvider({ children }: { children: ReactNode }) {
       desligar();
       limpar();
     };
-  }, [livro, armar, limpar]);
+  }, [ativo, armar, limpar]);
 
   const valor: EstadoInatividade = {
     avisoAberto,
@@ -106,7 +115,7 @@ export function useInatividade(): EstadoInatividade {
   return c;
 }
 
-/** Temporizador local (ex.: lightbox 45s) que reinicia a cada atividade. */
+/** Temporizador local (ex.: foto ampliada fecha em 45 s) que reinicia a cada atividade. */
 export function useTemporizadorLocal(ativo: boolean, ms: number, aoEsgotar: () => void) {
   const fn = useRef(aoEsgotar);
   fn.current = aoEsgotar;

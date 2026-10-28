@@ -1,107 +1,59 @@
-/* tokens.css · Memorial UNDB · Livro de Honra · v1.0
-   1 px CSS = 1 dp no WebView Android. Base: 1rem ≈ 17,2px em 1920×1080. */
+/* tokens.css · Memorial Dom Bosco Maria Izabel Rodrigues
+   Palco lógico de 1600 × 900 px CSS (16:9), escalado para a tela real (quiosque/Palco.tsx).
+   Contrastes medidos (WCAG 2.1) estão registrados no DESIGN.md. Para trocar a paleta pelo manual
+   da marca, altere só este arquivo. */
 :root {
-  /* cor · papéis */
-  --cor-papel: #f5efe3;
-  --cor-papel-envelhecido: #ece2cf;
-  --cor-folha: rgb(255 252 245 / .9);
-  --cor-folha-solida: #fffcf5;
-  --cor-vinco: #e3d5b8;
-  /* cor · tinta */
-  --cor-tinta: #1d3461;
-  --cor-tinta-diluida: #2f4f86;
-  /* cor · ouro (lombada = só traço; gravado = texto sobre papel; desbotado = sobre escuro) */
-  --cor-ouro: #b8893b;
-  --cor-ouro-gravado: #86601f;
-  --cor-ouro-desbotado: #d9bb7e;
-  /* cor · sépia */
-  --cor-sepia: #3b3328;
-  --cor-sepia-esmaecida: #6e6352;
-  /* cor · ornamento e atmosfera */
-  --cor-louro: #9fb0cc;
-  --cor-noite: #0e1321;
-  --cor-mesa: #161d31;
-  --cor-lacre: #8a2e22;
-  --cor-foco: var(--cor-tinta-diluida);
-  --cor-foco-escuro: var(--cor-ouro-desbotado);
+  /* neutros escuros */
+  --grafite: #2b2a28;
+  --grafite-2: #3d3b38;
+  --grafite-3: #1f1e1c;
+
+  /* dourado: o "dourado" puro é ornamento (filetes, pontos, anéis) ou texto sobre grafite (4,64:1).
+     Texto dourado sobre fundo claro usa sempre --dourado-texto. */
+  --dourado: #b08d57;
+  --dourado-claro: #d9c39b;
+  --dourado-texto: #7c6034; /* protótipo: #8A6B3A (4,35:1), escurecido para 5,16:1 no marfim */
+  --dourado-fundo: #efe6d6; /* círculo de ícone e selo NOVO */
+  --marca-texto: #ead9b6;   /* realce do trecho encontrado na busca */
+
+  /* neutros claros */
+  --marfim: #f3f0ea;
+  --areia: #e9e4da;
+  --cartao: #fbf9f5;
+  --linha: #e2dcd1;
+  --branco: #ffffff;
+
+  /* texto */
+  --suave: #5e5a53;   /* 6,03:1 no marfim */
+  --suave-2: #67635d; /* protótipo: #77736C (4,15:1), escurecido para 5,25:1 no marfim */
+  --suave-escuro: #cfc8ba; /* texto secundário sobre grafite (9,1:1) */
+  --erro: #9a3b2e;
+
+  /* salas: a cor entra no número da sala, na aba ativa, no anel do ano e no período ativo.
+     Todas sustentam texto marfim a 4,5:1 ou mais (a sala 2 foi escurecida: #A07D47 dava 3,35:1). */
+  --sala-1: #4a4844;
+  --sala-2: #84673a;
+  --sala-3: #8e5444;
+  --sala-4: #5a6650;
+  --sala-5: #2b2a28;
 
   /* tipo */
-  --fonte-inscricao: "Cinzel", "Trajan Pro", Georgia, serif;
-  --fonte-livro: "EB Garamond", Garamond, Georgia, serif;
-  --tipo-display: clamp(3.4rem, 10vmin, 8.5rem);
-  --tipo-secao: clamp(2.6rem, 6.5vmin, 4.75rem);
-  --tipo-titulo: 2rem;
-  --tipo-ano: 2.4rem;
-  --tipo-marco: 1.55rem;
-  --tipo-texto: 1.25rem;
-  --tipo-legenda: 1.15rem;
-  --tipo-botao: 1.05rem;
-  --tipo-rotulo: .95rem;
-  --espaco-inscricao: .12em;
-
-  /* espaço */
-  --esp-1: .25rem;
-  --esp-2: .5rem;
-  --esp-3: .75rem;
-  --esp-4: 1.25rem;
-  --esp-5: 1.5rem;
-  --esp-6: 2rem;
-  --esp-7: 3rem;
-  --esp-8: 5.5rem;
+  --serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --sans: "Montserrat", "Helvetica Neue", Arial, sans-serif;
+  --t-micro: 14px;   /* rótulos em caixa-alta (mínimo) */
+  --t-apoio: 16px;   /* texto secundário (mínimo) */
+  --t-texto: 18px;   /* texto corrido (mínimo) */
+  --t-botao: 17px;
 
   /* toque */
-  --toque-minimo: max(3.5rem, 56px);
-  --toque-conforto: max(4.25rem, 72px);
-  --toque-escuro: 4.5rem;
-  --folga-toque: max(.75rem, 12px);
+  --toque: 56px;      /* alvo mínimo, mesmo valor do design anterior */
+  --toque-folga: 12px;
 
-  /* layout da tela 1920×1080 */
-  --altura-topo: 5.25rem;
-  --altura-onda: 120px;
-  --margem-tela: 96px;
-  --calha: 32px;
-  --medida-leitura: 60ch;
-
-  /* forma */
-  --raio-tira: 6px;
-  --raio-miniatura: 8px;
-  --raio-aba: 10px;
-  --raio-cartao: 12px;
+  /* forma e movimento */
+  --raio-cartao: 10px;
   --raio-pilula: 999px;
-
-  /* profundidade */
-  --sombra-repouso: 0 1px 2px rgb(60 45 20 / .06), 0 6px 18px rgb(60 45 20 / .08);
-  --sombra-toque: 0 2px 4px rgb(60 45 20 / .08), 0 14px 34px rgb(60 45 20 / .14);
-
-  /* movimento */
+  --sombra-repouso: 0 6px 18px rgb(43 42 40 / .06);
+  --sombra-toque: 0 10px 24px rgb(43 42 40 / .14);
   --curva: cubic-bezier(.22, 1, .36, 1);
-  --dur-toque: 100ms;
-  --dur-local: 180ms;
-  --dur-abrir: 280ms;
-  --dur-rolagem: 320ms;
-  --dur-livro: 480ms;
-
-  /* inatividade (espelhar no arquivo de configuração) */
-  --inatividade-aviso: 90s;
-  --inatividade-contagem: 15s;
-}
-
-html { font-size: clamp(15px, .85vmin + 8px, 30px); }
-@media (orientation: portrait) { html { font-size: clamp(16px, 1.3vw + 8px, 34px); } }
-
-/* quiosque */
-html, body {
-  touch-action: manipulation;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
-  overscroll-behavior: none;
-  background: var(--cor-papel);
-  color: var(--cor-sepia);
-}
-::selection { background: var(--cor-ouro-desbotado); color: var(--cor-tinta); }
-:focus-visible { outline: 3px solid var(--cor-foco); outline-offset: 4px; }
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 120ms !important; transition-duration: 120ms !important; }
+  --dur: 240ms;
 }

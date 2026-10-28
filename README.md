@@ -1,145 +1,175 @@
-# Memorial UNDB — totem
+# Memorial Dom Bosco Maria Izabel Rodrigues
 
-Memorial Interativo da UNDB para o totem touchscreen Android (1920 × 1080, paisagem).
+Tour do Memorial em **cinco salas, com um totem touchscreen por sala**, e um **check-in pelo
+celular** do visitante. Quem faz o check-in na entrada pode ser encontrado pelos colegas na sala 5.
 
-- **Frontend** (`frontend/`): o app do Design System **"Livro de Honra"** (React + Vite + TypeScript),
-  com PWA para funcionar offline. Regras visuais em `DESIGN.md`, produto em `PRODUCT.md`,
-  tokens em `frontend/src/estilos/tokens.css`, logos oficiais em `frontend/src/assets/`.
-- **Backend** (`backend/`): Django + DRF entregam o acervo; o conteúdo é cadastrado pelo `/admin`.
+| Sala | Nome | O totem mostra |
+|---|---|---|
+| 1 | Educação | História (linha do tempo), Fotos (períodos de 5 anos) e Vídeos |
+| 2 | Troféus | idem |
+| 3 | Artes | idem |
+| 4 | Professoras | idem |
+| 5 | Fechamento | Busca de ex-alunos por nome, ano ou década, e o perfil de cada pessoa |
+
+- **Frontend** (`frontend/`): React + Vite + TypeScript, PWA para funcionar offline. Duas páginas:
+  o totem (`/`) e o check-in (`/checkin`). Regras visuais em `DESIGN.md`, produto em `PRODUCT.md`,
+  tokens em `frontend/src/estilos/tokens.css`, marcas em `frontend/src/assets/memorial/`.
+- **Backend** (`backend/`): Django + DRF; o conteúdo é cadastrado pelo `/admin`.
 - **Nginx**: entrega o app, as fotos e os vídeos, e faz proxy para o Django. PostgreSQL guarda os dados.
+- **Referência**: o protótipo aprovado está em `docs/referencia/tour-memorial-dom-bosco.html`.
 
 ```
-nginx :8080 ──┬── /             → app do totem (build do frontend/, embutido na imagem)
-              ├── /media/       → volume "media" (fotos, vídeos, páginas de documentos)
+nginx :8080 ──┬── /, /checkin   → apps (build do frontend/, embutido na imagem)
+              ├── /media/       → volume "media" (fotos, vídeos, fotos de ex-alunos)
               ├── /static/      → volume "static" (CSS do admin)
               └── /api, /admin  → backend (gunicorn :8000) → db (postgres)
 ```
 
-No totem, basta abrir `http://<ip-do-servidor>:8080/` no navegador quiosque.
-
 ## Subir
 
 ```bash
-cp .env.example .env        # troque SECRET_KEY e as senhas
+cp .env.example .env        # troque DJANGO_SECRET_KEY e as senhas
 docker compose up -d --build
-docker compose exec backend python manage.py carregar_exemplo   # opcional: acervo demonstrativo
+docker compose exec backend python manage.py carregar_exemplo   # opcional: conteúdo de exemplo
 ```
 
-- Totem: http://localhost:8080/
-- Admin: http://localhost:8080/admin (usuário do `.env`)
-- API:   http://localhost:8080/api/totem/
+- Totens: `http://<servidor>:8080/?sala=1` … `?sala=5`
+- Check-in: `http://<servidor>:8080/checkin` (é o endereço do QR Code)
+- Admin: `http://<servidor>:8080/admin` (usuário do `.env`)
 
-`carregar_exemplo` carrega o acervo demonstrativo do design system (13 marcos, 67 fotos sem imagem,
-2 vídeos, 4 documentos, 8 pessoas, 6 depoimentos). Tudo fica marcado como **demonstrativo**, e o
-totem mostra a etiqueta "Conteúdo demonstrativo" enquanto existir algum item assim.
+### Configurar cada totem
 
-- `carregar_exemplo --remover` apaga só o conteúdo demonstrativo (mantém o que você cadastrou).
-- `carregar_exemplo --limpar` apaga **todo** o acervo e carrega o exemplo de novo.
+1. No navegador quiosque do totem (ex.: Fully Kiosk Browser), abra `http://<servidor>:8080/?sala=N`.
+2. A sala fica guardada no aparelho (`memorial:sala`). O app instalado como PWA, aberto sem a query,
+   continua na mesma sala. Sem sala definida, o totem mostra "Escolha a sala deste totem".
+3. Para trocar a sala de um totem, abra de novo o endereço com outro `?sala=N`.
+4. Abra uma vez com `?diag` para conferir a escala (o palco lógico é 1600 × 900; em telas 16:10 ele
+   fica centralizado, com faixas grafite).
 
-## Modelo do acervo (admin)
+### Placa de check-in
 
-| Modelo | Onde aparece | Campos principais |
-|---|---|---|
-| **Período** | Linha do tempo, galeria, capa | ano inicial e final, título, descrição, foto de capa |
-| **Marco** | Linha do tempo, detalhe, conquistas | ano, data por extenso, título, resumo, lede, narrativa, tipo, conquista, pessoas |
-| **Foto** | Detalhe, galeria, lightbox, capa | imagem, legenda (até 140), texto alternativo, crédito, data, marco, período, pessoas |
-| **Vídeo** | Detalhe, galeria (filtro Vídeos), lightbox | arquivo, capa, título, descrição, marco, período |
-| **Documento** + **Página** | Detalhe, galeria, visualizador | título, tipo, data, código no acervo, transcrição, páginas digitalizadas |
-| **Pessoa** | Pessoas, painel lateral | nome, papel, biografia, retrato (uma foto cadastrada), verificado, autorização de imagem |
-| **Depoimento** | Detalhe do marco, Memórias | texto, autor, vínculo, marco, autorizado |
-| **Configuração do totem** | todas | título e subtítulo da capa, tempos de inatividade, contagem, lightbox e atualização |
+Em **Admin › Configuração do memorial** há o QR Code pronto para a placa, em PNG e SVG. Ele aponta
+para o **endereço do check-in** (vazio = `<este servidor>/checkin`). O endereço precisa ser acessível
+pelo celular do visitante (rede da escola com Wi-Fi aberto, ou um domínio público com o túnel).
 
-Toda peça tem **fonte** (vazio = "Acervo institucional UNDB"), **demonstrativo** e **publicado**.
+## Conteúdo de exemplo
 
-Regras aplicadas automaticamente:
+`carregar_exemplo` carrega o conteúdo do protótipo (extraído por `scripts/extrair_exemplo.py` para
+`backend/memorial/exemplo/tour.json`): 8 marcos por sala, fotos de exemplo em todos os períodos
+(sem imagem real: o totem mostra uma moldura provisória), 5 vídeos curtos por sala (precisa de ffmpeg,
+que já vem na imagem) e 22 ex-alunos fictícios. Tudo fica marcado como **demonstrativo** e o rodapé
+do totem mostra "Conteúdo de exemplo" enquanto a sala tiver algum item assim.
 
-- Marco sem período vai para a década do ano (a década é criada se não existir).
-- Foto e vídeo sem período herdam o período do marco.
-- Foto sem imagem aparece como placa provisória "Foto do acervo".
-- Documento sem páginas aparece como "ainda não digitalizado".
-- Depoimento sem **autorizado** e retrato sem **autorização de uso de imagem** não saem do servidor / não aparecem.
-- Área do Sumário sem itens não aparece.
-- Ao editar um marco, o campo **Adicionar fotos** aceita várias imagens de uma vez.
+- `carregar_exemplo --remover` apaga só o conteúdo de exemplo.
+- `carregar_exemplo --limpar` apaga **todo** o conteúdo das salas (marcos, fotos, vídeos) e os
+  ex-alunos de exemplo, e carrega de novo. **Ex-alunos reais nunca são apagados por este comando.**
 
-No upload:
+## Admin
 
-- **Fotos**: duas versões JPEG, `exibicao` (lado maior 2560 px) e `miniatura` (480 px), com rotação
-  EXIF corrigida. O totem nunca baixa o original.
-- **Vídeos**: o ffprobe lê duração e codec; sem capa, o ffmpeg captura um quadro. O admin avisa se o
-  codec não for H.264/VP8/VP9.
-- **Exclusão**: apagar foto, vídeo ou página remove os arquivos do disco.
+| Onde | O que fazer |
+|---|---|
+| **Salas** | nome, título, subtítulo e cor de cada sala; marcos e vídeos na própria página; **Adicionar fotos** envia várias de uma vez, todas com o ano informado |
+| **Marcos** | ano, título, descrição curta, ícone e **destaque inicial** (um por sala) |
+| **Fotos** | imagem, ano (define o período de 5 anos), legenda (até 140), crédito, texto alternativo |
+| **Vídeos** | arquivo, capa (automática se vazia), tipo, **destaque** (um por sala), legenda WebVTT opcional |
+| **Ex-alunos** | filtros por status e ano; ações **Aprovar** e **Ocultar**; o e-mail só aparece aqui |
+| **Fotos de ex-alunos** | chegam pelo check-in como *pendentes*; aprove ou recuse em lote |
+| **Configuração do memorial** | tempos dos totens, som dos vídeos, aprovação de perfis, termo de consentimento, QR Code |
 
-### Migração do formato anterior
+No upload, como antes: fotos viram duas versões JPEG (`exibicao` 2560 px e `miniatura` 480 px, EXIF
+corrigido e removido); vídeos têm duração e codec lidos pelo ffprobe e capa capturada pelo ffmpeg;
+apagar um registro apaga os arquivos do disco.
 
-As migrações `0002` a `0006` convertem o banco antigo sem perder nada: cada "período" antigo
-(um ano com título e descrição) vira um **marco**, ligado à década correspondente, que é criada
-como **período**. A descrição vira resumo e narrativa, o resumo da galeria vira lede e o ícone vira
-o tipo. Fotos e vídeos continuam ligados ao mesmo registro. Testado em PostgreSQL e SQLite.
-
-## API (somente leitura, sem autenticação)
+## API (`/api/memorial/`)
 
 | Endpoint | Uso |
 |---|---|
-| `GET /api/totem/` | `{versao, config, acervo}`: tudo em uma chamada, no formato de `frontend/src/dados/tipos.ts` |
-| `GET /api/totem/versao/` | `{"versao": "…"}`, muda a cada alteração de conteúdo |
+| `GET sala/<n>/` | tudo que o totem da sala precisa: `{versao, config, sala, demonstrativo, marcos, fotos, videos}` |
+| `GET versao/?sala=<n>` | `{"versao": "…"}`, muda só quando algo daquela sala (ou a configuração) muda |
+| `GET alunos/?q=&ano=&decada=1990-1999&pagina=` | busca no diretório (12 por página), recentes primeiro |
+| `GET alunos/<id>/` | perfil, redes, fotos **aprovadas** e até 4 colegas da mesma turma |
+| `GET checkin/` | textos do formulário (termo e versão, ano inicial) |
+| `POST checkin/` | multipart: `nome, ano, turma, email, instagram, facebook, consentimento, fotos[]` |
 
-Os ids são strings com prefixo por tipo (`p-3`, `m-12`, `f-40`, `v-2`, `d-5`, `pe-1`, `dp-7`).
-Vídeos entram na lista `fotos`, com a capa em `src` e o arquivo em `video.src`.
+Formatos em `frontend/src/dados/tipos.ts`. URLs de mídia são relativas (`/media/...`).
 
-## Frontend do totem (`frontend/`)
+O check-in tem limite de frequência por IP (`CHECKIN_LIMITE_MINUTO=5/min`, `CHECKIN_LIMITE_HORA=30/hour`;
+atrás do túnel use `DJANGO_NUM_PROXIES=2`), campo isca anti-robô, até 3 fotos de 10 MB (verificadas e
+reencodadas, sem EXIF; o nginx aceita até 30 MB só nessa rota) e resposta mínima. Mesmo e-mail + mesmo
+ano atualiza o cadastro em vez de duplicar. O corpo das requisições não é registrado em log.
 
-Telas do design system: Capa (proteção de tela), Sumário, Linha do tempo, Detalhe do marco,
-Galeria (fotografias, vídeos e documentos), Pessoas, Documento, Marcos e conquistas, Memórias e
-o aviso de inatividade. Detalhes em `DESIGN.md`.
+## Privacidade (LGPD)
 
-Integração com o backend (`src/dados/Dados.tsx`):
+Os dados da sala 5 são de pessoas reais:
 
-- **Acervo**: vem de `/api/totem/`. A última cópia fica guardada no aparelho, então a capa abre
-  na hora, mesmo sem servidor. Sem nenhuma cópia, aparece "Conectando ao servidor do memorial".
-- **Conteúdo novo**: o app consulta `/api/totem/versao/` a cada `segundos_atualizacao` e sempre
-  que o livro fecha. Conteúdo novo **só entra com o livro fechado**, nunca debaixo do dedo de
-  quem está usando.
-- **Offline**: o service worker guarda o app, o acervo, as miniaturas, as capas e as páginas de
-  documento. Vídeos ficam de fora (são grandes e vão por streaming).
-- **Nova versão do app**: instalada sozinha na próxima vez que o livro fechar.
-- **Vídeos**: abrem no lightbox (a "sala escura"); um toque reproduz/pausa, com controles de 56 px
-  ou mais. Enquanto o vídeo toca, o aviso de inatividade não aparece.
-- **Tempos**: vêm do admin. Na URL, `?aviso=20&contagem=5&lightbox=10` sobrescreve (em segundos);
-  `?diag` mostra o painel de densidade; `?semtelacheia` não pede tela cheia.
+- o **e-mail nunca sai do servidor** (nenhuma resposta da API o contém; há teste para isso);
+- o perfil só aparece com **consentimento** e status *aprovado* (com **aprovar perfis** ligado no admin,
+  todo check-in entra como *pendente*);
+- **fotos enviadas só aparecem depois de aprovadas** pela equipe;
+- **remoção**: apagar o ex-aluno no admin apaga o perfil, a foto e as fotos enviadas (arquivos inclusos).
+  Os totens deixam de mostrar a pessoa na hora; as fotos guardadas no cache do totem expiram em até 1 dia.
 
-### Desenvolvimento do frontend
+> **Atenção:** o texto do termo de consentimento que vem pronto é um ponto de partida. Ele precisa ser
+> validado pela escola (encarregado de dados / jurídico) antes do uso com o público. Ao mudar o texto,
+> mude também a **versão do termo**: cada cadastro guarda a versão aceita.
+
+## Frontend
+
+- **Salas 1 a 4** funcionam offline com a última cópia (`localStorage` + service worker). A **sala 5
+  precisa do servidor**: sem rede, mostra o último resultado com um aviso no rodapé. Na busca, a lista
+  se atualiza a cada ~10 s para novos check-ins aparecerem sozinhos.
+- **Conteúdo novo** só entra quando o totem volta ao início da sala, ou depois de 30 s sem toque.
+  Idem para uma versão nova do app.
+- **Inatividade**: aviso aos 90 s, contagem de 15 s, e o totem volta ao início da sala (aba História,
+  destaque inicial, overlays fechados, busca limpa). Vídeo tocando não dispara o aviso.
+- **Botão Voltar** do Android fecha o overlay aberto, depois o teclado, depois volta do perfil à busca;
+  nunca sai do app.
+- **Busca**: teclado virtual próprio (o do Android cobriria metade da tela).
+- **Parâmetros de URL**: `?sala=N`, `?aviso=20&contagem=5&lightbox=10` (segundos), `?diag`,
+  `?semtelacheia`, `?tecladonativo` (teclado do sistema, para testar no computador).
+
+### Desenvolvimento
 
 Com o `docker compose` rodando (para ter a API em :8080):
 
 ```bash
 cd frontend
 npm install
-npm run dev          # http://localhost:5173, com /api e /media apontando para :8080
+npm run dev          # http://localhost:5173/?sala=1 e http://localhost:5173/checkin
 ```
 
-Para apontar para outro servidor: `VITE_BACKEND=http://192.168.0.10:8080 npm run dev`.
+Outro servidor: `VITE_BACKEND=http://192.168.0.10:8080 npm run dev`. Depois de mudar o frontend,
+`docker compose up -d --build nginx` gera o build novo dentro da imagem do nginx.
 
-Depois de mudar o frontend, `docker compose up -d --build nginx` gera o build novo dentro da
-imagem do nginx.
+### Modo demonstração (Vercel)
+
+Com `VITE_MODO_DEMO=1` no build (variável de ambiente do projeto no Vercel), o app não precisa de
+servidor: usa o conteúdo de exemplo embutido (`frontend/src/dados/exemplo.json`), `?sala=N` funciona
+normalmente, e o check-in grava no próprio navegador e aparece na sala 5 aberta nele, com o aviso
+"Modo demonstração: nada é enviado". `vercel.json` já tem a rota `/checkin`. Para ligar o Vercel ao
+servidor de verdade (túnel), veja `vercel.backend.json` e o serviço `cloudflared` do compose.
 
 ### Testes
 
 ```bash
+# backend (SQLite ou dentro do contêiner)
+docker compose exec backend python manage.py test memorial
+
+# frontend
 cd frontend
-npm run test:dados                       # formato do acervo (vitest)
-npx playwright install chromium          # só na primeira vez
+npm run typecheck
+npm run test:unit                         # regras da busca, períodos, décadas, contraste dos tokens
+npx playwright install chromium           # só na primeira vez
 docker compose exec backend python manage.py carregar_exemplo --limpar
-URL=http://localhost:8080/ npm run test:e2e   # 90 verificações, contra o sistema completo
+URL=http://localhost:8080/ npm run test:e2e   # 40 verificações, em 1600 × 900 e 1920 × 1080
 ```
 
-O e2e usa o acervo demonstrativo. As capturas vão para `.impeccable/review/app/`.
+O e2e faz um check-in de teste por execução ("Teste E2E …", e-mail `@exemplo.invalid`); apague-os no
+admin quando quiser. As capturas vão para `frontend/.impeccable/review/e2e/`.
 
-## Recomendações para o totem Android
+## Recomendações para os totens
 
-**Densidade da tela**: abra uma vez com `?diag`. O viewport CSS deve ser **1920 × 1080**; se não for,
-ajuste a densidade do Android (Opções do desenvolvedor → Largura mínima, ou `adb shell wm density`).
-
-**Vídeos**: padronize antes de subir. Isso evita vídeo que não toca e arquivo gigante:
+**Vídeos**: padronize antes de subir.
 
 ```bash
 ffmpeg -i entrada.mov -c:v libx264 -profile:v high -crf 23 -preset slow \
@@ -147,19 +177,35 @@ ffmpeg -i entrada.mov -c:v libx264 -profile:v high -crf 23 -preset slow \
   -movflags +faststart saida.mp4
 ```
 
-**Rede**: o ideal é o servidor rodar na rede interna da UNDB com IP fixo (ou um nome como
-`memorial.undb.local`). Adicione o endereço real em `DJANGO_ALLOWED_HOSTS` e
-`DJANGO_CSRF_TRUSTED_ORIGINS`. O service worker (offline) só funciona em `https` ou `localhost`.
+**Som**: o volume inicial vem do admin (vídeos com som ou mudos); o player tem controle de volume e
+mostra a legenda WebVTT, se houver. Fones ou caixas de som ficam por conta da instalação.
 
-**Modo quiosque**: um navegador kiosk (ex.: Fully Kiosk Browser) ou um app WebView próprio prende o
-totem na página, esconde as barras do Android e reinicia sozinho se travar. O botão Voltar do Android
-nunca sai do memorial.
+**Rede**: o servidor deve ficar na rede interna com IP fixo (ou um nome como `memorial.local`).
+Adicione o endereço em `DJANGO_ALLOWED_HOSTS` e `DJANGO_CSRF_TRUSTED_ORIGINS`. O service worker
+(offline) só funciona em `https` ou `localhost`.
+
+**Modo quiosque**: um navegador kiosk prende o totem na página, esconde as barras do Android e
+reinicia sozinho se travar.
+
+## Atualizando a partir do Memorial UNDB (Livro de Honra)
+
+A migração `0007` **apaga as tabelas do acervo antigo** (períodos, marcos, fotos, vídeos, documentos,
+pessoas e depoimentos) e a `0008` cria as salas novas. O acervo antigo era demonstrativo, mas faça o
+backup antes de subir a versão nova:
+
+```bash
+docker compose exec db pg_dump -U memorial memorial > backup-antes-dom-bosco.sql
+docker compose up -d --build      # aplica as migrações 0007 a 0009
+```
+
+Os arquivos antigos de `/media` (fotos, vídeos, páginas de documento) ficam no volume sem uso; apague
+`fotos/`, `videos/` e `documentos/` do volume `media` depois de conferir o backup, se quiser liberar espaço.
 
 ## Backup
 
 ```bash
 docker compose exec db pg_dump -U memorial memorial > backup.sql
-docker run --rm -v memorial-undb_media:/m -v "$PWD":/b alpine tar czf /b/media.tgz -C /m .
+docker run --rm -v squad-memorial_media:/m -v "$PWD":/b alpine tar czf /b/media.tgz -C /m .
 ```
 
 ## Desenvolvimento sem Docker
@@ -171,4 +217,4 @@ cd backend && pip install -r requirements.txt
 DJANGO_DEBUG=1 python manage.py migrate && DJANGO_DEBUG=1 python manage.py runserver 8080
 ```
 
-Precisa de `ffmpeg` instalado para capas e duração dos vídeos.
+Precisa de `ffmpeg` instalado para capas e duração dos vídeos (e para os vídeos de exemplo).
