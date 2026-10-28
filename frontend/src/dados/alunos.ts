@@ -27,8 +27,12 @@ export interface EstadoBusca {
 }
 
 export function useAlunos(filtro: FiltroAlunos, ativo: boolean): EstadoBusca {
-  const [estado, setEstado] = useState<EstadoBusca>(() => ({ pagina: lerUltimo(), offline: false, defasada: true }));
   const chave = parametrosAlunos(filtro);
+  // `de` é o filtro da página guardada: comparar na renderização evita mostrar o resumo novo
+  // ao lado de cartões antigos sem marcá-los como defasados
+  const [estado, setEstado] = useState<{ pagina: PaginaAlunos | null; de: string | null; offline: boolean }>(
+    () => ({ pagina: lerUltimo(), de: null, offline: false }),
+  );
   const filtroRef = useRef(filtro);
   filtroRef.current = filtro;
 
@@ -40,14 +44,13 @@ export function useAlunos(filtro: FiltroAlunos, ativo: boolean): EstadoBusca {
       try {
         const p = await fonte.alunos(filtroRef.current);
         if (!vivo) return;
-        setEstado({ pagina: p, offline: false, defasada: false });
+        setEstado({ pagina: p, de: chave, offline: false });
         try { localStorage.setItem(CHAVE, JSON.stringify(p)); } catch { /* sem espaço */ }
       } catch {
         if (vivo) setEstado((e) => ({ ...e, offline: true }));
       }
       if (vivo) t = window.setTimeout(buscar, quiosque.atualizarBuscaMs);
     };
-    setEstado((e) => ({ ...e, defasada: true }));
     // espera a digitação parar antes de perguntar ao servidor
     t = window.setTimeout(buscar, ESPERA_DIGITACAO_MS);
     return () => {
@@ -56,7 +59,7 @@ export function useAlunos(filtro: FiltroAlunos, ativo: boolean): EstadoBusca {
     };
   }, [chave, ativo]);
 
-  return estado;
+  return { pagina: estado.pagina, offline: estado.offline, defasada: estado.de !== chave };
 }
 
 export function useAluno(id: number | string | null) {

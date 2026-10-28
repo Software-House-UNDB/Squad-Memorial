@@ -1,9 +1,9 @@
 {
-  "name": "memorial-undb",
+  "name": "memorial-dom-bosco",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Memorial Interativo UNDB · Livro de Honra · app do totem (React + Vite + PWA), alimentado pela API Django",
+  "description": "Memorial Dom Bosco Maria Izabel Rodrigues · totens das 5 salas e check-in pelo celular (React + Vite + PWA), alimentados pela API Django",
   "scripts": {
     "dev": "vite --host",
     "build": "tsc -b && vite build",

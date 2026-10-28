@@ -6,65 +6,77 @@
 
 web
 
-O app roda num totem touch-screen Android, em navegador quiosque, em tela cheia. É um PWA web, não um app nativo.
+Cinco totens touchscreen Android (um por sala), em navegador quiosque e tela cheia, rodando o mesmo PWA;
+cada um abre em `/?sala=N` e mostra só a própria sala. O check-in é uma página web comum, aberta no
+celular do visitante pelo QR Code da placa de entrada.
 
 ## Users
 
-- **Alunos e calouros**: comunidade acadêmica atual, de passagem pelo hall.
-- **Visitantes e famílias**: pessoas de fora conhecendo a instituição.
-- **Convidados de cerimônias**: público de solenidades e eventos institucionais.
+- **Ex-alunos e ex-alunas**: o público principal. Voltam à escola para rever a própria época e
+  reencontrar colegas.
+- **Famílias e visitantes**: conhecem a história da escola pelo percurso.
+- **Equipe do Memorial**: cadastra o conteúdo, aprova fotos enviadas e atende pedidos de remoção.
 
-Todos leem de pé, a cerca de 50–80 cm da tela, e usam só o toque. O uso costuma ser rápido, muitas vezes em grupo. Ninguém recebe instrução antes de tocar.
+Nos totens, todos leem de pé, a 50–80 cm da tela, só com o toque, muitas vezes em grupo e sem
+instrução. No check-in, cada um usa o próprio celular, em pé, na entrada.
 
 ## Product Purpose
 
-Memorial digital da UNDB Centro Universitário: apresenta a história da instituição em uma linha do tempo de marcos, uma galeria de fotos por período e vídeos (depoimentos, eventos e registros institucionais). Dá certo quando quem passa entende em segundos o que é o totem, toca e encontra a história da instituição sem ajuda.
-
-## Positioning
-
-É o acervo da própria UNDB, organizado por período histórico e exibido num ponto físico do campus. Não é um site institucional nem uma vitrine de marketing.
+O **Memorial Dom Bosco Maria Izabel Rodrigues** conta a história da escola (fundada em 1958) em cinco
+salas: Educação, Troféus, Artes, Professoras e Fechamento. As salas 1 a 4 têm linha do tempo, fotos por
+períodos de 5 anos e vídeos. Na sala 5, quem fez check-in na entrada é encontrado pelos colegas, pelo
+nome, pelo ano ou pela década. Dá certo quando o visitante faz o check-in em menos de um minuto, segue o
+percurso e, no fim, encontra o próprio nome e os colegas da mesma turma.
 
 ## Operating Context
 
-- **Local:** hall de entrada, uma área de passagem e espera.
-- **Ociosidade:** depois de um tempo sem toque, o totem volta ao Início, fecha fotos e vídeos abertos e liga a proteção de tela com fotos do acervo. O contador de inatividade fica pausado enquanto um vídeo toca.
-- **Atualização:** a equipe cadastra o conteúdo pelo `/admin` do Django. O totem consulta a versão periodicamente, baixa o conteúdo novo e só o aplica quando está ocioso. Uma versão nova do app também só é instalada no ócio.
-- **Orientação:** o totem pode ficar em pé (1080×1920) ou deitado (1920×1080).
+- **Percurso**: entrada (placa com QR Code) → salas 1 a 4 → sala 5. Cada totem mostra "Sala N de 5".
+- **Ociosidade**: depois de 90 s sem toque, aviso de 15 s; depois, o totem volta ao início da sala.
+  O aviso não aparece com vídeo tocando.
+- **Atualização**: a equipe cadastra pelo `/admin`. Cada totem consulta a versão da própria sala e só
+  troca o conteúdo no início da sala ou depois de 30 s sem toque.
+- **Rede**: salas 1 a 4 funcionam offline com a última cópia; a sala 5 precisa do servidor (a busca e os
+  check-ins novos vêm dele) e avisa quando está sem conexão.
 
 ## Capabilities and Constraints
 
-- **Telas:** Início, História (linha do tempo), Fotos (galeria por período, com lightbox de deslizar) e Vídeos (filtro por categoria e player próprio). Há também proteção de tela, carregamento e estados vazios.
-- **Offline:** precisa funcionar 100% sem rede. App, dados, miniaturas e capas ficam no cache do service worker. Fontes, ícones e scripts não podem vir de CDN.
-- **Contrato da API:** `GET /api/totem/` (tudo numa chamada) e `GET /api/totem/versao/`, somente leitura.
-- **Escala:** a interface precisa aguentar dezenas de períodos e centenas de fotos, não só os dados de exemplo.
-- **Quiosque:** sem zoom por pinça, sem menu de toque longo, sem arrastar imagens. Não há mouse, hover nem teclado.
-- **Toque:** alvos de no mínimo 56 px, com espaço entre eles.
-- **Idioma:** todo texto de interface em português do Brasil.
-- **Dependências:** nada pesado; qualquer dependência nova precisa de justificativa.
-- **Em aberto:** quem é a equipe responsável por cadastrar e curar o acervo.
+- **Telas do totem**: História, Fotos, Vídeos (salas 1 a 4); Busca e Perfil (sala 5); foto ampliada,
+  player, QR do check-in, aviso de inatividade e escolha de sala.
+- **Check-in**: nome completo, ano, turma, e-mail, Instagram e Facebook opcionais, até 3 fotos
+  opcionais e autorização obrigatória. Mesmo e-mail + mesmo ano atualiza o cadastro.
+- **Privacidade**: e-mail nunca sai do servidor; perfil só com consentimento; fotos só depois de
+  aprovadas; remoção completa pelo admin. O termo precisa ser validado pela escola.
+- **Contrato da API**: `/api/memorial/` (sala, versão, alunos, perfil, check-in). Ver README.
+- **Quiosque**: sem zoom, sem menu de toque longo, sem teclado do sistema (teclado virtual próprio),
+  botão Voltar nunca sai do app.
+- **Toque**: alvos de no mínimo 56 px; texto de 18 px ou mais no palco.
+- **Idioma**: português do Brasil.
+- **Dependências**: nada pesado; qualquer dependência nova precisa de justificativa.
 
 ## Brand Commitments
 
-- **Instituição:** UNDB Centro Universitário. O nome do produto na interface é "Memorial".
-- **Logo oficial:** `frontend/src/assets/logoundb{preta,cinza,branca}.png`. Não pode ser recolorido, distorcido nem filtrado. Mantém a proporção original e uma área de respiro ao redor.
-- **Tom:** institucional e acolhedor, de memória e legado ("Nossa história, nosso legado.").
+- **Nome**: Memorial Dom Bosco Maria Izabel Rodrigues ("Memorial Dom Bosco" no app instalado).
+- **Marcas**: a assinatura da fundadora (cabeçalho) e o monograma "1958" (ícone e marca d'água).
+  As cores ainda serão confirmadas com o manual da marca; estão todas em `tokens.css`.
+- **Tom**: acolhedor e de reencontro ("Encontre seus colegas", "Registre sua passagem").
 
 ## Evidence on Hand
 
-- Parte do acervo real já está digitalizada, mas o cadastro no sistema está no começo.
-- O comando `carregar_exemplo` gera dados de teste (5 marcos, fotos e vídeos de exemplo) que não são conteúdo real.
-- Não inventar marcos, datas, legendas, depoimentos nem números da instituição. O conteúdo vem sempre do cadastro.
+- O protótipo aprovado (`docs/referencia/tour-memorial-dom-bosco.html`) define telas e comportamento.
+- O conteúdo de exemplo (`carregar_exemplo`) é fictício: marcos, legendas, vídeos e os 22 ex-alunos.
+  Não é fato histórico da escola e aparece com o selo "Conteúdo de exemplo".
 
 ## Product Principles
 
-1. **Entender em dois segundos:** quem passa precisa ver o que é e onde tocar, sem instrução.
-2. **O acervo em primeiro plano:** fotos e vídeos lideram, e a interface recua quando o conteúdo está na tela.
-3. **Nunca mudar a tela debaixo do dedo:** atualizações e retorno ao Início só acontecem no ócio.
-4. **Funcionar sozinho:** sem rede, sem operador e sem estado travado. Todo caminho tem saída por toque.
-5. **Crescer sem quebrar:** cada tela vale tanto para cinco períodos quanto para cinquenta.
+1. **O percurso é a interface**: cada totem diz em que sala você está e o que tocar.
+2. **O reencontro é o fim do tour**: o check-in da entrada existe para a sala 5 funcionar.
+3. **Nunca mudar a tela debaixo do dedo**: conteúdo novo e retorno ao início só no ócio.
+4. **Só o que a pessoa autorizou**: nome, ano, turma e redes; o resto fica no servidor.
+5. **Funcionar sozinho**: sem operador, sem estado travado, com saída por toque em toda tela.
 
 ## Accessibility & Inclusion
 
-- **Leitura à distância e de pé:** texto com contraste de pelo menos 4,5:1 (3:1 para texto grande e elementos gráficos, incluindo o logo).
-- **Toque:** alvos grandes, com feedback visual ao tocar (`:active`), já que não existe hover.
-- **Movimento:** respeitar `prefers-reduced-motion`.
+- Contraste de pelo menos 4,5:1 para texto (valores no DESIGN.md, conferidos por teste).
+- Alvos grandes com `:active` visível; não existe hover.
+- `prefers-reduced-motion` respeitado; legendas WebVTT opcionais nos vídeos.
+- Check-in com rótulos, mensagens de erro ligadas aos campos e foco no primeiro erro.
