@@ -55,15 +55,15 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
-            // Acervo: tenta a rede, cai para o cache se o servidor não responder.
-            // /versao/ fica de fora: é ela que diz ao app se o servidor está acessível.
-            urlPattern: ({ url }) => url.pathname.startsWith('/api/') && !url.pathname.endsWith('/versao/'),
+            // Sala do totem: tenta a rede, cai para o cache se o servidor não responder (salas 1 a 4
+            // funcionam offline). versao/, alunos/ e checkin/ ficam de fora de propósito: nunca em cache.
+            urlPattern: ({ url }) => /^\/api\/memorial\/sala\/\d+\/$/.test(url.pathname),
             handler: 'NetworkFirst',
-            options: { cacheName: 'memorial-api', networkTimeoutSeconds: 6, expiration: { maxEntries: 10 } },
+            options: { cacheName: 'memorial-salas', networkTimeoutSeconds: 6, expiration: { maxEntries: 10 } },
           },
           {
-            // Fotos, capas e páginas de documento nunca mudam (nome único por upload): cache primeiro.
-            urlPattern: ({ url }) => /^\/media\/(fotos|videos\/capas|documentos)\//.test(url.pathname),
+            // Fotos e capas das salas nunca mudam (nome único por upload): cache primeiro.
+            urlPattern: ({ url }) => /^\/media\/(fotos|videos\/capas)\//.test(url.pathname),
             handler: 'CacheFirst',
             options: {
               cacheName: 'memorial-imagens',
@@ -71,8 +71,17 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
-          // Vídeos (.mp4) ficam de fora de propósito: são grandes e usam requisições Range,
-          // então vão direto para o nginx por streaming.
+          {
+            // Fotos de ex-alunos: validade curta, para um pedido de remoção chegar logo ao totem.
+            urlPattern: ({ url }) => url.pathname.startsWith('/media/alunos/'),
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'memorial-alunos',
+              expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24, purgeOnQuotaError: true },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          // Vídeos ficam de fora de propósito: são grandes e usam requisições Range (streaming).
         ],
       },
     }),
