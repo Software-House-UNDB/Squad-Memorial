@@ -6,6 +6,7 @@
  * Fonte: exemplo.json, extraído do protótipo por scripts/extrair_exemplo.py (o mesmo arquivo que o
  * backend usa em carregar_exemplo, com as mesmas regras de geração das fotos).
  */
+import { ErroHttp } from './erro';
 import exemplo from './exemplo.json';
 import { corresponde, normalizar } from './regras';
 import { SALAS_PADRAO } from './salas';
@@ -181,7 +182,7 @@ export const fonteDemo: Fonte = {
   async aluno(id): Promise<AlunoPerfil> {
     const todos = diretorio();
     const a = todos.find((x) => String(x.id) === String(id));
-    if (!a) throw new Error('não encontrado');
+    if (!a) throw new ErroHttp(404);
     const colegas = ordenar(todos.filter((x) => x.id !== a.id && x.ano === a.ano && turmaChave(x.turma) === turmaChave(a.turma)));
     return {
       ...resumo(a),

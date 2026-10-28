@@ -30,6 +30,7 @@ button:disabled { cursor: default; }
 
 .serif { font-family: var(--serif); }
 .num { font-variant-numeric: lining-nums tabular-nums; }
+.sem-quebra { white-space: nowrap; }
 .so-leitor {
   position: absolute; width: 1px; height: 1px; overflow: hidden;
   clip: rect(0 0 0 0); white-space: nowrap;

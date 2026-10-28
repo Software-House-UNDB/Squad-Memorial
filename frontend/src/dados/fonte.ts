@@ -4,6 +4,7 @@
  */
 import { quiosque } from '../config/quiosque';
 import { fonteDemo } from './demo';
+import { ErroHttp } from './erro';
 import type {
   AlunoPerfil, ConfigCheckin, DadosCheckin, ErrosCheckin, FiltroAlunos, PaginaAlunos, RespostaSala,
 } from './tipos';
@@ -17,12 +18,6 @@ export interface Fonte {
   aluno(id: number | string): Promise<AlunoPerfil>;
   configCheckin(): Promise<ConfigCheckin>;
   checkin(dados: DadosCheckin): Promise<ResultadoCheckin>;
-}
-
-export class ErroHttp extends Error {
-  constructor(public status: number) {
-    super(`HTTP ${status}`);
-  }
 }
 
 async function buscar<T>(caminho: string, limiteMs = 10_000): Promise<T> {
