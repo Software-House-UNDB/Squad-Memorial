@@ -140,6 +140,8 @@ export interface ConfigCheckin {
   anoAtual: number;
   termoTexto: string;
   termoVersao: string;
+  /** Para pedidos de remoção dos dados. Pode vir vazio. */
+  emailContato: string;
 }
 
 export interface DadosCheckin {

@@ -1,8 +1,7 @@
 /**
- * Estado do vídeo aberto no lightbox.
- * Enquanto o vídeo toca, emite "atividade" a cada segundo: o aviso de inatividade e o fechamento
- * automático do lightbox esperam o vídeo terminar (DESIGN.md: o vídeo volta 30s depois de terminar,
- * aqui o lightbox fecha pelo seu próprio tempo, contado a partir do fim).
+ * Estado do vídeo aberto no overlay.
+ * Enquanto o vídeo toca, emite "atividade" a cada segundo: o aviso de inatividade só começa a
+ * contar depois que o vídeo pausa ou termina.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { registrarAtividade } from '../quiosque/atividade';
@@ -64,9 +63,4 @@ export function useVideo(chave: string | undefined, duracaoConhecida?: number) {
   };
 
   return { ref, tocando, tempo, duracao, terminou, erro, alternar, buscar, eventos };
-}
-
-export function relogio(segundos: number) {
-  const s = Math.max(0, Math.floor(segundos || 0));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
