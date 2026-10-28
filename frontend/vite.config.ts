@@ -14,16 +14,17 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt', // o app decide quando atualizar: só com o livro fechado (dados/Dados.tsx)
+      registerType: 'prompt', // o app decide quando atualizar: só no início da sala (dados/Dados.tsx)
       injectRegister: false,
       manifest: {
-        name: 'Memorial UNDB',
+        name: 'Memorial Dom Bosco',
         short_name: 'Memorial',
+        description: 'Memorial Dom Bosco Maria Izabel Rodrigues: totens das salas do percurso.',
         lang: 'pt-BR',
         display: 'fullscreen',
         orientation: 'landscape',
-        background_color: '#0e1321',
-        theme_color: '#1d3461',
+        background_color: '#1F1E1C',
+        theme_color: '#1F1E1C',
         start_url: '/',
         icons: [
           { src: 'icone-192.png', sizes: '192x192', type: 'image/png' },

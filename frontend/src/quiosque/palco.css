@@ -1,7 +1,7 @@
 .moldura-palco {
   position: fixed;
   inset: 0;
-  background: var(--cor-noite);
+  background: var(--grafite-3);
   overflow: hidden;
   touch-action: manipulation;
 }
@@ -12,8 +12,8 @@
   top: 50%;
   transform-origin: 50% 50%;
   overflow: hidden;
-  background: var(--cor-papel);
-  color: var(--cor-sepia);
+  background: var(--marfim);
+  color: var(--grafite);
   contain: layout paint;
 }
 
@@ -27,12 +27,10 @@
   max-width: 420px;
   padding: 14px 16px;
   border-radius: 8px;
-  background: rgb(14 19 33 / .9);
+  background: rgb(31 30 28 / .92);
   color: #fff;
   font: 400 15px/1.35 ui-monospace, Menlo, Consolas, monospace;
   pointer-events: none;
 }
-.diagnostico b { color: var(--cor-ouro-desbotado); font-weight: 600; }
+.diagnostico b { color: var(--dourado-claro); font-weight: 600; }
 .diagnostico .alerta { color: #f0b3a8; }
-/* Palco fluido (celular, tablet, totem em pé): ocupa a tela real, sem escala. */
-.palco--fluido { left: 0; top: 0; width: 100%; height: 100%; }

@@ -5,7 +5,7 @@
  * - :active funciona no toque (Chrome Android exige um ouvinte de touchstart);
  * - registro local de erros (anel de 50) para a manutenção;
  * - tela cheia e trava de orientação no primeiro toque, quando permitido;
- * - recarga diária, só na capa.
+ * - recarga diária, só com a sala no estado inicial.
  */
 import { quiosque } from '../config/quiosque';
 
@@ -44,8 +44,6 @@ export function registrarErro(mensagem: string) {
 
 export async function pedirTelaCheia() {
   if (!quiosque.telaCheiaNoPrimeiroToque) return;
-  // celular, tablet e totem em pé: não toma a tela nem trava a orientação de quem visita
-  if (document.documentElement.classList.contains('fluido')) return;
   try {
     if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
       await document.documentElement.requestFullscreen({ navigationUI: 'hide' });

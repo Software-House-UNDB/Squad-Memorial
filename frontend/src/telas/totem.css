@@ -1,0 +1,94 @@
+/* Moldura comum dos totens (palco 1600 × 900): cabeçalho 78 px, área principal e rodapé 46 px. */
+.tt {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  background: var(--marfim) radial-gradient(circle at 85% 10%, rgb(176 141 87 / .07), transparent 40%);
+  color: var(--grafite);
+  --rc: var(--sala-1);
+}
+
+/* ---------- cabeçalho ---------- */
+.tt-cab {
+  height: 78px; flex: none;
+  display: flex; align-items: center; gap: 26px;
+  padding: 0 40px;
+  background: var(--grafite); color: var(--marfim);
+}
+.tt-cab__marca { height: 46px; width: auto; }
+.tt-cab__div { width: 1px; height: 38px; background: rgb(243 240 234 / .22); }
+.tt-cab__sala { display: flex; align-items: center; gap: 14px; }
+.tt-cab__selo {
+  width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center;
+  font: 600 18px var(--sans); color: var(--marfim); border: 1.5px solid var(--dourado);
+}
+.tt-cab__sala small { display: block; font-size: var(--t-micro); line-height: 1.1; letter-spacing: .22em; font-weight: 600; color: var(--dourado-claro); }
+.tt-cab__sala b { font-size: 26px; font-weight: 600; line-height: 1.1; }
+.tt-cab__percurso {
+  margin-left: auto; display: flex; align-items: center; gap: 16px;
+  font-size: var(--t-micro); letter-spacing: .2em; font-weight: 600; color: rgb(243 240 234 / .78);
+}
+.tt-cab__pontos { display: flex; align-items: center; }
+.tt-cab__passo { display: flex; align-items: center; }
+.tt-cab__passo i {
+  display: block; width: 12px; height: 12px; border-radius: 50%;
+  border: 1.5px solid var(--dourado);
+}
+.tt-cab__passo i.is-feito { background: var(--dourado); }
+.tt-cab__passo i.is-atual { background: var(--dourado); width: 18px; height: 18px; box-shadow: 0 0 0 4px rgb(176 141 87 / .25); }
+.tt-cab__fio { width: 18px; height: 1.5px; background: rgb(176 141 87 / .55); margin: 0 4px; }
+.tt-cab__n { font-size: var(--t-apoio); letter-spacing: .02em; font-weight: 500; color: var(--marfim); }
+
+/* ---------- área principal ---------- */
+.tt-main { flex: 1; min-height: 0; position: relative; padding: 28px 52px 0; }
+.tt-eyb { font-size: var(--t-micro); letter-spacing: .24em; font-weight: 700; color: var(--dourado-texto); text-transform: uppercase; }
+.tt-h1 { font-family: var(--serif); font-weight: 700; font-size: 58px; line-height: 1.02; margin-top: 6px; color: var(--grafite); }
+.tt-sub { font-size: var(--t-texto); color: var(--suave-2); margin-top: 4px; }
+.tt-filete { display: flex; align-items: center; gap: 6px; margin-top: 12px; }
+.tt-filete i { display: block; width: 46px; height: 1.5px; background: var(--dourado); }
+.tt-filete em { width: 7px; height: 7px; border-radius: 50%; background: var(--dourado); }
+
+/* ---------- abas em pílula ---------- */
+.tt-abas {
+  position: absolute; right: 52px; top: 50px;
+  display: flex; gap: 4px; padding: 5px;
+  background: var(--areia); border-radius: var(--raio-pilula);
+}
+.tt-aba {
+  display: flex; align-items: center; gap: 10px;
+  height: var(--toque); padding: 0 26px; border-radius: var(--raio-pilula);
+  font-size: var(--t-botao); font-weight: 600; color: var(--grafite-2);
+  transition: background var(--dur) var(--curva), color var(--dur) var(--curva);
+}
+.tt-aba:active { background: rgb(43 42 40 / .08); }
+.tt-aba.is-ativa { background: var(--rc); color: var(--marfim); box-shadow: 0 4px 12px rgb(43 42 40 / .18); }
+
+/* ---------- rodapé ---------- */
+.tt-rod {
+  height: 46px; flex: none;
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 52px;
+  border-top: 1px solid var(--linha);
+  background: rgb(251 249 245 / .6);
+  font-size: var(--t-apoio); color: var(--suave-2);
+}
+.tt-rod b { color: var(--grafite); font-weight: 600; }
+.tt-rod__exemplo { margin-left: auto; font-style: italic; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.tt-rod__exemplo img { height: 24px; width: auto; opacity: .8; }
+.tt-rod__aviso { margin-left: auto; display: flex; align-items: center; gap: 8px; color: var(--erro); font-weight: 600; }
+.tt-rod__aviso + .tt-rod__exemplo { margin-left: 18px; }
+
+/* ---------- cartão ---------- */
+.tt-cartao { background: var(--cartao); border: 1px solid var(--linha); border-radius: var(--raio-cartao); box-shadow: var(--sombra-repouso); }
+
+/* ---------- carregando / sem conexão ---------- */
+.tt-espera {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 18px;
+  text-align: center; color: var(--suave);
+}
+.tt-espera h2 { font: 700 40px/1.1 var(--serif); color: var(--grafite); }
+.tt-espera p { font-size: var(--t-texto); max-width: 34em; }
+.tt-espera__pontos { display: flex; gap: 12px; }
+.tt-espera__pontos i { width: 12px; height: 12px; border-radius: 50%; background: var(--dourado); animation: espera 1.4s var(--curva) infinite; }
+.tt-espera__pontos i:nth-child(2) { animation-delay: .18s; }
+.tt-espera__pontos i:nth-child(3) { animation-delay: .36s; }
+@keyframes espera { 0%, 100% { opacity: .25; } 40% { opacity: 1; } }
