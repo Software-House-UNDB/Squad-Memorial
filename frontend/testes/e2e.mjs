@@ -212,11 +212,11 @@ for (const [w, h] of TELAS) {
   await verificar('perfil, colega da mesma turma e volta', async () => {
     await p.locator('.tt-pc', { hasText: 'Ana Beatriz Silva Moura' }).click();
     await p.locator('.tt-pid__nome', { hasText: 'Ana Beatriz Silva Moura' }).waitFor();
-    confere((await p.locator('.tt-pgeral .m-pol').count()) === 3, '3 fotos aprovadas');
+    confere((await p.locator('.tt-pgeral .fc-foto').count()) === 3, '3 fotos aprovadas');
     confere((await p.locator('.tt-pcard').innerText()).includes('instagram.com/anabeatriz.moura'), 'rede social');
     await foto('perfil');
     await p.getByRole('tab', { name: /^Colegas/ }).last().click();
-    await p.locator('.tt-mate', { hasText: 'Juliana Silva Pinheiro' }).click();
+    await p.locator('.fc-colega', { hasText: 'Juliana Silva Pinheiro' }).click();
     await p.locator('.tt-pid__nome', { hasText: 'Juliana Silva Pinheiro' }).waitFor();
     await p.getByRole('button', { name: 'Voltar à busca' }).click();
     await p.locator('input[type=search]').waitFor();
