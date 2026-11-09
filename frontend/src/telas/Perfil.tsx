@@ -116,7 +116,7 @@ export function Perfil({ id, aba, aoMudarAba, aoVoltar, aoAbrir }: Props) {
         <div className="tt-pid__txt">
           <h2 className="tt-pid__nome serif">{p.nome}</h2>
           <p className="tt-pid__meta num">
-            {p.recente ? 'Check-in feito agora' : `Ex-aluno(a) · check-in em ${dataCurta(p.checkinEm)}`} · estudou em {p.ano}
+            Ex-aluno(a) do Colégio Dom Bosco · Turma {turmaTurno} · {p.ano}{p.recente && ' · Check-in feito agora'}
           </p>
         </div>
         {nColegas > 0 && (
