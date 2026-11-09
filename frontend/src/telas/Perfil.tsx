@@ -9,8 +9,8 @@ import { Icone } from '../componentes/Icone';
 import { Polaroide } from '../componentes/Polaroide';
 import { useAluno } from '../dados/alunos';
 import { lerRedes, redePorId } from '../dados/redes';
-import { dataCurta, nomeCurto } from '../dados/regras';
-import { exibirTurma, rotuloTurno, separarTurma } from '../dados/tipos';
+import { dataCurta } from '../dados/regras';
+import { exibirTurma, rotuloTurno, separarTurma, type AlunoResumo } from '../dados/tipos';
 import type { AbaPerfil } from './estado';
 
 const MAX_FOTOS_GERAL = 3;
@@ -45,6 +45,20 @@ function Predio() {
       ))}
       <path d="M236 168v-50a24 24 0 0148 0v50" /><path d="M226 92h68M60 92h400" />
     </svg>
+  );
+}
+
+/** Cartão de colega da mesma turma: o cartão inteiro é um botão que abre o perfil dele. */
+function CartaoColega({ c, aoAbrir }: { c: AlunoResumo; aoAbrir: (id: number | string) => void }) {
+  return (
+    <button type="button" className="tt-mate" onClick={() => aoAbrir(c.id)}>
+      <Avatar nome={c.nome} foto={c.foto} tamanho={56} />
+      <span className="tt-mate__txt">
+        <b className="tt-mate__nome serif">{c.nome}</b>
+        <span className="tt-mate__meta num">Turma {exibirTurma(c.turma)} · {c.ano}</span>
+      </span>
+      <span className="tt-mate__ver" aria-hidden="true">Ver perfil <Icone nome="right" tamanho={18} traco={2} /></span>
+    </button>
   );
 }
 
@@ -101,12 +115,7 @@ export function Perfil({ id, aba, aoMudarAba, aoVoltar, aoAbrir }: Props) {
 
   const colegas = nColegas ? (
     <div className="tt-mates">
-      {p.colegas.map((c) => (
-        <button key={c.id} type="button" className="tt-mate" onClick={() => aoAbrir(c.id)}>
-          <Avatar nome={c.nome} foto={c.foto} tamanho={40} />
-          {nomeCurto(c.nome)}
-        </button>
-      ))}
+      {p.colegas.map((c) => <CartaoColega key={c.id} c={c} aoAbrir={aoAbrir} />)}
     </div>
   ) : (
     <p className="tt-mates__vazio">Ninguém da mesma turma fez check-in ainda.</p>
