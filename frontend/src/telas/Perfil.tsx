@@ -48,6 +48,15 @@ function Predio() {
   );
 }
 
+/** Botão de texto "Ver todos / Ver todas": leva para a aba do assunto. */
+function BotaoVer({ rotulo, aoClicar }: { rotulo: string; aoClicar: () => void }) {
+  return (
+    <button type="button" className="tt-link" onClick={aoClicar}>
+      {rotulo} <Icone nome="right" tamanho={18} traco={2} />
+    </button>
+  );
+}
+
 /** Cartão de colega da mesma turma: o cartão inteiro é um botão que abre o perfil dele. */
 function CartaoColega({ c, aoAbrir }: { c: AlunoResumo; aoAbrir: (id: number | string) => void }) {
   return (
@@ -173,28 +182,49 @@ export function Perfil({ id, aba, aoMudarAba, aoVoltar, aoAbrir }: Props) {
             <section className="tt-pcard">
               <img className="tt-pcard__marca" src={monogramaBranco} alt="" />
               <span className="tt-pcard__moldura" aria-hidden="true" />
+              <p className="tt-pcard__estudou">
+                <Icone nome="cap" tamanho={22} cor="var(--branco)" /> Estudou no Colégio Dom Bosco
+              </p>
               <dl className="tt-pcard__kv">
                 <div><dt>ANO EM QUE ESTUDOU</dt><dd className="serif num">{p.ano}</dd></div>
                 <div><dt>TURMA</dt><dd className="serif">{turma}</dd></div>
                 {turno && <div><dt>TURNO</dt><dd className="serif">{rotuloTurno(turno)}</dd></div>}
               </dl>
-              {redes.map((r) => (
+              {redes.length ? redes.map((r) => (
                 <div key={r.id} className="tt-pcard__rede">
                   <Icone nome={r.icone} tamanho={20} cor="var(--branco)" />
                   <span className="so-leitor">{r.rotulo}: </span>
                   {r.texto}
                 </div>
-              ))}
+              )) : (
+                <div className="tt-pcard__rede tt-pcard__apagada">
+                  <Icone nome="link" tamanho={20} cor="var(--branco)" /> Nenhuma rede social informada
+                </div>
+              )}
+              <p className="tt-pcard__nota">
+                <Icone nome="lock" tamanho={20} cor="var(--branco)" /> E-mail oculto pelo Memorial
+              </p>
             </section>
-            <section className="tt-pgeral__fotos">
-              <div className="tt-sh">
-                <b className="serif">Fotos enviadas</b>
-                <span>
-                  {p.fotos.length ? `${p.fotos.length} ${p.fotos.length === 1 ? 'foto aprovada' : 'fotos aprovadas'} pela equipe` : 'nenhuma foto aprovada ainda'}
-                </span>
-              </div>
-              {gradeFotos(fotos.slice(0, MAX_FOTOS_GERAL), true)}
-            </section>
+            <div className="tt-pgeral__dir">
+              <section>
+                <div className="tt-sh tt-sh--acao">
+                  <b className="serif">Fotos enviadas</b>
+                  <span>
+                    {p.fotos.length ? `${p.fotos.length} ${p.fotos.length === 1 ? 'foto aprovada' : 'fotos aprovadas'} pela equipe` : 'nenhuma foto aprovada ainda'}
+                  </span>
+                  {p.fotos.length > MAX_FOTOS_GERAL && <BotaoVer rotulo="Ver todas" aoClicar={() => aoMudarAba('fotos')} />}
+                </div>
+                {gradeFotos(fotos.slice(0, MAX_FOTOS_GERAL), true)}
+              </section>
+              <section>
+                <div className="tt-sh tt-sh--acao">
+                  <b className="serif">Colegas da turma</b>
+                  <span className="num">{colegasMais ? `${nColegas}+` : nColegas} no Memorial</span>
+                  {nColegas > 0 && <BotaoVer rotulo="Ver todos" aoClicar={() => aoMudarAba('colegas')} />}
+                </div>
+                {colegas}
+              </section>
+            </div>
           </div>
         )}
         {aba === 'fotos' && (
