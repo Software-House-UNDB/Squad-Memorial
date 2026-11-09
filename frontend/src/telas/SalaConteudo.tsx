@@ -7,7 +7,7 @@ import { useMemo, type ReactNode } from 'react';
 import { OverlayCheckin } from '../componentes/OverlayCheckin';
 import { OverlayFoto } from '../componentes/OverlayFoto';
 import { OverlayVideo } from '../componentes/OverlayVideo';
-import { useAlunos } from '../dados/alunos';
+import { useAluno, useAlunos } from '../dados/alunos';
 import { apresentacaoDaSala, decadasDaSala, marcosOrdenados, periodosDasFotos } from '../dados/regras';
 import type { Foto, RespostaSala } from '../dados/tipos';
 import { AbasSala, abaValida } from './AbasSala';
@@ -49,6 +49,8 @@ export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: 
     { q: st.q, ano: st.ano, decada: st.decada, pagina: st.paginaBusca },
     naBusca && st.overlay === null,
   );
+  // perfil aberto: carregado aqui (e não no Perfil) para a foto ampliada também enxergar as fotos dele
+  const aluno = useAluno(noPerfil ? st.perfilId : null);
   const urlCheckin = config.urlCheckin || `${location.origin}/checkin`;
 
   const dicas: Record<Aba, ReactNode> = {
@@ -74,6 +76,29 @@ export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: 
         aoMudar={(i) => mudar({ overlay: { tipo: 'foto', indice: i } })}
         // ao fechar, a grade mostra a página da última foto vista
         aoFechar={() => mudar({ overlay: null, pagina: Math.floor(indice / FOTOS_POR_PAGINA) })}
+      />
+    );
+  } else if (ov?.tipo === 'fotoPerfil' && noPerfil && aluno.perfil?.fotos.length) {
+    const { nome, fotos: doAluno } = aluno.perfil;
+    // as fotos do aluno viram Foto para usar o mesmo overlay das salas (a posição é o id)
+    const fotosAluno: Foto[] = doAluno.map((f, i) => ({
+      id: i,
+      ano: f.ano ?? 0,
+      legenda: f.legenda,
+      credito: '',
+      alt: f.legenda || `Foto de ${nome}`,
+      src: f.src ?? f.miniatura,
+      miniatura: f.miniatura,
+      largura: null,
+      altura: null,
+    }));
+    sobre = (
+      <OverlayFoto
+        fotos={fotosAluno}
+        indice={Math.min(ov.indice, fotosAluno.length - 1)}
+        icone={() => 'users'}
+        aoMudar={(i) => mudar({ overlay: { tipo: 'fotoPerfil', indice: i } })}
+        aoFechar={() => mudar({ overlay: null })}
       />
     );
   } else if (ov?.tipo === 'video') {
@@ -113,7 +138,7 @@ export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: 
       {aba === 'videos' && (
         <Videos videos={videos} destaque={videoDestaque} aoAbrir={(id) => mudar({ videoId: id, overlay: { tipo: 'video', id } })} />
       )}
-      {nasColegas && <Colegas estado={st} mudar={mudar} dados={dados} busca={busca} />}
+      {nasColegas && <Colegas estado={st} mudar={mudar} dados={dados} busca={busca} aluno={aluno} />}
     </Moldura>
   );
 }

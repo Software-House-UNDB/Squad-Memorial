@@ -8,7 +8,7 @@ import monogramaBranco from '../assets/memorial/monograma-branco.png';
 import { Avatar } from '../componentes/Avatar';
 import { Icone, type NomeIcone } from '../componentes/Icone';
 import { Polaroide } from '../componentes/Polaroide';
-import { useAluno } from '../dados/alunos';
+import type { EstadoAluno } from '../dados/alunos';
 import { lerRedes, redePorId } from '../dados/redes';
 import { dataCurta } from '../dados/regras';
 import { exibirTurma, rotuloTurno, separarTurma, type AlunoResumo } from '../dados/tipos';
@@ -28,11 +28,13 @@ const ABAS: { id: AbaPerfil; rotulo: string }[] = [
 ];
 
 interface Props {
-  id: number | string;
+  aluno: EstadoAluno;
   aba: AbaPerfil;
   aoMudarAba: (a: AbaPerfil) => void;
   aoVoltar: () => void;
   aoAbrir: (id: number | string) => void;
+  /** Toque numa foto enviada: abre a foto ampliada (índice em perfil.fotos). */
+  aoAbrirFoto: (indice: number) => void;
 }
 
 /** Prédio da capa: o mesmo desenho do protótipo. */
@@ -82,8 +84,8 @@ function CartaoColega({ c, aoAbrir }: { c: AlunoResumo; aoAbrir: (id: number | s
   );
 }
 
-export function Perfil({ id, aba, aoMudarAba, aoVoltar, aoAbrir }: Props) {
-  const { perfil: p, erro } = useAluno(id);
+export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto }: Props) {
+  const { perfil: p, erro } = aluno;
 
   const voltar = (
     <button type="button" className="tt-voltar" onClick={aoVoltar}>
@@ -126,7 +128,7 @@ export function Perfil({ id, aba, aoMudarAba, aoVoltar, aoAbrir }: Props) {
     lista.length ? (
       <div className={['tt-pf', tres && 'tt-pf--3'].filter(Boolean).join(' ')}>
         {lista.map((f, i) => (
-          <Polaroide key={f.id} src={f.miniatura} alt={f.legenda || `Foto de ${p.nome}`} ano={f.ano} legenda={f.legenda} semente={i * 3 + 1} icone="users" posicao={i} />
+          <Polaroide key={f.id} src={f.miniatura} alt={f.legenda || `Foto de ${p.nome}`} ano={f.ano} legenda={f.legenda} semente={i * 3 + 1} icone="users" posicao={i} aoTocar={() => aoAbrirFoto(i)} />
         ))}
       </div>
     ) : (

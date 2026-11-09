@@ -62,8 +62,14 @@ export function useAlunos(filtro: FiltroAlunos, ativo: boolean): EstadoBusca {
   return { pagina: estado.pagina, offline: estado.offline, defasada: estado.de !== chave };
 }
 
-export function useAluno(id: number | string | null) {
-  const [estado, setEstado] = useState<{ perfil: AlunoPerfil | null; erro: 'offline' | 'sumiu' | null }>({ perfil: null, erro: null });
+/** Perfil aberto: o perfil, ou o motivo de não ter vindo. */
+export interface EstadoAluno {
+  perfil: AlunoPerfil | null;
+  erro: 'offline' | 'sumiu' | null;
+}
+
+export function useAluno(id: number | string | null): EstadoAluno {
+  const [estado, setEstado] = useState<EstadoAluno>({ perfil: null, erro: null });
   useEffect(() => {
     if (id === null) return;
     let vivo = true;

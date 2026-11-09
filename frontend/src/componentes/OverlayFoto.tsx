@@ -57,7 +57,7 @@ export function OverlayFoto({ fotos, indice, icone, aoMudar, aoFechar }: Props) 
         )}
       </div>
       <div className="m-ov__leg">
-        <small className="num">{foto.ano} · FOTO {indice + 1} DE {n}</small>
+        <small className="num">{foto.ano > 0 ? `${foto.ano} · ` : ''}FOTO {indice + 1} DE {n}</small>
         <span className="serif">{foto.legenda}</span>
         {foto.credito && <em>{foto.credito}</em>}
       </div>

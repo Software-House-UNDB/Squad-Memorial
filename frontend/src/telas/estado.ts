@@ -11,6 +11,8 @@ export type AbaPerfil = 'geral' | 'fotos' | 'colegas' | 'sobre';
 export type Overlay =
   | null
   | { tipo: 'foto'; indice: number }
+  /** Foto enviada por um ex-aluno: posição em perfil.fotos (Sala 06 · Colegas). */
+  | { tipo: 'fotoPerfil'; indice: number }
   | { tipo: 'video'; id: number }
   | { tipo: 'checkin' };
 
