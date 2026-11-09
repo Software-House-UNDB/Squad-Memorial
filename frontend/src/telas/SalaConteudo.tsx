@@ -115,7 +115,6 @@ export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: 
     <Moldura
       sala={sala}
       dica={dicas[aba]}
-      exemplo={dados.demonstrativo}
       aviso={naBusca && busca.offline && busca.pagina ? 'Sem conexão: mostrando o último resultado' : undefined}
       sobre={sobre}
     >

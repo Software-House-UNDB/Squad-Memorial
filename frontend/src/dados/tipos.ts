@@ -114,7 +114,7 @@ export interface RespostaSala {
   versao: string;
   config: ConfigMemorial;
   sala: Sala;
-  /** Algum item desta sala é conteúdo de exemplo (mostra o selo no rodapé). */
+  /** Algum item desta sala é conteúdo de exemplo (o frontend não mostra mais o selo no rodapé; o campo segue na API). */
   demonstrativo: boolean;
   marcos: Marco[];
   fotos: Foto[];

@@ -73,10 +73,7 @@
   font-size: var(--t-apoio); color: var(--suave-2);
 }
 .tt-rod b { color: var(--grafite); font-weight: 600; }
-.tt-rod__exemplo { margin-left: auto; font-style: italic; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
-.tt-rod__exemplo img { height: 24px; width: auto; opacity: .8; }
 .tt-rod__aviso { margin-left: auto; display: flex; align-items: center; gap: 8px; color: var(--erro); font-weight: 600; }
-.tt-rod__aviso + .tt-rod__exemplo { margin-left: 18px; }
 
 /* ---------- cartão ---------- */
 .tt-cartao { background: var(--cartao); border: 1px solid var(--linha); border-radius: var(--raio-cartao); box-shadow: var(--sombra-repouso); }

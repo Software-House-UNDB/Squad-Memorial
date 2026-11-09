@@ -126,7 +126,7 @@ function montarSala(numero: number): RespostaSala {
     for (let i = 0, inicio = ANO_INICIAL; inicio <= fim; i++, inicio += 5) {
       for (const [ano, legenda] of fotosDoPeriodo(chave, i, inicio, Math.min(inicio + 4, fim))) {
         fotos.push({
-          id: numero * 10_000 + fotos.length, ano, legenda, alt: legenda, credito: 'Conteúdo de exemplo',
+          id: numero * 10_000 + fotos.length, ano, legenda, alt: legenda, credito: '',
           src: null, miniatura: null, largura: null, altura: null,
         });
       }
