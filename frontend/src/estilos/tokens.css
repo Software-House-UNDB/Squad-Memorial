@@ -16,6 +16,7 @@
   --dourado-claro: #e9d3a0;
   --dourado-texto: #855f10; /* protótipo: #8C6514 (4,37:1 no champanhe), escurecido para 5,41:1 no branco gelo */
   --dourado-fundo: #f4e9cf; /* champanhe: círculo de ícone e selo NOVO */
+  --champanhe: var(--dourado-fundo); /* mesmo valor, nome usado no perfil (selo "Ver perfil", contador da aba ativa) */
   --marca-texto: #f1dfae;   /* realce do trecho encontrado na busca */
 
   /* neutros claros */

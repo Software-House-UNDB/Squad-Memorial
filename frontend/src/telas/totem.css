@@ -2,7 +2,7 @@
 .tt {
   position: absolute; inset: 0;
   display: flex; flex-direction: column;
-  background: var(--marfim) radial-gradient(circle at 85% 10%, rgb(194 154 69 / .07), transparent 40%);
+  background: var(--marfim) radial-gradient(circle at 90% 4%, rgb(201 160 74 / .16), transparent 36%);
   color: var(--grafite);
   --rc: var(--sala-1);
 }

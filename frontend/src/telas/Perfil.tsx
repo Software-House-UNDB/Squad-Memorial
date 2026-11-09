@@ -16,7 +16,7 @@ import type { AbaPerfil } from './estado';
 
 const MAX_FOTOS_GERAL = 3;
 const MAX_FOTOS = 6;
-const MAX_PILHA = 4;
+const MAX_PILHA = 5;
 /** Tamanho máximo da lista de colegas que a API devolve. */
 const MAX_COLEGAS_API = 4;
 
@@ -146,6 +146,7 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
   return (
     <div className="tt-perfil entra">
       <div className="tt-capa" aria-hidden={false}>
+        <img className="tt-capa__marca" src={monogramaBranco} alt="" />
         <Predio />
         {voltar}
         <span className="tt-capa__tag num">Turma {turmaTurno} · {p.ano}</span>
@@ -162,9 +163,9 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
         {nColegas > 0 && (
           <div className="tt-pid__pilha" aria-label={`${nColegas} ${nColegas === 1 ? 'colega' : 'colegas'} da mesma turma`}>
             <span className="tt-pilha" aria-hidden="true">
-              {p.colegas.slice(0, MAX_PILHA).map((c) => <Avatar key={c.id} nome={c.nome} foto={c.foto} tamanho={40} />)}
+              {p.colegas.slice(0, MAX_PILHA).map((c) => <Avatar key={c.id} nome={c.nome} foto={c.foto} tamanho={28} />)}
             </span>
-            <span>{nColegas} {nColegas === 1 ? 'colega' : 'colegas'} da turma</span>
+            <span>{nColegas} {nColegas === 1 ? 'colega' : 'colegas'} da turma no Memorial</span>
           </div>
         )}
       </div>
@@ -196,7 +197,7 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
               <img className="tt-pcard__marca" src={monogramaBranco} alt="" />
               <span className="tt-pcard__moldura" aria-hidden="true" />
               <p className="tt-pcard__estudou">
-                <Icone nome="cap" tamanho={22} cor="var(--branco)" /> Estudou no Colégio Dom Bosco
+                <Icone nome="cap" tamanho={22} /> Estudou no Colégio Dom Bosco
               </p>
               <dl className="tt-pcard__kv">
                 <div><dt>ANO EM QUE ESTUDOU</dt><dd className="serif num">{p.ano}</dd></div>
@@ -205,17 +206,17 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
               </dl>
               {redes.length ? redes.map((r) => (
                 <div key={r.id} className="tt-pcard__rede">
-                  <Icone nome={r.icone} tamanho={20} cor="var(--branco)" />
+                  <Icone nome={r.icone} tamanho={20} />
                   <span className="so-leitor">{r.rotulo}: </span>
                   {r.texto}
                 </div>
               )) : (
                 <div className="tt-pcard__rede tt-pcard__apagada">
-                  <Icone nome="link" tamanho={20} cor="var(--branco)" /> Nenhuma rede social informada
+                  <Icone nome="link" tamanho={20} /> Nenhuma rede social informada
                 </div>
               )}
               <p className="tt-pcard__nota">
-                <Icone nome="lock" tamanho={20} cor="var(--branco)" /> E-mail oculto pelo Memorial
+                <Icone nome="lock" tamanho={20} /> E-mail oculto pelo Memorial
               </p>
             </section>
             <div className="tt-pgeral__dir">

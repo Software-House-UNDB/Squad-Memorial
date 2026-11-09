@@ -9,7 +9,7 @@ export function Avatar({ nome, foto, tamanho = 52 }: { nome: string; foto: strin
     return <img className="m-av m-av--foto" style={estilo} src={foto} alt="" loading="lazy" onError={() => setFalhou(true)} />;
   }
   return (
-    <span className="m-av m-av--ini serif" style={{ ...estilo, fontSize: Math.round(tamanho * 0.4) }} aria-hidden="true">
+    <span className="m-av m-av--ini serif" style={{ ...estilo, fontSize: Math.max(14, Math.round(tamanho * 0.4)) }} aria-hidden="true">
       {iniciais(nome)}
     </span>
   );
