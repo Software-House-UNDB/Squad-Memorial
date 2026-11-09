@@ -150,7 +150,7 @@ export function Perfil({ id, aba, aoMudarAba, aoVoltar, aoAbrir }: Props) {
       </div>
 
       <div className="tt-pid">
-        <div className="tt-pid__av"><Avatar nome={p.nome} foto={p.foto} tamanho={142} /></div>
+        <div className="tt-pid__av"><Avatar nome={p.nome} foto={p.foto} tamanho={114} /></div>
         <div className="tt-pid__txt">
           <h2 className="tt-pid__nome serif">{p.nome}</h2>
           <p className="tt-pid__meta num">

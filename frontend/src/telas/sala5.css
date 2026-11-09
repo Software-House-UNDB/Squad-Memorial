@@ -92,24 +92,24 @@
 /* ---------- perfil (rede social) ---------- */
 .tt-perfil { position: relative; height: 100%; }
 .tt-capa {
-  position: relative; height: 176px; overflow: hidden; border-radius: 14px;
+  position: relative; height: 120px; overflow: hidden; border-radius: 14px;
   background: var(--rc); /* Android antigo, sem color-mix(): a cor lisa do espaço */
   background: linear-gradient(135deg, var(--rc), color-mix(in srgb, var(--rc) 55%, #000));
 }
-.tt-capa__predio { position: absolute; right: 36px; bottom: -2px; width: 420px; height: auto; opacity: .3; }
+.tt-capa__predio { position: absolute; right: 36px; bottom: -2px; width: 220px; height: auto; opacity: .3; }
 .tt-capa__tag {
-  position: absolute; right: 24px; top: 24px; padding: 8px 18px; border-radius: var(--raio-pilula);
+  position: absolute; right: 24px; top: 16px; padding: 8px 18px; border-radius: var(--raio-pilula);
   background: rgb(255 255 255 / .18); color: var(--branco); font-size: var(--t-apoio); font-weight: 700;
 }
 .tt-voltar {
-  position: absolute; left: 24px; top: 20px; z-index: 1;
+  position: absolute; left: 24px; top: 12px; z-index: 1;
   display: flex; align-items: center; gap: 10px;
   height: var(--toque); padding: 0 24px; border-radius: var(--raio-pilula);
   background: rgb(255 255 255 / .95); font-size: var(--t-botao); font-weight: 600; color: var(--grafite);
 }
 .tt-voltar:active { background: var(--grafite); color: var(--marfim); }
-.tt-pid { position: relative; display: flex; align-items: flex-end; gap: 24px; margin-top: -62px; padding: 0 28px; }
-.tt-pid__av { flex: none; width: 152px; height: 152px; padding: 5px; border-radius: 50%; background: var(--marfim); }
+.tt-pid { position: relative; display: flex; align-items: flex-end; gap: 24px; margin-top: -48px; padding: 0 28px; }
+.tt-pid__av { flex: none; width: 124px; height: 124px; padding: 5px; border-radius: 50%; background: var(--marfim); }
 .tt-pid__av .m-av { border: 0; }
 .tt-pid__txt { flex: 1; min-width: 0; padding-bottom: 10px; }
 .tt-pid__nome { font-size: 44px; font-weight: 700; line-height: 1.05; color: var(--grafite); }
@@ -135,9 +135,9 @@
   background: var(--dourado-fundo); /* Android antigo, sem color-mix() */
   background: color-mix(in srgb, var(--rc) 16%, var(--branco));
 }
-.tt-pbody { margin-top: 16px; }
+.tt-pbody { margin-top: 12px; }
 .tt-pgeral { display: flex; gap: 36px; align-items: flex-start; }
-.tt-pgeral__dir { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 22px; }
+.tt-pgeral__dir { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
 .tt-pcard {
   position: relative; width: 400px; flex: none; overflow: hidden;
   padding: 26px 28px 24px; border-radius: 14px;
@@ -176,14 +176,15 @@
 .tt-sobre__lin svg { flex: none; margin-top: 2px; color: var(--rc); }
 .tt-pf { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 290px; gap: 18px; margin-top: 14px; }
 .tt-pf--3 { grid-template-columns: repeat(3, 1fr); }
-.tt-pgeral .tt-pf--3 { grid-auto-rows: 270px; }
+.tt-pgeral .tt-pf--3 { grid-auto-rows: 150px; gap: 14px; margin-top: 6px; }
+.tt-pgeral .tt-mates, .tt-pgeral .tt-mates__vazio { margin-top: 6px; }
 
 .tt-sh { display: flex; align-items: baseline; gap: 14px; }
-.tt-sh--acao { align-items: center; }
+.tt-sh--acao { align-items: center; min-height: 44px; }
 /* botão de texto: "Ver todos" / "Ver todas" */
 .tt-link {
-  margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
-  min-height: var(--toque); padding: 0 14px; border: 0; border-radius: var(--raio-cartao);
+  position: relative; z-index: 1; margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
+  min-height: var(--toque); margin-block: -6px; padding: 0 14px; border: 0; border-radius: var(--raio-cartao);
   background: transparent; font-size: var(--t-botao); font-weight: 600; color: var(--rc);
 }
 .tt-link:active { background: rgb(35 33 29 / .06); background: color-mix(in srgb, var(--rc) 12%, transparent); }
