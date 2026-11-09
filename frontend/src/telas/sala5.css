@@ -194,7 +194,7 @@
   box-shadow: 0 4px 14px rgb(70 60 30 / .05);
 }
 .fc-t { display: flex; align-items: center; gap: 10px; min-height: 32px; margin-bottom: 10px; }
-.fc-t h3 { margin: 0; font-size: 22px; font-weight: 700; line-height: 1.1; color: var(--grafite); }
+.fc-t h3 { margin: 0; font-family: var(--serif); font-size: 22px; font-weight: 700; line-height: 1.1; color: var(--grafite); font-variant-numeric: lining-nums; }
 .fc-t span { font-size: var(--t-micro); font-weight: 600; color: var(--suave-2); }
 /* botão de texto: "Ver todos" / "Ver todas" (área de toque de 56 px, desenho de 14 px) */
 .tt-link {
