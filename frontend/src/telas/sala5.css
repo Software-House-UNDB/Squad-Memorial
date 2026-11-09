@@ -123,8 +123,18 @@
   height: var(--toque); padding: 0 28px; border-bottom: 3px solid transparent; margin-bottom: -1px;
   font-size: var(--t-botao); font-weight: 600; color: var(--suave);
 }
+.tt-ptab { display: inline-flex; align-items: center; gap: 10px; }
 .tt-ptab:active { background: rgb(35 33 29 / .06); }
 .tt-ptab.is-ativa { color: var(--rc); border-bottom-color: var(--rc); }
+/* número da aba: pílula pequena; na aba ativa, fundo claro na cor do espaço */
+.tt-ptab__n {
+  min-width: 28px; padding: 2px 9px; border-radius: var(--raio-pilula); text-align: center;
+  background: var(--areia); color: var(--grafite); font-size: var(--t-micro); font-weight: 700; line-height: 1.4;
+}
+.tt-ptab.is-ativa .tt-ptab__n {
+  background: var(--dourado-fundo); /* Android antigo, sem color-mix() */
+  background: color-mix(in srgb, var(--rc) 16%, var(--branco));
+}
 .tt-pbody { margin-top: 16px; }
 .tt-pgeral { display: flex; gap: 36px; align-items: flex-start; }
 .tt-pgeral__fotos { flex: 1; min-width: 0; }

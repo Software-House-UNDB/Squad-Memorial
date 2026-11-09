@@ -16,6 +16,8 @@ import type { AbaPerfil } from './estado';
 const MAX_FOTOS_GERAL = 3;
 const MAX_FOTOS = 6;
 const MAX_PILHA = 4;
+/** Tamanho máximo da lista de colegas que a API devolve. */
+const MAX_COLEGAS_API = 4;
 
 const ABAS: { id: AbaPerfil; rotulo: string }[] = [
   { id: 'geral', rotulo: 'Visão geral' },
@@ -78,6 +80,13 @@ export function Perfil({ id, aba, aoMudarAba, aoVoltar, aoAbrir }: Props) {
   const { turma, turno } = separarTurma(p.turma);
   const turmaTurno = exibirTurma(p.turma);
   const nColegas = p.colegas.length;
+  // A API devolve no máximo 4 colegas e não informa o total: com 4, o número é "4+".
+  const colegasMais = nColegas >= MAX_COLEGAS_API;
+  /** Número da aba (Fotos e Colegas); Visão geral e Sobre ficam sem. */
+  const contador = (a: AbaPerfil) =>
+    a === 'fotos' ? { texto: String(p.fotos.length), falado: String(p.fotos.length) }
+    : a === 'colegas' ? { texto: colegasMais ? `${nColegas}+` : String(nColegas), falado: colegasMais ? `${nColegas} ou mais` : String(nColegas) }
+    : null;
 
   const gradeFotos = (lista: typeof fotos, tres: boolean) =>
     lista.length ? (
@@ -130,18 +139,23 @@ export function Perfil({ id, aba, aoMudarAba, aoVoltar, aoAbrir }: Props) {
       </div>
 
       <div className="tt-ptabs" role="tablist" aria-label="Perfil">
-        {ABAS.map((a) => (
-          <button
-            key={a.id}
-            type="button"
-            role="tab"
-            aria-selected={aba === a.id}
-            className={['tt-ptab', aba === a.id && 'is-ativa'].filter(Boolean).join(' ')}
-            onClick={() => aoMudarAba(a.id)}
-          >
-            {a.rotulo}
-          </button>
-        ))}
+        {ABAS.map((a) => {
+          const n = contador(a.id);
+          return (
+            <button
+              key={a.id}
+              type="button"
+              role="tab"
+              aria-selected={aba === a.id}
+              aria-label={n ? `${a.rotulo}, ${n.falado}` : undefined}
+              className={['tt-ptab', aba === a.id && 'is-ativa'].filter(Boolean).join(' ')}
+              onClick={() => aoMudarAba(a.id)}
+            >
+              {a.rotulo}
+              {n && <span className="tt-ptab__n num" aria-hidden="true">{n.texto}</span>}
+            </button>
+          );
+        })}
       </div>
 
       <div className="tt-pbody">
