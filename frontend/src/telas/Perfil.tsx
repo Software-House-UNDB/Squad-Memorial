@@ -8,7 +8,9 @@ import { Avatar } from '../componentes/Avatar';
 import { Icone } from '../componentes/Icone';
 import { Polaroide } from '../componentes/Polaroide';
 import { useAluno } from '../dados/alunos';
+import { lerRedes, redePorId } from '../dados/redes';
 import { dataCurta, nomeCurto } from '../dados/regras';
+import { exibirTurma, rotuloTurno, separarTurma } from '../dados/tipos';
 import type { AbaPerfil } from './estado';
 
 const MAX_FOTOS_GERAL = 3;
@@ -67,10 +69,14 @@ export function Perfil({ id, aba, aoMudarAba, aoVoltar, aoAbrir }: Props) {
   }
 
   const fotos = p.fotos.slice(0, MAX_FOTOS);
-  const redes = [
-    p.instagram && { icone: 'insta', texto: `instagram.com/${p.instagram}`, rotulo: 'Instagram' },
-    p.facebook && { icone: 'fb', texto: p.facebook.includes('/') ? p.facebook : `facebook.com/${p.facebook}`, rotulo: 'Facebook' },
-  ].filter(Boolean) as { icone: string; texto: string; rotulo: string }[];
+  // Sempre texto: o totem não abre links. "Outra rede" mostra o endereço guardado e se chama "Rede social".
+  const redes = lerRedes(p.instagram, p.facebook).map(({ id, usuario }) => {
+    const rede = redePorId(id);
+    return { id, icone: rede.icone, texto: rede.exibir(usuario), rotulo: id === 'outra' ? 'Rede social' : rede.rotulo };
+  });
+  /** A turma vem com o turno dentro ("3º A - Matutino"); cadastros antigos não têm turno. */
+  const { turma, turno } = separarTurma(p.turma);
+  const turmaTurno = exibirTurma(p.turma);
   const nColegas = p.colegas.length;
 
   const gradeFotos = (lista: typeof fotos, tres: boolean) =>
@@ -102,7 +108,7 @@ export function Perfil({ id, aba, aoMudarAba, aoVoltar, aoAbrir }: Props) {
       <div className="tt-capa" aria-hidden={false}>
         <Predio />
         {voltar}
-        <span className="tt-capa__tag num">Turma {p.turma} · {p.ano}</span>
+        <span className="tt-capa__tag num">Turma {turmaTurno} · {p.ano}</span>
       </div>
 
       <div className="tt-pid">
@@ -146,10 +152,11 @@ export function Perfil({ id, aba, aoMudarAba, aoVoltar, aoAbrir }: Props) {
               <span className="tt-pcard__moldura" aria-hidden="true" />
               <dl className="tt-pcard__kv">
                 <div><dt>ANO EM QUE ESTUDOU</dt><dd className="serif num">{p.ano}</dd></div>
-                <div><dt>TURMA</dt><dd className="serif">{p.turma}</dd></div>
+                <div><dt>TURMA</dt><dd className="serif">{turma}</dd></div>
+                {turno && <div><dt>TURNO</dt><dd className="serif">{rotuloTurno(turno)}</dd></div>}
               </dl>
               {redes.map((r) => (
-                <div key={r.icone} className="tt-pcard__rede">
+                <div key={r.id} className="tt-pcard__rede">
                   <Icone nome={r.icone} tamanho={20} cor="var(--branco)" />
                   <span className="so-leitor">{r.rotulo}: </span>
                   {r.texto}
@@ -180,7 +187,7 @@ export function Perfil({ id, aba, aoMudarAba, aoVoltar, aoAbrir }: Props) {
           <>
             <div className="tt-sh">
               <b className="serif">Da mesma turma</b>
-              <span className="num">{p.turma} · {p.ano} · {nColegas} {nColegas === 1 ? 'colega' : 'colegas'} no Memorial</span>
+              <span className="num">{turmaTurno} · {p.ano} · {nColegas} {nColegas === 1 ? 'colega' : 'colegas'} no Memorial</span>
             </div>
             {colegas}
           </>
@@ -188,9 +195,9 @@ export function Perfil({ id, aba, aoMudarAba, aoVoltar, aoAbrir }: Props) {
         {aba === 'sobre' && (
           <dl className="tt-sobre">
             <div><dt>Ano em que estudou</dt><dd className="num">{p.ano}</dd></div>
-            <div><dt>Turma</dt><dd>{p.turma}</dd></div>
+            <div><dt>Turma</dt><dd>{turmaTurno}</dd></div>
             <div><dt>Check-in no Memorial</dt><dd className="num">{p.recente ? 'agora' : dataCurta(p.checkinEm)}</dd></div>
-            {redes.map((r) => <div key={r.icone}><dt>{r.rotulo}</dt><dd>{r.texto}</dd></div>)}
+            {redes.map((r) => <div key={r.id}><dt>{r.rotulo}</dt><dd>{r.texto}</dd></div>)}
           </dl>
         )}
       </div>

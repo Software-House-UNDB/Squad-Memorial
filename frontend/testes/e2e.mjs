@@ -252,7 +252,11 @@ for (const [w, h] of TELAS) {
     await cel.locator('[name=nome]').fill(nome);
     await cel.locator('[name=ano]').selectOption('2007');
     await cel.locator('[name=turma]').fill('2º B');
+    await cel.locator('.ck-turno__op', { hasText: 'Matutino' }).click();
     await cel.locator('[name=email]').fill(`e2e-${Date.now()}@exemplo.invalid`);
+    // uma rede que não é Instagram viaja no campo facebook, com prefixo (tiktok/e2e.teste)
+    await cel.getByRole('button', { name: 'TikTok' }).click();
+    await cel.locator('[name=rede]').fill('e2e.teste');
     await cel.locator('[name=consentimento]').check();
     await cel.getByRole('button', { name: 'Fazer check-in' }).click();
     await cel.getByText(/Check-in feito, Teste!/).waitFor();
@@ -264,8 +268,9 @@ for (const [w, h] of TELAS) {
     confere((await cartao.locator('.tt-novo').count()) === 1, 'selo NOVO');
     await cartao.click();
     await p.locator('.tt-pid__meta', { hasText: 'Check-in feito agora' }).waitFor();
-    await p.getByRole('tab', { name: 'Colegas' }).last().click();
-    confere((await p.locator('.tt-mate', { hasText: 'João Sales' }).count()) === 1, 'colega da mesma turma (2007, 2º B)');
+    // o turno viaja dentro da turma: quem já estava cadastrado como "2º B" (sem turno) não é colega de "2º B - Matutino"
+    confere((await p.locator('.tt-capa__tag').innerText()).includes('2º B · Matutino'), 'turma com turno no perfil');
+    confere((await p.locator('.tt-pcard').innerText()).includes('tiktok.com/@e2e.teste'), 'rede social (TikTok) no perfil');
   });
 
   await verificar('a API nunca devolve e-mail', async () => {

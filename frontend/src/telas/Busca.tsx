@@ -10,7 +10,7 @@ import { TecladoVirtual } from '../componentes/TecladoVirtual';
 import { quiosque } from '../config/quiosque';
 import type { EstadoBusca } from '../dados/alunos';
 import { decadas, rotuloDecada, trechos } from '../dados/regras';
-import type { Sala } from '../dados/tipos';
+import { exibirTurma, type Sala } from '../dados/tipos';
 import type { EstadoTotem } from './estado';
 import { Titulo } from './Moldura';
 
@@ -130,7 +130,7 @@ export function Busca({ sala, estado: st, mudar, busca, anoInicial, aoCheckin }:
                 {trechos(a.nome, termo).map((t, i) => (t.marcado ? <mark key={i}>{t.texto}</mark> : <span key={i}>{t.texto}</span>))}
                 {a.novo && <span className="tt-novo">NOVO</span>}
               </span>
-              <span className="tt-pc__meta num">{a.ano} · Turma {a.turma}</span>
+              <span className="tt-pc__meta num">{a.ano} · Turma {exibirTurma(a.turma)}</span>
             </span>
           </button>
         ))}
