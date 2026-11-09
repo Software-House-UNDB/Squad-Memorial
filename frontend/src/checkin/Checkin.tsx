@@ -274,13 +274,10 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
           <span>Li e aceito o termo de uso dos meus dados e da minha imagem</span>
         </label>
         {termo === 'ok' && (
-          <>
-            <details className="ck-termo__texto">
-              <summary>Ler termo completo</summary>
-              <TextoTermo texto={config.termoTexto} />
-            </details>
-            {config.termoVersao && <small>Termo versão {config.termoVersao}</small>}
-          </>
+          <details className="ck-termo__texto">
+            <summary>Ler termo completo</summary>
+            <TextoTermo texto={config.termoTexto} />
+          </details>
         )}
         {termo === 'carregando' && <p className="ck-termo__aviso" role="status">Carregando o termo…</p>}
         {termo === 'falhou' && (
