@@ -3,14 +3,12 @@
  * (backend/memorial/serializers.py) com as mesmas mensagens.
  */
 import { normalizarRede, redePorId, usuarioValido } from './redes';
-import { TURNOS, type DadosCheckin, type ErrosCheckin } from './tipos';
+import { type DadosCheckin, type ErrosCheckin } from './tipos';
 
 export const MENSAGENS = {
   nome: 'Escreva nome e sobrenome.',
   ano: 'Escolha o ano em que estudou.',
   turma: 'Informe a turma, por exemplo 3º A.',
-  turmaLonga: 'Use até 17 caracteres na turma, por exemplo 3º A.',
-  turno: 'Escolha o turno em que estudou.',
   email: 'Informe um e-mail válido, por exemplo nome@email.com.',
   redeSemEscolha: 'Escolha qual é a rede social.',
   redeInvalida: (rotulo: string) => `Confira o usuário: ele não parece ser do ${rotulo}.`,
@@ -28,11 +26,8 @@ export function validarCheckin(d: DadosCheckin, anoInicial: number, anoAtual: nu
   if (partes.length < 2 || partes.join(' ').length < 4) erros.nome = MENSAGENS.nome;
   const ano = Number(d.ano);
   if (!d.ano || !Number.isInteger(ano) || ano < anoInicial || ano > anoAtual) erros.ano = MENSAGENS.ano;
-  // O servidor guarda 30 caracteres no total e o sufixo " - Vespertino" ocupa até 13: sobram 17 para a turma.
   const turma = d.turma.replace(/\s+/g, ' ').trim();
   if (!turma) erros.turma = MENSAGENS.turma;
-  else if (turma.length > 17) erros.turma = MENSAGENS.turmaLonga;
-  if (!TURNOS.some(([valor]) => valor === d.turno)) erros.turno = MENSAGENS.turno;
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email.trim())) erros.email = MENSAGENS.email;
   // Rede escolhida sem usuário é ignorada; usuário sem rede, ou que não é daquela rede, é erro.
   const { rede, usuario } = normalizarRede(d.rede, d.usuario);
@@ -48,4 +43,4 @@ export function validarCheckin(d: DadosCheckin, anoInicial: number, anoAtual: nu
 }
 
 /** Ordem dos campos no formulário: o primeiro com erro recebe o foco. */
-export const ORDEM_CAMPOS = ['nome', 'ano', 'turma', 'turno', 'email', 'rede', 'fotos', 'consentimento'] as const;
+export const ORDEM_CAMPOS = ['nome', 'ano', 'turma', 'email', 'rede', 'fotos', 'consentimento'] as const;

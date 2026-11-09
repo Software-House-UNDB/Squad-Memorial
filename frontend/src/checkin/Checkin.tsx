@@ -1,5 +1,5 @@
 /**
- * Check-in do visitante, no próprio celular: nome, ano, turma, turno, e-mail, uma rede social (opcional),
+ * Check-in do visitante, no próprio celular: nome, ano, turma, e-mail, uma rede social (opcional),
  * até 3 fotos (opcionais) e a autorização obrigatória. Quem faz check-in aparece na Sala 06 (Alunos).
  */
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
@@ -9,19 +9,19 @@ import { quiosque } from '../config/quiosque';
 import { fonte } from '../dados/fonte';
 import { AS_PRINCIPAIS, MAIS_REDES, normalizarRede, redePorId, type RedeId } from '../dados/redes';
 import { dois, SALAS_PADRAO } from '../dados/salas';
-import { TURNOS, type ConfigCheckin, type DadosCheckin, type ErrosCheckin } from '../dados/tipos';
+import { type ConfigCheckin, type DadosCheckin, type ErrosCheckin } from '../dados/tipos';
 import { MAX_FOTOS, ORDEM_CAMPOS, validarCheckin } from '../dados/validacao';
 import { FolhaRedes } from './FolhaRedes';
 import { reduzirFoto } from './reduzir';
 
 const VAZIO: DadosCheckin = {
-  nome: '', ano: '', turma: '', turno: '', email: '', rede: '', usuario: '', consentimento: false, fotos: [], site: '',
+  nome: '', ano: '', turma: '', email: '', rede: '', usuario: '', consentimento: false, fotos: [], site: '',
 };
 
 const PADRAO: ConfigCheckin = {
   anoInicial: 1958,
   anoAtual: new Date().getFullYear(),
-  termoTexto: 'Autorizo a exibição do meu nome, ano, turma, turno e rede social informada nos totens do Memorial.',
+  termoTexto: 'Autorizo a exibição do meu nome, ano, turma e rede social informada nos totens do Memorial.',
   termoVersao: '',
   emailContato: '',
 };
@@ -86,7 +86,6 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
   const campoRede = useRef<HTMLInputElement>(null);
   const botaoMais = useRef<HTMLButtonElement>(null);
   const [folha, setFolha] = useState(false);
-  const idTurno = useId();
   const idRede = useId();
   const rede = d.rede ? redePorId(d.rede) : null;
 
@@ -189,25 +188,10 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
         <Campo rotulo="Turma" erro={erros.turma}>
           {(id, desc) => (
             <input id={id} name="turma" aria-describedby={desc} aria-invalid={!!erros.turma} placeholder="3º A"
-              autoComplete="off" enterKeyHint="next" maxLength={17} value={d.turma} onChange={(e) => campo('turma', e.target.value)} />
+              autoComplete="off" enterKeyHint="next" maxLength={30} value={d.turma} onChange={(e) => campo('turma', e.target.value)} />
           )}
         </Campo>
       </div>
-
-      <fieldset className={['ck-campo', 'ck-turno', erros.turno && 'is-erro'].filter(Boolean).join(' ')}
-        aria-describedby={`${idTurno}-erro`}>
-        <legend>Turno em que estudou</legend>
-        <div className="ck-turno__grupo">
-          {TURNOS.map(([valor, rotulo]) => (
-            <label key={valor} className="ck-turno__op">
-              <input type="radio" name="turno" value={valor} checked={d.turno === valor} aria-invalid={!!erros.turno}
-                onChange={() => campo('turno', valor)} />
-              <span>{rotulo}</span>
-            </label>
-          ))}
-        </div>
-        <span id={`${idTurno}-erro`} className="ck-erro" role="alert">{erros.turno}</span>
-      </fieldset>
 
       <Campo rotulo="E-mail" erro={erros.email} ajuda="Só a equipe do Memorial vê.">
         {(id, desc) => (

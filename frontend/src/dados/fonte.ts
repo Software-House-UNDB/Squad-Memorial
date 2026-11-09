@@ -7,7 +7,6 @@ import { fonteDemo } from './demo';
 import { ErroHttp } from './erro';
 import { empacotar, normalizarRede } from './redes';
 import {
-  turmaComTurno,
   type AlunoPerfil, type ConfigCheckin, type DadosCheckin, type ErrosCheckin, type FiltroAlunos, type PaginaAlunos,
   type RespostaSala,
 } from './tipos';
@@ -54,8 +53,8 @@ const fonteServidor: Fonte = {
   async checkin(d) {
     const corpo = new FormData();
     for (const k of ['nome', 'ano', 'email', 'site'] as const) corpo.append(k, d[k]);
-    // O turno viaja dentro da turma e a rede social cabe nos campos que o servidor já conhece.
-    corpo.append('turma', d.turno ? turmaComTurno(d.turma, d.turno) : d.turma);
+    corpo.append('turma', d.turma);
+    // A rede social cabe nos campos que o servidor já conhece.
     const { rede, usuario } = normalizarRede(d.rede, d.usuario);
     const redes = empacotar(rede, usuario);
     corpo.append('instagram', redes.instagram);

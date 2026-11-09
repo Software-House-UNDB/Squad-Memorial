@@ -188,38 +188,10 @@ export interface ConfigCheckin {
   emailContato: string;
 }
 
-/** Turno em que o ex-aluno estudou. No servidor ele viaja dentro da turma: "3º A - Matutino". */
-export type Turno = 'matutino' | 'vespertino' | 'noturno';
-
-export const TURNOS: readonly [Turno, string][] = [
-  ['matutino', 'Matutino'],
-  ['vespertino', 'Vespertino'],
-  ['noturno', 'Noturno'],
-];
-
-export const rotuloTurno = (turno: Turno): string => TURNOS.find(([valor]) => valor === turno)?.[1] ?? '';
-
-/** ('3º A', 'matutino') → '3º A - Matutino'. */
-export const turmaComTurno = (turma: string, turno: Turno): string => `${turma.trim()} - ${rotuloTurno(turno)}`;
-
-/** O inverso: '3º A - Matutino' → { turma: '3º A', turno: 'matutino' }. Sem turno no texto (cadastro antigo), turno ''. */
-export function separarTurma(texto: string): { turma: string; turno: Turno | '' } {
-  const achou = texto.match(/^(.*) - (Matutino|Vespertino|Noturno)$/);
-  if (!achou) return { turma: texto, turno: '' };
-  return { turma: achou[1], turno: TURNOS.find(([, rotulo]) => rotulo === achou[2])?.[0] ?? '' };
-}
-
-/** Como o totem mostra a turma: '3º A · Matutino'; sem turno, a turma como está. */
-export function exibirTurma(texto: string): string {
-  const { turma, turno } = separarTurma(texto);
-  return turno ? `${turma} · ${rotuloTurno(turno)}` : turma;
-}
-
 export interface DadosCheckin {
   nome: string;
   ano: string;
   turma: string;
-  turno: Turno | '';
   email: string;
   /** Uma rede social por pessoa (opcional); `usuario` é só o usuário, sem endereço nem arroba. */
   rede: RedeId | '';

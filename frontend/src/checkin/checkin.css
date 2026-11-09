@@ -69,23 +69,11 @@ button { font: inherit; cursor: pointer; }
   background: var(--cartao); color: var(--grafite); border: 1.5px solid var(--dourado); font-size: 16px; font-weight: 700;
 }
 
-.ck-turno, .ck-rede { margin: 0; padding: 0; border: 0; }
-.ck-turno legend, .ck-rede legend {
+.ck-rede { margin: 0; padding: 0; border: 0; }
+.ck-rede legend {
   padding: 0; margin-bottom: 6px; font-size: 14px; letter-spacing: .12em; text-transform: uppercase;
   font-weight: 700; color: var(--dourado-texto);
 }
-.ck-turno__grupo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.ck-turno__op { position: relative; display: block; min-width: 0; cursor: pointer; }
-.ck-turno__op input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
-.ck-turno__op span {
-  display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 8px; text-align: center;
-  font: 600 16px var(--sans); color: var(--grafite);
-  background: var(--cartao); border: 1.5px solid var(--linha); border-radius: 10px;
-}
-.ck-turno__op input:checked + span { background: var(--grafite); color: var(--marfim); border-color: var(--dourado); }
-.ck-turno__op input:focus-visible + span { outline: 3px solid var(--dourado); outline-offset: 2px; }
-.ck-turno.is-erro .ck-turno__op span { border-color: var(--erro); }
-@media (max-width: 339px) { .ck-turno__grupo { grid-template-columns: 1fr; } }
 
 .ck-rede__grupo { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
 .ck-rede__op {

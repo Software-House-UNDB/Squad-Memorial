@@ -13,9 +13,8 @@ import exemplo from './exemplo.json';
 import { corresponde, normalizar } from './regras';
 import { SALAS_PADRAO } from './salas';
 import {
-  turmaComTurno,
   type AlunoPerfil, type AlunoResumo, type ConfigCheckin, type ConfigMemorial, type DadosCheckin, type Decada, type FiltroAlunos,
-  type Foto, type Marco, type PaginaAlunos, type RespostaSala, type Turno, type Video,
+  type Foto, type Marco, type PaginaAlunos, type RespostaSala, type Video,
 } from './tipos';
 import { empacotar, normalizarRede } from './redes';
 import { validarCheckin } from './validacao';
@@ -63,7 +62,7 @@ const REFERENCIA = Date.UTC(2026, 9, 27); // data do protótipo: os check-ins de
 const VIDEO_EXEMPLO = '/demo/exemplo.webm';
 
 export const TERMO_DEMO =
-  'Autorizo a exibição do meu nome, ano, turma, turno e rede social informada nos totens do Memorial. ' +
+  'Autorizo a exibição do meu nome, ano, turma e rede social informada nos totens do Memorial. ' +
   'As fotos enviadas só aparecem depois da aprovação da equipe. O e-mail nunca é mostrado e serve ' +
   'apenas para contato do Memorial. Posso pedir a remoção dos meus dados a qualquer momento.';
 
@@ -237,10 +236,10 @@ export const fonteDemo: Fonte = {
     const email = d.email.trim().toLowerCase();
     const ano = Number(d.ano);
     const lista = checkinsLocais().filter((a) => !(a.email === email && a.ano === ano));
-    // Mesmo empacotamento do envio ao servidor: o turno vai dentro da turma e a rede nos campos de sempre.
+    // Mesmo empacotamento do envio ao servidor: a rede vai nos campos de sempre.
     const { rede, usuario } = normalizarRede(d.rede, d.usuario);
     lista.unshift({
-      id: `n${Date.now()}`, nome: d.nome.trim().replace(/\s+/g, ' '), ano, turma: turmaComTurno(d.turma.replace(/\s+/g, ' '), d.turno as Turno), foto: null,
+      id: `n${Date.now()}`, nome: d.nome.trim().replace(/\s+/g, ' '), ano, turma: d.turma.replace(/\s+/g, ' ').trim(), foto: null,
       checkinEm: new Date().toISOString(), novo: true, email,
       ...empacotar(rede, usuario),
       fotos: [], // fotos só aparecem depois da aprovação da equipe

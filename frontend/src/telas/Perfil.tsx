@@ -11,7 +11,7 @@ import { Imagem } from '../componentes/Imagem';
 import type { EstadoAluno } from '../dados/alunos';
 import { lerRedes, redePorId } from '../dados/redes';
 import { dataCurta, nomeCurto } from '../dados/regras';
-import { exibirTurma, rotuloTurno, separarTurma, type AlunoResumo, type FotoAluno } from '../dados/tipos';
+import { type AlunoResumo, type FotoAluno } from '../dados/tipos';
 import type { AbaPerfil } from './estado';
 
 /** Miniaturas na Visão geral (6 colunas) e na aba Fotos (até 2 linhas de 6). */
@@ -124,7 +124,7 @@ function CartaoColega({ c, aoAbrir }: { c: AlunoResumo; aoAbrir: (id: number | s
       <Avatar nome={c.nome} foto={c.foto} tamanho={58} />
       <span className="fc-colega__txt">
         <b className="fc-colega__nome serif">{c.nome}</b>
-        <span className="fc-colega__meta num">Turma {exibirTurma(c.turma)} · {c.ano}</span>
+        <span className="fc-colega__meta num">Turma {c.turma} · {c.ano}</span>
       </span>
       <span className="fc-colega__ver" aria-hidden="true">Ver perfil</span>
     </button>
@@ -158,9 +158,7 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
     const rede = redePorId(id);
     return { id, icone: rede.icone, texto: rede.exibir(usuario), rotulo: id === 'outra' ? 'Rede social' : rede.rotulo };
   });
-  /** A turma vem com o turno dentro ("3º A - Matutino"); cadastros antigos não têm turno. */
-  const { turma, turno } = separarTurma(p.turma);
-  const turmaTurno = exibirTurma(p.turma);
+  const turma = p.turma;
   const nColegas = p.colegas.length;
   // A API devolve no máximo 4 colegas e não informa o total: com 4, o número é "4+".
   const colegasMais = nColegas >= MAX_COLEGAS_API;
@@ -183,7 +181,7 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
         <img className="tt-capa__marca" src={monogramaBranco} alt="" />
         <Predio />
         {voltar}
-        <span className="tt-capa__tag num">Turma {turmaTurno} · {p.ano}</span>
+        <span className="tt-capa__tag num">Turma {turma} · {p.ano}</span>
       </div>
 
       <div className="tt-pid">
@@ -191,7 +189,7 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
         <div className="tt-pid__txt">
           <h2 className="tt-pid__nome serif">{p.nome}</h2>
           <p className="tt-pid__meta num">
-            Ex-aluno(a) do Colégio Dom Bosco · Turma {turmaTurno} · {p.ano}{p.recente && ' · Check-in feito agora'}
+            Ex-aluno(a) do Colégio Dom Bosco · Turma {turma} · {p.ano}{p.recente && ' · Check-in feito agora'}
           </p>
         </div>
         {nColegas > 0 && (
@@ -236,7 +234,6 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
               <dl className="tt-pcard__kv">
                 <div><dt>ANO EM QUE ESTUDOU</dt><dd className="serif num">{p.ano}</dd></div>
                 <div><dt>TURMA</dt><dd className="serif">{turma}</dd></div>
-                {turno && <div><dt>TURNO</dt><dd className="serif">{rotuloTurno(turno)}</dd></div>}
               </dl>
               {redes.length ? redes.map((r) => (
                 <div key={r.id} className="tt-pcard__rede">
@@ -301,7 +298,7 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
         {aba === 'colegas' && (
           <section className="fcard">
             <TituloCartao
-              titulo={`Colegas da turma ${turmaTurno} · ${p.ano}`}
+              titulo={`Colegas da turma ${turma} · ${p.ano}`}
               n={`${colegasMais ? `${nColegas} ou mais` : nColegas} no Memorial`}
             />
             {nColegas ? (
@@ -317,7 +314,7 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
               <TituloCartao titulo="No Colégio Dom Bosco" />
               <ul className="irows">
                 <LinhaSobre icone="cap">Ex-aluno(a) do Colégio Dom Bosco</LinhaSobre>
-                <LinhaSobre icone="users">Turma {turmaTurno}</LinhaSobre>
+                <LinhaSobre icone="users">Turma {turma}</LinhaSobre>
                 <LinhaSobre icone="clock">Estudou na escola em <span className="num">{p.ano}</span></LinhaSobre>
               </ul>
             </section>

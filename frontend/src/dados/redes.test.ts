@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AS_PRINCIPAIS, empacotar, lerEntrada, lerRedes, MAIS_REDES, normalizarOutra, normalizarRede, REDES } from './redes';
-import { exibirTurma, separarTurma, turmaComTurno, type DadosCheckin } from './tipos';
+import { type DadosCheckin } from './tipos';
 import { MENSAGENS, ORDEM_CAMPOS, validarCheckin } from './validacao';
 
 describe('lerEntrada', () => {
@@ -105,36 +105,21 @@ describe('listas de redes', () => {
   });
 });
 
-describe('turno na turma', () => {
-  it('vai e volta', () => {
-    expect(turmaComTurno(' 3º A ', 'matutino')).toBe('3º A - Matutino');
-    expect(separarTurma('3º A - Vespertino')).toEqual({ turma: '3º A', turno: 'vespertino' });
-    expect(separarTurma('3º A')).toEqual({ turma: '3º A', turno: '' });
-    expect(exibirTurma('3º A - Noturno')).toBe('3º A · Noturno');
-    expect(exibirTurma('8ª B')).toBe('8ª B');
-  });
-});
-
 const BASE: DadosCheckin = {
-  nome: 'Maria Souza', ano: '1998', turma: '3º A', turno: 'matutino', email: 'maria@exemplo.com',
+  nome: 'Maria Souza', ano: '1998', turma: '3º A', email: 'maria@exemplo.com',
   rede: '', usuario: '', consentimento: true, fotos: [], site: '',
 };
 const erros = (parcial: Partial<DadosCheckin> = {}) => validarCheckin({ ...BASE, ...parcial }, 1958, 2026);
 
-describe('validarCheckin: turma, turno e rede', () => {
+describe('validarCheckin: turma e rede', () => {
   it('aceita o cadastro completo, com e sem rede', () => {
     expect(erros()).toEqual({});
     expect(erros({ rede: 'instagram', usuario: 'maria.souza' })).toEqual({});
   });
 
-  it('turma com mais de 17 caracteres é erro; 17 passam', () => {
-    expect(erros({ turma: '1234567890123456' + '7' }).turma).toBeUndefined();
-    expect(erros({ turma: '1234567890123456' + '78' }).turma).toBe(MENSAGENS.turmaLonga);
-  });
-
-  it('exige o turno entre os valores da lista', () => {
-    expect(erros({ turno: '' }).turno).toBe(MENSAGENS.turno);
-    expect(erros({ turno: 'integral' as never }).turno).toBe(MENSAGENS.turno);
+  it('turma é obrigatória e vale como foi digitada', () => {
+    expect(erros({ turma: '  ' }).turma).toBe(MENSAGENS.turma);
+    expect(erros({ turma: '3º A' }).turma).toBeUndefined();
   });
 
   it('usuário sem rede é erro; rede sem usuário é ignorada', () => {
@@ -168,7 +153,7 @@ describe('validarCheckin: turma, turno e rede', () => {
   });
 
   it('o primeiro erro a receber o foco segue a ordem do formulário', () => {
-    const e = erros({ turno: '', email: 'x', usuario: 'maria' });
-    expect(ORDEM_CAMPOS.find((k) => e[k])).toBe('turno');
+    const e = erros({ turma: '', email: 'x', usuario: 'maria' });
+    expect(ORDEM_CAMPOS.find((k) => e[k])).toBe('turma');
   });
 });

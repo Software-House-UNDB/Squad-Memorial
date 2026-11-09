@@ -1,18 +1,17 @@
 /**
  * Rede social do check-in: uma só por pessoa, escolhida por botões.
  *
- * FORMATO GUARDADO HOJE (o servidor ainda não tem campo de rede nem de turno):
+ * FORMATO GUARDADO HOJE (o servidor ainda não tem campo de rede):
  *   - Instagram vai no campo `instagram`, só o usuário: "maria.souza".
  *   - Facebook vai no campo `facebook`, sem prefixo: "maria.souza" (igual aos cadastros antigos).
  *   - As demais redes vão no campo `facebook`, com o id da rede e uma barra na frente:
  *     "tiktok/maria", "linkedin/maria-souza", "x/maria_s", "youtube/canal", "threads/maria"...
  *   - "Outra rede" vai no campo `facebook` como "outra/site.com/caminho" (sem https:// nem www.; até 94
  *     caracteres, para caber nos 100 que o servidor aceita).
- *   - O turno vai dentro do campo `turma`, em tipos.ts: "3º A - Matutino" (veja turmaComTurno e separarTurma).
  *
- * Quem for migrar: só este arquivo (empacotar e lerRedes) e as duas funções de turno em tipos.ts conhecem
- * esse formato. Formulário, validação, perfil e busca trabalham com valores limpos (rede, usuario, turno).
- * Com a coluna turno e a lista de redes no backend, troque o corpo dessas funções e mais nada.
+ * Quem for migrar: só este arquivo (empacotar e lerRedes) conhece esse formato. Formulário, validação,
+ * perfil e busca trabalham com valores limpos (rede, usuario).
+ * Com a lista de redes no backend, troque o corpo dessas funções e mais nada.
  */
 export type RedeId =
   | 'instagram' | 'tiktok' | 'linkedin' | 'facebook' | 'x' | 'youtube' | 'threads'
