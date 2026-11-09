@@ -17,6 +17,7 @@ import {
   type Foto, type Marco, type PaginaAlunos, type RespostaSala, type Video,
 } from './tipos';
 import { empacotar, normalizarRede } from './redes';
+import { TERMO_PADRAO } from './termo';
 import { validarCheckin } from './validacao';
 import type { Fonte } from './fonte';
 
@@ -61,10 +62,7 @@ const CHAVE_CHECKINS = 'memorial:demo:checkins';
 const REFERENCIA = Date.UTC(2026, 9, 27); // data do protótipo: os check-ins de exemplo mantêm a distância de "hoje"
 const VIDEO_EXEMPLO = '/demo/exemplo.webm';
 
-export const TERMO_DEMO =
-  'Autorizo a exibição do meu nome, ano, turma e rede social informada nos totens do Memorial. ' +
-  'As fotos enviadas só aparecem depois da aprovação da equipe. O e-mail nunca é mostrado e serve ' +
-  'apenas para contato do Memorial. Posso pedir a remoção dos meus dados a qualquer momento.';
+export const TERMO_DEMO = TERMO_PADRAO;
 
 const anoAtual = () => new Date().getFullYear();
 

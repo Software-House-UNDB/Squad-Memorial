@@ -140,12 +140,26 @@ button { font: inherit; cursor: pointer; }
 .ck-termo label { display: flex; gap: 12px; align-items: flex-start; font-size: 16px; line-height: 1.45; cursor: pointer; }
 .ck-termo input { flex: none; width: 32px; height: 32px; margin: 0; accent-color: var(--grafite); }
 .ck-termo small { padding-left: 44px; font-size: 14px; color: var(--suave); }
-.ck-termo__texto { padding-left: 44px; }
+.ck-termo__texto { padding-left: 44px; min-width: 0; }
 .ck-termo__texto summary {
-  min-height: 44px; display: flex; align-items: center; cursor: pointer;
-  font-size: 16px; font-weight: 600; color: var(--dourado-texto); text-decoration: underline;
+  min-height: var(--toque); display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none;
+  font-size: 15px; font-weight: 600; color: var(--dourado-texto);
 }
-.ck-termo__texto p { font-size: 16px; line-height: 1.5; color: var(--grafite); }
+.ck-termo__texto summary::-webkit-details-marker { display: none; }
+.ck-termo__texto summary::after {
+  content: ''; width: 8px; height: 8px; margin-top: -4px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(45deg); transition: transform .2s var(--curva);
+}
+.ck-termo__texto[open] summary::after { margin-top: 4px; transform: rotate(-135deg); }
+.ck-termo__texto summary:focus-visible { outline: 3px solid var(--dourado); outline-offset: 2px; border-radius: 6px; }
+.ck-termo__texto h2 { margin: 0; padding: 12px 4px 0; font-size: 18px; font-weight: 600; line-height: 1.25; color: var(--grafite); }
+/* Justificado: o lang="pt-BR" do elemento liga a hifenização; pre-line respeita os parágrafos que vêm do servidor. */
+.ck-termo__texto p {
+  margin: 0; padding: 12px 4px 0; font-size: 15px; line-height: 1.55; color: var(--grafite);
+  text-align: justify; text-justify: inter-word; hyphens: auto; white-space: pre-line; overflow-wrap: break-word;
+}
+.ck-termo__texto h2 + p { padding-top: 8px; }
+@media (prefers-reduced-motion: reduce) { .ck-termo__texto summary::after { transition: none; } }
 .ck-preparando { margin-top: -6px; font-size: 15px; font-weight: 600; color: var(--dourado-texto); }
 .ck-termo.is-erro { box-shadow: inset 0 0 0 1.5px var(--erro); }
 

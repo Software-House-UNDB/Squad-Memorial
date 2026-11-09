@@ -10,6 +10,7 @@ import { fonte } from '../dados/fonte';
 import { AS_PRINCIPAIS, MAIS_REDES, normalizarRede, redePorId, type RedeId } from '../dados/redes';
 import { dois, SALAS_PADRAO } from '../dados/salas';
 import { type ConfigCheckin, type DadosCheckin, type ErrosCheckin } from '../dados/tipos';
+import { separarTermo, TERMO_PADRAO } from '../dados/termo';
 import { MAX_FOTOS, ORDEM_CAMPOS, validarCheckin } from '../dados/validacao';
 import { FolhaRedes } from './FolhaRedes';
 import { reduzirFoto } from './reduzir';
@@ -21,7 +22,7 @@ const VAZIO: DadosCheckin = {
 const PADRAO: ConfigCheckin = {
   anoInicial: 1958,
   anoAtual: new Date().getFullYear(),
-  termoTexto: 'Autorizo a exibição do meu nome, ano, turma e rede social informada nos totens do Memorial.',
+  termoTexto: TERMO_PADRAO,
   termoVersao: '',
   emailContato: '',
 };
@@ -276,7 +277,7 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
           <>
             <details className="ck-termo__texto">
               <summary>Ler termo completo</summary>
-              <p>{config.termoTexto}</p>
+              <TextoTermo texto={config.termoTexto} />
             </details>
             {config.termoVersao && <small>Termo versão {config.termoVersao}</small>}
           </>
@@ -297,6 +298,17 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
         {enviando ? 'Enviando…' : preparando ? 'Preparando fotos…' : 'Fazer check-in'}
       </button>
     </form>
+  );
+}
+
+/** O termo por extenso: a primeira linha é o título; o corpo é justificado (lang pt-BR liga a hifenização). */
+function TextoTermo({ texto }: { texto: string }) {
+  const { titulo, corpo } = separarTermo(texto);
+  return (
+    <>
+      {titulo && <h2 className="serif">{titulo}</h2>}
+      <p lang="pt-BR">{corpo}</p>
+    </>
   );
 }
 
