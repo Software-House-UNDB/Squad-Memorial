@@ -3,9 +3,10 @@
  * nome e quatro abas (Visão geral, Fotos, Colegas, Sobre). Só aparece o que a pessoa autorizou no
  * check-in; o e-mail nunca aparece.
  */
+import type { ReactNode } from 'react';
 import monogramaBranco from '../assets/memorial/monograma-branco.png';
 import { Avatar } from '../componentes/Avatar';
-import { Icone } from '../componentes/Icone';
+import { Icone, type NomeIcone } from '../componentes/Icone';
 import { Polaroide } from '../componentes/Polaroide';
 import { useAluno } from '../dados/alunos';
 import { lerRedes, redePorId } from '../dados/redes';
@@ -45,6 +46,16 @@ function Predio() {
       ))}
       <path d="M236 168v-50a24 24 0 0148 0v50" /><path d="M226 92h68M60 92h400" />
     </svg>
+  );
+}
+
+/** Linha de um cartão da aba Sobre: ícone de 22 px à esquerda e o texto. */
+function LinhaSobre({ icone, children }: { icone: NomeIcone; children: ReactNode }) {
+  return (
+    <li className="tt-sobre__lin">
+      <Icone nome={icone} tamanho={22} />
+      <span>{children}</span>
+    </li>
   );
 }
 
@@ -246,12 +257,36 @@ export function Perfil({ id, aba, aoMudarAba, aoVoltar, aoAbrir }: Props) {
           </>
         )}
         {aba === 'sobre' && (
-          <dl className="tt-sobre">
-            <div><dt>Ano em que estudou</dt><dd className="num">{p.ano}</dd></div>
-            <div><dt>Turma</dt><dd>{turmaTurno}</dd></div>
-            <div><dt>Check-in no Memorial</dt><dd className="num">{p.recente ? 'agora' : dataCurta(p.checkinEm)}</dd></div>
-            {redes.map((r) => <div key={r.id}><dt>{r.rotulo}</dt><dd>{r.texto}</dd></div>)}
-          </dl>
+          <div className="tt-sobre">
+            <section className="tt-sobre__cartao">
+              <h3 className="serif">No Colégio Dom Bosco</h3>
+              <ul>
+                <LinhaSobre icone="cap">Ex-aluno(a) do Colégio Dom Bosco</LinhaSobre>
+                <LinhaSobre icone="users">Turma {turmaTurno}</LinhaSobre>
+                <LinhaSobre icone="clock">Estudou na escola em <span className="num">{p.ano}</span></LinhaSobre>
+              </ul>
+            </section>
+            <section className="tt-sobre__cartao">
+              <h3 className="serif">No Memorial</h3>
+              <ul>
+                <LinhaSobre icone="check">{p.recente ? 'Check-in feito agora' : <>Check-in em <span className="num">{dataCurta(p.checkinEm)}</span></>}</LinhaSobre>
+                <LinhaSobre icone="image">
+                  {p.fotos.length} {p.fotos.length === 1 ? 'foto aprovada' : 'fotos aprovadas'} pela equipe
+                </LinhaSobre>
+                <LinhaSobre icone="users">
+                  {colegasMais ? `${nColegas} ou mais colegas` : `${nColegas} ${nColegas === 1 ? 'colega' : 'colegas'}`} da mesma turma no Memorial
+                </LinhaSobre>
+              </ul>
+            </section>
+            <section className="tt-sobre__cartao tt-sobre__cartao--cheio">
+              <h3 className="serif">Privacidade</h3>
+              <ul>
+                <LinhaSobre icone="lock">
+                  Só aparece o que a pessoa autorizou no check-in. O e-mail nunca é mostrado e as fotos passam pela equipe antes de aparecer.
+                </LinhaSobre>
+              </ul>
+            </section>
+          </div>
         )}
       </div>
     </div>
