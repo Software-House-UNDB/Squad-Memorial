@@ -32,7 +32,6 @@ export function Checkin() {
   /** O termo mostrado é o do servidor? Com o texto de reserva (PADRAO) o servidor gravaria outra versão. */
   const [termo, setTermo] = useState<'carregando' | 'ok' | 'falhou'>('carregando');
   const [feito, setFeito] = useState<string | null>(null);
-  const [chave, setChave] = useState(0);
 
   const carregarTermo = () => {
     setTermo('carregando');
@@ -55,9 +54,9 @@ export function Checkin() {
       )}
       <main className="ck-corpo">
         {feito !== null ? (
-          <Sucesso nome={feito} aoRecomecar={() => { setFeito(null); setChave((k) => k + 1); }} />
+          <Sucesso nome={feito} />
         ) : (
-          <Formulario key={chave} config={config} termo={termo} aoRecarregarTermo={carregarTermo} aoConcluir={setFeito} />
+          <Formulario config={config} termo={termo} aoRecarregarTermo={carregarTermo} aoConcluir={setFeito} />
         )}
       </main>
       <footer className="ck-rod">
@@ -340,7 +339,7 @@ function Miniatura({ arquivo, aoRemover }: { arquivo: File; aoRemover: () => voi
   );
 }
 
-function Sucesso({ nome, aoRecomecar }: { nome: string; aoRecomecar: () => void }) {
+function Sucesso({ nome }: { nome: string }) {
   const titulo = useRef<HTMLHeadingElement>(null);
   useEffect(() => titulo.current?.focus(), []);
   return (
@@ -356,7 +355,6 @@ function Sucesso({ nome, aoRecomecar }: { nome: string; aoRecomecar: () => void 
           ))}
         </ol>
       </section>
-      <button type="button" className="ck-ok__outro" onClick={aoRecomecar}>Fazer outro check-in</button>
     </div>
   );
 }

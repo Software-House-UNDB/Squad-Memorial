@@ -183,13 +183,6 @@ button { font: inherit; cursor: pointer; }
 .ck-ok__percurso h2 { margin: 0 0 8px; font-size: 22px; font-weight: 700; line-height: 1.15; font-variant-numeric: lining-nums; }
 .ck-ok__percurso ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 16px; }
 .ck-ok__percurso .num { display: inline-block; min-width: 2em; font-weight: 700; color: var(--dourado-texto); }
-/* Versão secundária do botão de envio: fundo claro, mesmo tamanho e mesma borda dourada. */
-.ck-ok__outro {
-  width: 100%; max-width: 22em; min-height: 56px; margin-top: 6px; border-radius: var(--raio-pilula);
-  background: var(--cartao); color: var(--grafite); border: 1.5px solid var(--dourado);
-  font-size: 16px; font-weight: 700; letter-spacing: .04em;
-}
-.ck-ok__outro:active { background: var(--areia); }
 
 @media (prefers-reduced-motion: reduce) { .ck-ok__selo, .ck-folha__corpo { animation: none; } }
 @media (min-width: 700px) { .ck-form h1 { font-size: 40px; } }
