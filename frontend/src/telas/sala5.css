@@ -183,10 +183,11 @@
   background: rgb(255 255 255 / .35); border: 1px solid rgb(255 255 255 / .55);
   font-size: var(--t-micro); overflow-wrap: anywhere;
 }
-.tt-pcard__apagada { opacity: .85; }
+/* sem rede informada: contorno tracejado em vez de texto esmaecido (o texto escuro precisa de contraste) */
+.tt-pcard__apagada { border-style: dashed; background: rgb(255 255 255 / .2); }
 .tt-pcard__nota {
-  position: relative; display: flex; align-items: center; gap: 10px; margin: 14px 0 0; padding: 0 4px;
-  font-size: var(--t-apoio); opacity: .85;
+  position: relative; display: flex; align-items: center; gap: 10px; width: fit-content; margin: 14px 0 0; padding: 0 4px;
+  font-size: var(--t-apoio);
 }
 /* cartões brancos das quatro abas (medidas do deck, palco de 1600 × 900) */
 .fcard {
