@@ -1,5 +1,5 @@
 /**
- * Aba Colegas · Perfil de um ex-aluno, no formato de rede social: capa na cor do espaço, foto,
+ * Aba Colegas · Perfil de um ex-aluno, no formato de rede social: capa dourada, foto,
  * nome e quatro abas (Visão geral, Fotos, Colegas, Sobre). Só aparece o que a pessoa autorizou no
  * check-in; o e-mail nunca aparece.
  */
@@ -7,15 +7,18 @@ import type { ReactNode } from 'react';
 import monogramaBranco from '../assets/memorial/monograma-branco.png';
 import { Avatar } from '../componentes/Avatar';
 import { Icone, type NomeIcone } from '../componentes/Icone';
-import { Polaroide } from '../componentes/Polaroide';
+import { Imagem } from '../componentes/Imagem';
 import type { EstadoAluno } from '../dados/alunos';
 import { lerRedes, redePorId } from '../dados/redes';
-import { dataCurta } from '../dados/regras';
-import { exibirTurma, rotuloTurno, separarTurma, type AlunoResumo } from '../dados/tipos';
+import { dataCurta, nomeCurto } from '../dados/regras';
+import { exibirTurma, rotuloTurno, separarTurma, type AlunoResumo, type FotoAluno } from '../dados/tipos';
 import type { AbaPerfil } from './estado';
 
-const MAX_FOTOS_GERAL = 3;
-const MAX_FOTOS = 6;
+/** Miniaturas na Visão geral (6 colunas) e na aba Fotos (até 2 linhas de 6). */
+const MAX_FOTOS_GERAL = 6;
+const MAX_FOTOS = 12;
+/** Cartões de colega na aba Colegas (a API devolve no máximo 4). */
+const MAX_COLEGAS_CARTOES = 12;
 const MAX_PILHA = 5;
 /** Tamanho máximo da lista de colegas que a API devolve. */
 const MAX_COLEGAS_API = 4;
@@ -51,11 +54,32 @@ function Predio() {
   );
 }
 
-/** Linha de um cartão da aba Sobre: ícone de 22 px à esquerda e o texto. */
-function LinhaSobre({ icone, children }: { icone: NomeIcone; children: ReactNode }) {
+/** Cabeçalho de um cartão branco: título em serif, contador e, à direita, o botão de texto. */
+function TituloCartao({ titulo, n, acao }: { titulo: string; n?: ReactNode; acao?: ReactNode }) {
   return (
-    <li className="tt-sobre__lin">
-      <Icone nome={icone} tamanho={22} />
+    <div className="fc-t">
+      <h3 className="serif">{titulo}</h3>
+      {n !== undefined && <span className="num">{n}</span>}
+      {acao}
+    </div>
+  );
+}
+
+/** Aviso vazio (sem fotos, sem colegas): borda tracejada dourada e ícone. */
+function Vazio({ icone, children }: { icone: NomeIcone; children: ReactNode }) {
+  return (
+    <div className="fc-vazio">
+      <Icone nome={icone} tamanho={30} />
+      <p>{children}</p>
+    </div>
+  );
+}
+
+/** Linha com ícone dos cartões da aba Sobre. */
+function LinhaSobre({ icone, apagada, children }: { icone: NomeIcone; apagada?: boolean; children: ReactNode }) {
+  return (
+    <li className={['irow', apagada && 'irow--apagada'].filter(Boolean).join(' ')}>
+      <Icone nome={icone} tamanho={17} traco={1.6} />
       <span>{children}</span>
     </li>
   );
@@ -65,21 +89,44 @@ function LinhaSobre({ icone, children }: { icone: NomeIcone; children: ReactNode
 function BotaoVer({ rotulo, aoClicar }: { rotulo: string; aoClicar: () => void }) {
   return (
     <button type="button" className="tt-link" onClick={aoClicar}>
-      {rotulo} <Icone nome="right" tamanho={18} traco={2} />
+      {rotulo} <Icone nome="right" tamanho={16} traco={2} />
     </button>
   );
 }
 
-/** Cartão de colega da mesma turma: o cartão inteiro é um botão que abre o perfil dele. */
+/** Miniatura de uma foto enviada: botão que abre a foto ampliada (i = posição em perfil.fotos). */
+function Miniatura({ f, i, nome, comLegenda, aoAbrirFoto }: { f: FotoAluno; i: number; nome: string; comLegenda?: boolean; aoAbrirFoto: (i: number) => void }) {
+  return (
+    <button type="button" className="fc-foto" onClick={() => aoAbrirFoto(i)} aria-label={`Ampliar foto${f.ano ? ` de ${f.ano}` : ''}: ${f.legenda || nome}`}>
+      <span className="fc-foto__img">
+        <Imagem src={f.miniatura} alt="" semente={i * 3 + 1} icone="users" />
+        {f.ano ? <b className="fc-foto__ano num">{f.ano}</b> : null}
+      </span>
+      {comLegenda && f.legenda && <span className="fc-foto__leg">{f.legenda}</span>}
+    </button>
+  );
+}
+
+/** Colega na Visão geral: avatar e nome curto, em coluna; abre o perfil dele. */
+function ColegaMini({ c, aoAbrir }: { c: AlunoResumo; aoAbrir: (id: number | string) => void }) {
+  return (
+    <button type="button" className="fc-mini" onClick={() => aoAbrir(c.id)} aria-label={`Ver perfil de ${c.nome}`}>
+      <Avatar nome={c.nome} foto={c.foto} tamanho={52} />
+      <span className="fc-mini__nome">{nomeCurto(c.nome)}</span>
+    </button>
+  );
+}
+
+/** Colega na aba Colegas: o cartão inteiro é um botão que abre o perfil dele. */
 function CartaoColega({ c, aoAbrir }: { c: AlunoResumo; aoAbrir: (id: number | string) => void }) {
   return (
-    <button type="button" className="tt-mate" onClick={() => aoAbrir(c.id)}>
-      <Avatar nome={c.nome} foto={c.foto} tamanho={56} />
-      <span className="tt-mate__txt">
-        <b className="tt-mate__nome serif">{c.nome}</b>
-        <span className="tt-mate__meta num">Turma {exibirTurma(c.turma)} · {c.ano}</span>
+    <button type="button" className="fc-colega" onClick={() => aoAbrir(c.id)}>
+      <Avatar nome={c.nome} foto={c.foto} tamanho={58} />
+      <span className="fc-colega__txt">
+        <b className="fc-colega__nome serif">{c.nome}</b>
+        <span className="fc-colega__meta num">Turma {exibirTurma(c.turma)} · {c.ano}</span>
       </span>
-      <span className="tt-mate__ver" aria-hidden="true">Ver perfil <Icone nome="right" tamanho={18} traco={2} /></span>
+      <span className="fc-colega__ver" aria-hidden="true">Ver perfil</span>
     </button>
   );
 }
@@ -106,7 +153,6 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
     );
   }
 
-  const fotos = p.fotos.slice(0, MAX_FOTOS);
   // Sempre texto: o totem não abre links. "Outra rede" mostra o endereço guardado e se chama "Rede social".
   const redes = lerRedes(p.instagram, p.facebook).map(({ id, usuario }) => {
     const rede = redePorId(id);
@@ -124,24 +170,12 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
     : a === 'colegas' ? { texto: colegasMais ? `${nColegas}+` : String(nColegas), falado: colegasMais ? `${nColegas} ou mais` : String(nColegas) }
     : null;
 
-  const gradeFotos = (lista: typeof fotos, tres: boolean) =>
-    lista.length ? (
-      <div className={['tt-pf', tres && 'tt-pf--3'].filter(Boolean).join(' ')}>
-        {lista.map((f, i) => (
-          <Polaroide key={f.id} src={f.miniatura} alt={f.legenda || `Foto de ${p.nome}`} ano={f.ano} legenda={f.legenda} semente={i * 3 + 1} icone="users" posicao={i} aoTocar={() => aoAbrirFoto(i)} />
-        ))}
-      </div>
-    ) : (
-      <div className="tt-prof__semfotos tt-cartao">As fotos enviadas no check-in aparecem aqui depois da aprovação da equipe.</div>
-    );
-
-  const colegas = nColegas ? (
-    <div className="tt-mates">
-      {p.colegas.map((c) => <CartaoColega key={c.id} c={c} aoAbrir={aoAbrir} />)}
-    </div>
-  ) : (
-    <p className="tt-mates__vazio">Ninguém da mesma turma fez check-in ainda.</p>
-  );
+  const primeiroNome = p.nome.split(' ')[0];
+  const contColegas = colegasMais ? `${nColegas}+` : String(nColegas);
+  const textoSemFotos = p.recente
+    ? 'As fotos enviadas no check-in aparecem aqui depois da aprovação da equipe.'
+    : 'Nenhuma foto aprovada ainda.';
+  const semColegas = <Vazio icone="users">Ninguém da mesma turma fez check-in ainda.</Vazio>;
 
   return (
     <div className="tt-perfil entra">
@@ -220,75 +254,95 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
               </p>
             </section>
             <div className="tt-pgeral__dir">
-              <section>
-                <div className="tt-sh tt-sh--acao">
-                  <b className="serif">Fotos enviadas</b>
-                  <span>
-                    {p.fotos.length ? `${p.fotos.length} ${p.fotos.length === 1 ? 'foto aprovada' : 'fotos aprovadas'} pela equipe` : 'nenhuma foto aprovada ainda'}
-                  </span>
-                  {p.fotos.length > MAX_FOTOS_GERAL && <BotaoVer rotulo="Ver todas" aoClicar={() => aoMudarAba('fotos')} />}
-                </div>
-                {gradeFotos(fotos.slice(0, MAX_FOTOS_GERAL), true)}
+              <section className="fcard">
+                <TituloCartao
+                  titulo="Fotos"
+                  n={p.fotos.length}
+                  acao={p.fotos.length > 0 && <BotaoVer rotulo="Ver todas" aoClicar={() => aoMudarAba('fotos')} />}
+                />
+                {p.fotos.length ? (
+                  <div className="fc-fotos fc-fotos--geral">
+                    {p.fotos.slice(0, MAX_FOTOS_GERAL).map((f, i) => (
+                      <Miniatura key={f.id} f={f} i={i} nome={p.nome} aoAbrirFoto={aoAbrirFoto} />
+                    ))}
+                  </div>
+                ) : <Vazio icone="image">{textoSemFotos}</Vazio>}
               </section>
-              <section>
-                <div className="tt-sh tt-sh--acao">
-                  <b className="serif">Colegas da turma</b>
-                  <span className="num">{colegasMais ? `${nColegas}+` : nColegas} no Memorial</span>
-                  {nColegas > 0 && <BotaoVer rotulo="Ver todos" aoClicar={() => aoMudarAba('colegas')} />}
-                </div>
-                {colegas}
+              <section className="fcard">
+                <TituloCartao
+                  titulo="Colegas da turma"
+                  n={contColegas}
+                  acao={nColegas > 0 && <BotaoVer rotulo="Ver todos" aoClicar={() => aoMudarAba('colegas')} />}
+                />
+                {nColegas ? (
+                  <div className="fc-minis">
+                    {p.colegas.map((c) => <ColegaMini key={c.id} c={c} aoAbrir={aoAbrir} />)}
+                  </div>
+                ) : semColegas}
               </section>
             </div>
           </div>
         )}
         {aba === 'fotos' && (
-          <>
-            <div className="tt-sh">
-              <b className="serif">Fotos enviadas</b>
-              <span>{p.fotos.length > MAX_FOTOS ? `mostrando ${MAX_FOTOS} de ${p.fotos.length}` : 'aprovadas pela equipe'}</span>
-            </div>
-            {gradeFotos(fotos, false)}
-          </>
+          <section className="fcard">
+            <TituloCartao titulo={`Fotos de ${primeiroNome}`} n={p.fotos.length} />
+            {p.fotos.length ? (
+              <>
+                <div className="fc-fotos">
+                  {p.fotos.slice(0, MAX_FOTOS).map((f, i) => (
+                    <Miniatura key={f.id} f={f} i={i} nome={p.nome} comLegenda aoAbrirFoto={aoAbrirFoto} />
+                  ))}
+                </div>
+                {p.fotos.length > MAX_FOTOS && <p className="fc-mais">Mostrando {MAX_FOTOS} de {p.fotos.length} fotos</p>}
+              </>
+            ) : <Vazio icone="image">{textoSemFotos}</Vazio>}
+          </section>
         )}
         {aba === 'colegas' && (
-          <>
-            <div className="tt-sh">
-              <b className="serif">Da mesma turma</b>
-              <span className="num">{turmaTurno} · {p.ano} · {nColegas} {nColegas === 1 ? 'colega' : 'colegas'} no Memorial</span>
-            </div>
-            {colegas}
-          </>
+          <section className="fcard">
+            <TituloCartao
+              titulo={`Colegas da turma ${turmaTurno} · ${p.ano}`}
+              n={`${colegasMais ? `${nColegas} ou mais` : nColegas} no Memorial`}
+            />
+            {nColegas ? (
+              <div className="fc-colegas">
+                {p.colegas.slice(0, MAX_COLEGAS_CARTOES).map((c) => <CartaoColega key={c.id} c={c} aoAbrir={aoAbrir} />)}
+              </div>
+            ) : semColegas}
+          </section>
         )}
         {aba === 'sobre' && (
           <div className="tt-sobre">
-            <section className="tt-sobre__cartao">
-              <h3 className="serif">No Colégio Dom Bosco</h3>
-              <ul>
+            <section className="fcard">
+              <TituloCartao titulo="No Colégio Dom Bosco" />
+              <ul className="irows">
                 <LinhaSobre icone="cap">Ex-aluno(a) do Colégio Dom Bosco</LinhaSobre>
                 <LinhaSobre icone="users">Turma {turmaTurno}</LinhaSobre>
                 <LinhaSobre icone="clock">Estudou na escola em <span className="num">{p.ano}</span></LinhaSobre>
               </ul>
             </section>
-            <section className="tt-sobre__cartao">
-              <h3 className="serif">No Memorial</h3>
-              <ul>
-                <LinhaSobre icone="check">{p.recente ? 'Check-in feito agora' : <>Check-in em <span className="num">{dataCurta(p.checkinEm)}</span></>}</LinhaSobre>
-                <LinhaSobre icone="image">
-                  {p.fotos.length} {p.fotos.length === 1 ? 'foto aprovada' : 'fotos aprovadas'} pela equipe
-                </LinhaSobre>
-                <LinhaSobre icone="users">
-                  {colegasMais ? `${nColegas} ou mais colegas` : `${nColegas} ${nColegas === 1 ? 'colega' : 'colegas'}`} da mesma turma no Memorial
-                </LinhaSobre>
-              </ul>
-            </section>
-            <section className="tt-sobre__cartao tt-sobre__cartao--cheio">
-              <h3 className="serif">Privacidade</h3>
-              <ul>
-                <LinhaSobre icone="lock">
-                  Só aparece o que a pessoa autorizou no check-in. O e-mail nunca é mostrado e as fotos passam pela equipe antes de aparecer.
-                </LinhaSobre>
-              </ul>
-            </section>
+            <div className="tt-sobre__dir">
+              <section className="fcard">
+                <TituloCartao titulo="No Memorial" />
+                <ul className="irows">
+                  <LinhaSobre icone="check">{p.recente ? 'Check-in feito agora' : <>Check-in em <span className="num">{dataCurta(p.checkinEm)}</span></>}</LinhaSobre>
+                  <LinhaSobre icone="image">
+                    {p.fotos.length} {p.fotos.length === 1 ? 'foto aprovada' : 'fotos aprovadas'} pela equipe
+                  </LinhaSobre>
+                  <LinhaSobre icone="users">
+                    {colegasMais ? `${nColegas} ou mais colegas` : `${nColegas} ${nColegas === 1 ? 'colega' : 'colegas'}`} da mesma turma no Memorial
+                  </LinhaSobre>
+                </ul>
+              </section>
+              <section className="fcard">
+                <TituloCartao titulo="Privacidade" />
+                <ul className="irows">
+                  <LinhaSobre icone="lock" apagada>
+                    Só aparece o que a pessoa autorizou no check-in. O e-mail nunca é mostrado e as fotos passam pela equipe antes de aparecer.
+                  </LinhaSobre>
+                </ul>
+              </section>
+            </div>
           </div>
         )}
       </div>
