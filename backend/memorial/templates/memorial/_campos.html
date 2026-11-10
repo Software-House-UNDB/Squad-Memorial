@@ -31,6 +31,7 @@
               <label class="campo-form__rotulo" for="{{ item.bf.id_for_label }}">{{ item.bf.label|capfirst }}{% if item.bf.field.required %} <span class="obrigatorio" title="Obrigatório" aria-label="obrigatório">*</span>{% endif %}</label>
               {% if item.previa %}<img class="previa" src="{{ item.previa }}" alt="Imagem atual de {{ item.bf.label|lower }}" loading="lazy">{% endif %}
               {{ item.bf }}
+              {% if item.recorte %}<p class="ajuda">Ao escolher a imagem, você ajusta o recorte no formato {{ item.recorte }}, o mesmo do totem.</p>{% endif %}
               {% if item.bf.help_text %}<p class="ajuda">{{ item.bf.help_text|safe }}</p>{% endif %}
               {% for e in item.bf.errors %}<p class="erro-campo">{{ e }}</p>{% endfor %}
             </div>

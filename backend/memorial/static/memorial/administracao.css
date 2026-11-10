@@ -113,6 +113,20 @@ input[type="checkbox"] { width: 1.125rem; height: 1.125rem; padding: 0; flex: no
 .ampliada img { display: block; max-width: 100%; max-height: calc(92vh - 4rem); margin: 0 auto; }
 .ampliada__rodape { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.625rem 0.875rem; font-size: 0.875rem; }
 
+/* recorte da imagem antes de enviar (administracao.js) */
+.recorte { width: min(92vw, 820px); padding: 1rem 1.125rem; border: 0; border-radius: 8px; background: var(--cartao); color: var(--grafite); }
+.recorte::backdrop { background: rgb(31 30 28 / 0.8); }
+.recorte__cab { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem; }
+.recorte__cab h2 { margin: 0; font-size: 1.125rem; }
+.recorte__info { font-size: 0.8125rem; color: var(--suave); }
+.recorte__area { display: grid; place-items: center; padding: 0.75rem; background: var(--grafite); border-radius: 6px; }
+.recorte__area canvas { display: block; cursor: grab; touch-action: none; box-shadow: 0 0 0 1px rgb(255 255 255 / 0.6); }
+.recorte__area canvas:active { cursor: grabbing; }
+.recorte__zoom { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.75rem; font-size: 0.875rem; font-weight: 600; }
+.recorte__zoom input { flex: 1; accent-color: var(--dourado-texto); }
+.recorte__dica { margin: 0.375rem 0 0; font-size: 0.8125rem; color: var(--suave); }
+.recorte__rodape { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+
 .oculto-visual { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 
 .resumo {

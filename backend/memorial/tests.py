@@ -721,6 +721,19 @@ class GestaoTests(Base):
                 if nome not in somente_leitura:
                     self.assertIn(f'name="{nome}"', html, f"{secao.slug}: {nome}")
 
+    def test_campos_de_imagem_pedem_recorte_no_formato_do_totem(self):
+        esperado = {
+            "marcos": ('name="foto"', "16:9"), "decadas": ('name="foto"', "6:5"), "fotos": ('name="imagem"', "16:9"),
+            "videos": ('name="capa"', "16:9"), "alunos": ('name="foto"', "1:1"),
+        }
+        for slug, (campo, proporcao) in esperado.items():
+            html = self.client.get(f"{self.BASE}/{slug}/novo/").content.decode()
+            tag = next(t for t in html.split("<input") if campo in t)
+            self.assertIn(f'data-recorte="{proporcao}"', tag, slug)
+        html = self.client.get(f"{self.BASE}/salas/{self.sala.pk}/").content.decode()
+        self.assertIn('data-recorte="6:5"', next(t for t in html.split("<input") if 'name="apresentacao_set-0-foto"' in t))
+        self.assertIn('data-recorte="16:9"', next(t for t in html.split("<input") if 'name="enviar_fotos"' in t))
+
     def test_toda_lista_abre_com_e_sem_dados(self):
         for secao in SECOES:
             r = self.client.get(f"{self.BASE}/{secao.slug}/", follow=True)

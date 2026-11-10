@@ -25,6 +25,18 @@ from .secoes import POR_SLUG
 POR_PAGINA = 24
 PREVIAS = {"preview", "preview_grande", "avatar"}  # o campo de imagem já mostra a imagem atual
 
+# Formato (largura:altura) em que cada imagem é recortada ao ser escolhida, igual ao espaço que ela ocupa no
+# totem (que preenche a moldura com object-fit: cover). Assim todas ficam no mesmo padrão, sem corte surpresa.
+RECORTES = {
+    ("apresentacao", "foto"): (6, 5),   # foto ao lado do texto da apresentação
+    ("decada", "foto"): (6, 5),         # painel da década na linha do tempo
+    ("marco", "foto"): (16, 9),         # topo do cartão do marco
+    ("foto", "imagem"): (16, 9),        # polaroide da galeria e foto ampliada
+    ("sala", "enviar_fotos"): (16, 9),  # várias fotos de uma vez: viram Foto
+    ("video", "capa"): (16, 9),
+    ("aluno", "foto"): (1, 1),          # avatar redondo
+}
+
 
 def _secao(slug):
     if slug not in POR_SLUG:
@@ -76,7 +88,10 @@ def _item(nome, form, obj, dono, readonly):
         tipo = "cor"
     atual = form.initial.get(nome)  # o que está salvo, mesmo com erro em outro campo do formulário
     previa = atual.url if isinstance(atual, models.fields.files.ImageFieldFile) and atual else ""
-    return {"bf": bf, "tipo": tipo, "previa": previa}
+    recorte = RECORTES.get((type(obj)._meta.model_name, nome))
+    if recorte and not bf.field.disabled:
+        widget.attrs.update({"data-recorte": f"{recorte[0]}:{recorte[1]}", "accept": "image/*"})
+    return {"bf": bf, "tipo": tipo, "previa": previa, "recorte": recorte and f"{recorte[0]}:{recorte[1]}"}
 
 
 def _blocos(fieldsets, form, obj, dono, readonly):
