@@ -15,7 +15,7 @@
   <div class="painel-form">{% include "memorial/_campos.html" with blocos=blocos %}</div>
 
   {% for grupo in inlines %}
-    <section class="grupo-inline" data-inline="{{ grupo.prefixo }}">
+    <section class="grupo-inline" data-inline="{{ grupo.prefixo }}"{% if grupo.maximo %} data-maximo="{{ grupo.maximo }}"{% endif %}>
       <h2>{{ grupo.titulo }} <span class="contagem">{{ grupo.formset.initial_form_count }}</span></h2>
       {{ grupo.formset.management_form }}
       {% for e in grupo.formset.non_form_errors %}<p class="erro-campo">{{ e }}</p>{% endfor %}
@@ -43,6 +43,7 @@
           </details>
         </template>
         <button type="button" class="botao" data-adicionar>Adicionar {{ grupo.singular }}</button>
+        {% if grupo.maximo %}<p class="nota">No máximo {{ grupo.maximo }}.</p>{% endif %}
       {% endif %}
     </section>
   {% endfor %}

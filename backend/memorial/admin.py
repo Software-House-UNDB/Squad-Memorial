@@ -7,8 +7,10 @@ from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html
 
+from . import redes as redes_sociais
 from .models import (
-    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Marco, Registro, Sala, Video,
+    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Marco, RedeSocial, Registro, Sala,
+    Video,
 )
 from .registro import alterar_em_lote
 
@@ -338,27 +340,42 @@ class FotoAlunoInline(admin.TabularInline):
         return _thumb(obj.miniatura, 80)
 
 
+class RedeSocialInline(admin.TabularInline):
+    """Até 3 por pessoa. O usuário é conferido com a mesma regra do check-in (redes.py)."""
+
+    model = RedeSocial
+    extra = 0
+    max_num = redes_sociais.MAX_REDES
+    fields = ["rede", "usuario", "ordem"]
+
+    def get_formset(self, request, obj=None, **kwargs):
+        return super().get_formset(request, obj, validate_max=True, **kwargs)
+
+
 @admin.register(Aluno)
 class AlunoAdmin(admin.ModelAdmin):
     """Ex-alunos. Excluir apaga também a foto de perfil e as fotos enviadas (pedido de remoção / LGPD)."""
 
-    list_display = ["nome", "ano", "turma", "status", "checkin_em", "fotos_pendentes", "origem", "demonstrativo"]
+    list_display = ["nome", "ano", "turma", "status", "checkin_em", "redes_texto", "fotos_pendentes", "origem", "demonstrativo"]
     list_filter = ["status", "ano", "origem", "demonstrativo"]
-    search_fields = ["nome", "email"]
+    search_fields = ["nome", "email", "redes__usuario"]
     date_hierarchy = "checkin_em"
     actions = ["aprovar", "ocultar"]
-    inlines = [FotoAlunoInline]
+    inlines = [RedeSocialInline, FotoAlunoInline]
     readonly_fields = ["avatar", "consentimento", "consentimento_em", "consentimento_versao", "checkin_em", "origem"]
     fieldsets = [
         (None, {"fields": ["nome", "ano", "turma", "status"]}),
         ("Contato (privado, nunca aparece no totem)", {"fields": ["email"]}),
-        ("Redes sociais (aparecem no perfil)", {"fields": ["instagram", "facebook"]}),
         ("Foto de perfil", {"fields": ["foto", "avatar"]}),
         ("Registro", {"fields": ["checkin_em", "origem", "consentimento", "consentimento_em", "consentimento_versao", "demonstrativo"]}),
     ]
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related("fotos")
+        return super().get_queryset(request).prefetch_related("fotos", "redes")
+
+    @admin.display(description="redes sociais")
+    def redes_texto(self, obj):
+        return ", ".join(str(r) for r in obj.redes.all()) or "—"
 
     @admin.display(description="fotos pendentes")
     def fotos_pendentes(self, obj):
@@ -383,6 +400,10 @@ class AlunoAdmin(admin.ModelAdmin):
         if not change and not obj.consentimento:
             obj.origem = Aluno.Origem.IMPORTADO
         super().save_model(request, obj, form, change)
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        redes_sociais.sincronizar_campos_antigos(form.instance)  # o frontend antigo lê instagram e facebook
 
 
 @admin.register(FotoAluno)

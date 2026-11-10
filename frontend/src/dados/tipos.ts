@@ -150,12 +150,17 @@ export interface FotoAluno {
 export interface AlunoPerfil extends AlunoResumo {
   /** Check-in feito há pouco ("Check-in feito agora"). */
   recente: boolean;
+  /** Formato antigo (veja redes.ts). O servidor continua enviando, reescrito a partir de `redes`. */
   instagram: string;
   facebook: string;
+  /** Até 3 redes. `link` só em "outra" (para mostrar como texto, nunca clicável). Ausente em servidores antigos. */
+  redes?: { rede: RedeId; rotulo: string; usuario: string; link?: string }[];
   /** Só fotos aprovadas pela equipe. */
   fotos: FotoAluno[];
   /** Até 4 colegas com o mesmo ano e a mesma turma. */
   colegas: AlunoResumo[];
+  /** Total de colegas da turma (a lista vem cortada em 4). Ausente em servidores antigos. */
+  totalColegas?: number;
 }
 
 export interface FiltroAlunos {

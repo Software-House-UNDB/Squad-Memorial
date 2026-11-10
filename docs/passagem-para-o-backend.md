@@ -1,5 +1,8 @@
 # Passagem para o backend
 
+> **Atualização (10/11/2026): os itens 1 a 7 de "Trabalho no backend" foram feitos.** Resumo no fim deste documento, em
+> "Feito no backend". O que falta é a parte do frontend ("Depois do backend") e os "Outros itens".
+
 Para quem for ajustar o backend depois das mudanças do check-in e do perfil do aluno (novembro de 2026). O frontend foi feito **sem tocar no
 contrato da API**: tudo que ele precisou guardar coube nos campos que já existiam. Este documento diz como ler esse formato, o que fazer no
 backend para ter o desenho final e o que muda no frontend depois.
@@ -80,3 +83,27 @@ Para liberar até 3 redes por pessoa:
   ainda dizem que o totem mostra o selo "Conteúdo de exemplo", o que deixou de ser verdade.
 - **Termo padrão:** atualizar `TERMO_PADRAO` em `models.py` se quiser que instalações novas já saiam com o texto novo, e avisar o jurídico da UNDB (controlador dos dados, prazo de guarda,
   não compartilhar com terceiros, contato e menores de 18 anos).
+
+## Feito no backend (10/11/2026)
+
+- **Modelo `RedeSocial`** (`backend/memorial/models.py`): `aluno`, `rede` (as 14 redes do frontend e `outra`), `usuario`, `ordem`; até 3 por
+  ex-aluno (`MAX_REDES` em `backend/memorial/redes.py`), sem repetir a mesma rede e usuário.
+- **Regras por rede** em `backend/memorial/redes.py` (`validar`), iguais às de `redes.ts`: um link de rede conhecida vale mais que a rede
+  escolhida; "outra" vira `site.com/caminho` (sem `https://`, `www.`, parâmetros nem `@`), até 94 caracteres.
+- **Check-in** (`POST checkin/`): aceita o campo novo `redes` (JSON, até 3) ou os campos antigos `instagram` e `facebook` (o frontend atual),
+  convertidos com a tabela acima e conferidos pela regra de cada rede (ex.: `telegram/abc` é recusado, o Telegram pede 5 caracteres).
+  O check-in refeito troca as redes. Gravação dentro de uma transação.
+- **API do perfil** (`GET alunos/<id>/`): `redes: [{rede, rotulo, usuario}]`, com `link` (`https://site.com/caminho`) em "outra", e
+  `totalColegas` (total exato da turma; `colegas` continua com até 4). `instagram` e `facebook` continuam na resposta, reescritos a partir das
+  redes (`campos_antigos`: o primeiro Instagram e a primeira das outras redes).
+- **Painel e admin**: a tela de aprovações mostra "TikTok: tiktok.com/@maria"; o cadastro do ex-aluno (painel e `/admin`) edita as redes
+  numa lista de até 3, com a mesma validação; o grupo Administrativo recebeu as permissões das redes. Os campos `instagram` e `facebook`
+  não são mais editáveis à mão.
+- **Migração** `0014_redes_sociais`: cria as redes a partir dos campos antigos; o `reverse_code` reescreve os campos antigos a partir delas.
+- **Termo padrão** (`TERMO_PADRAO` em `models.py`) igual ao de `frontend/src/dados/termo.ts`, versão padrão 2.0. Só vale para instalações
+  novas: num banco que já existe, o texto continua o que está em Configuração do memorial.
+- **E-mail (SMTP)**: `EMAIL_USE_SSL` (porta 465), `EMAIL_BACKEND` opcional, botão "Enviar e-mail de teste para mim" na tela de aprovações,
+  comando `testar_email` e aviso quando ninguém da equipe tem e-mail cadastrado.
+
+Para o frontend usar a lista: em `frontend/src/dados/redes.ts`, `lerRedes` pode ler `perfil.redes` quando vier (e cair em
+`instagram`/`facebook` quando não vier), e `fonte.ts` pode enviar `redes` em JSON em vez de `empacotar`.

@@ -29,6 +29,7 @@ from .serializers import (
 )
 
 POR_PAGINA = 12
+COLEGAS_NO_PERFIL = 4  # o perfil mostra até 4; o total vai em totalColegas
 MAX_FOTOS_CHECKIN = 3
 SEM_CACHE = {"Cache-Control": "no-store"}
 
@@ -150,12 +151,12 @@ def alunos(request):
 
 @api_view(["GET"])
 def aluno(request, pk):
-    a = get_object_or_404(alunos_visiveis(), pk=pk)
+    a = get_object_or_404(alunos_visiveis().prefetch_related("redes"), pk=pk)
     fotos = a.fotos.filter(status=FotoAluno.Status.APROVADA)
-    colegas = _ordenar(
-        alunos_visiveis().filter(ano=a.ano, turma_chave=a.turma_chave).exclude(pk=a.pk)
-    )[:4]
-    return Response(montar_aluno_perfil(a, fotos, colegas), headers=SEM_CACHE)
+    turma = alunos_visiveis().filter(ano=a.ano, turma_chave=a.turma_chave).exclude(pk=a.pk)
+    colegas = list(_ordenar(turma)[:COLEGAS_NO_PERFIL])
+    total = len(colegas) if len(colegas) < COLEGAS_NO_PERFIL else turma.count()
+    return Response(montar_aluno_perfil(a, fotos, colegas, total), headers=SEM_CACHE)
 
 
 # ---------------------------------------------------------------- check-in

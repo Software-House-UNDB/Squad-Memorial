@@ -121,6 +121,9 @@ o perfil aparece na Sala 06 logo depois do check-in, e a tela avisa isso. As fot
   nem perder a seleção);
 - por e-mail, com as fotos em anexo e o link do painel, a cada check-in que deixar algo pendente. Vai para os superusuários e o grupo
   **Administrativo**, no e-mail de cada usuário. Só funciona com `EMAIL_HOST` configurado no `.env` (ver `.env.example`); sem ele, nada é enviado.
+  Porta 587 usa `EMAIL_USE_TLS=1`; porta 465 usa `EMAIL_USE_SSL=1`. A tela de aprovações diz quantas pessoas recebem o aviso (e avisa se
+  ninguém tem e-mail cadastrado) e tem o botão **Enviar e-mail de teste para mim** (para quem pode alterar a configuração), que mostra o erro
+  do servidor de e-mail se o envio falhar. Pelo terminal: `docker compose exec backend python manage.py testar_email [destinatário]`.
 
 ### Entradas e saídas (`/administracao/registro/`)
 
@@ -148,18 +151,24 @@ salas, e o menu do painel mostra só o que cada usuário pode acessar. Para libe
 | `GET sala/<n>/` | tudo que o totem da sala precisa: `{versao, config, sala, demonstrativo, marcos, fotos, videos}` e, no tour de 6 espaços, também `apresentacao` e `decadas` (opcionais; ver `docs/mudancas-frontend-tour-6-espacos.md`) |
 | `GET versao/?sala=<n>` | `{"versao": "…"}`, muda só quando algo daquela sala (ou a configuração) muda |
 | `GET alunos/?q=&ano=&decada=1990-1999&pagina=` | busca no diretório (12 por página), recentes primeiro |
-| `GET alunos/<id>/` | perfil, redes, fotos **aprovadas** e até 4 colegas da mesma turma |
+| `GET alunos/<id>/` | perfil, `redes` (lista), fotos **aprovadas**, até 4 colegas da mesma turma e `totalColegas` |
 | `GET checkin/` | textos do formulário (termo e versão, ano inicial) |
-| `POST checkin/` | multipart: `nome, ano, turma, email, instagram, facebook, consentimento, fotos[]` |
+| `POST checkin/` | multipart: `nome, ano, turma, email, instagram, facebook` (ou `redes`), `consentimento, fotos[]` |
 
 Formatos em `frontend/src/dados/tipos.ts`. URLs de mídia são relativas (`/media/...`).
 
-**Redes sociais no check-in.** O contrato não mudou: o POST continua com `instagram` e `facebook`. A pessoa escolhe **uma** rede
-no celular e o frontend a guarda nesses dois campos: Instagram vai em `instagram` (só o usuário); as demais redes vão em `facebook`
-com prefixo, `<rede>/<usuario>` (ex.: `tiktok/maria`); "Outra rede" vai como `outra/<site>/<caminho>`; o Facebook continua sem prefixo,
-igual aos cadastros antigos. Só `frontend/src/dados/redes.ts` conhece esse formato (funções `empacotar` e `lerRedes`). Efeito até o backend
-ser ajustado: no painel de aprovações e no admin, redes que não são Instagram aparecem com o rótulo "Facebook" (ex.: "Facebook: tiktok/maria").
-Como migrar: [`docs/passagem-para-o-backend.md`](docs/passagem-para-o-backend.md).
+**Redes sociais.** O servidor guarda **até 3 redes por pessoa** (modelo `RedeSocial`, regras em `backend/memorial/redes.py`, as mesmas
+de `frontend/src/dados/redes.ts`). O POST aceita dois formatos:
+
+- `redes`: JSON com a lista, ex.: `[{"rede": "tiktok", "usuario": "maria"}, {"rede": "outra", "usuario": "site.com/maria"}]`
+  (erro em `erros.redes`);
+- `instagram` e `facebook`, como o frontend atual envia: Instagram em `instagram`; as demais redes em `facebook` com prefixo,
+  `<rede>/<usuario>` (ex.: `tiktok/maria`), "Outra rede" como `outra/<site>/<caminho>` e o Facebook sem prefixo. O servidor converte
+  para a lista e confere cada rede pela regra dela.
+
+O perfil devolve `redes: [{rede, rotulo, usuario}]` (com `link` em "outra", só para mostrar como texto) e continua devolvendo
+`instagram` e `facebook` no formato antigo, para totens e celulares com o frontend anterior. Painel e admin mostram o rótulo certo
+de cada rede (ex.: "TikTok: tiktok.com/@maria") e editam as redes do ex-aluno. Detalhes: [`docs/passagem-para-o-backend.md`](docs/passagem-para-o-backend.md).
 
 O check-in tem limite de frequência por IP (`CHECKIN_LIMITE_MINUTO=5/min`, `CHECKIN_LIMITE_HORA=30/hour`;
 atrás do túnel use `DJANGO_NUM_PROXIES=2`), campo isca anti-robô, até 3 fotos de 10 MB (verificadas e

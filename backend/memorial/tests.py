@@ -8,7 +8,7 @@ import os
 import shutil
 import tempfile
 from datetime import timedelta
-from io import BytesIO
+from io import BytesIO, StringIO
 
 from unittest import mock
 
@@ -878,3 +878,213 @@ class UtilTests(TestCase):
         self.assertEqual(normalizar("  João  PEDRO  "), "joao pedro")
         self.assertEqual({chave_turma(t) for t in ("3º A", "3o a", "3ª A", "3 A", "3A")}, {"3a"})
         self.assertNotEqual(chave_turma("3º A"), chave_turma("3º B"))
+
+
+# ---------------------------------------------------------------- redes sociais (até 3 por pessoa)
+
+class RedesTests(Base):
+    def perfil(self, a):
+        return self.get(f"/api/memorial/alunos/{a.pk}/").json()
+
+    def test_regras_iguais_as_do_frontend(self):
+        from . import redes
+
+        self.assertEqual(redes.validar("tiktok", "@maria.s"), ("tiktok", "maria.s"))
+        self.assertEqual(redes.validar("instagram", "https://www.instagram.com/maria.souza/"), ("instagram", "maria.souza"))
+        # um link de rede conhecida vale mais que o botão escolhido
+        self.assertEqual(redes.validar("facebook", "https://br.linkedin.com/in/maria-souza?trk=x"), ("linkedin", "maria-souza"))
+        self.assertEqual(redes.validar("outra", "https://www.Site.com/@maria/?x=1"), ("outra", "site.com/maria"))
+        self.assertEqual(redes.validar("facebook", "https://lattes.cnpq.br/123"), ("outra", "lattes.cnpq.br/123"))
+        for rede, usuario in [("x", "nome_grande_demais_1"), ("telegram", "abc"), ("outra", "sem-dominio"), ("orkut", "maria"),
+                              ("instagram", "com espaço")]:
+            with self.subTest(rede=rede, usuario=usuario), self.assertRaises(redes.RedeInvalida):
+                redes.validar(rede, usuario)
+
+    def test_formato_antigo_vai_e_volta(self):
+        from . import redes
+
+        casos = [
+            (("maria.s", ""), [("instagram", "maria.s")]),
+            (("", "maria.souza"), [("facebook", "maria.souza")]),
+            (("", "facebook.com/maria.souza"), [("facebook", "maria.souza")]),
+            (("", "tiktok/maria"), [("tiktok", "maria")]),
+            (("", "outra/site.com/maria"), [("outra", "site.com/maria")]),
+            (("", "pages/escola"), [("facebook", "pages/escola")]),  # caminho de página continua Facebook
+            (("ana", "x/ana_s"), [("instagram", "ana"), ("x", "ana_s")]),
+        ]
+        for (ig, fb), esperado in casos:
+            with self.subTest(ig=ig, fb=fb):
+                self.assertEqual(redes.de_campos_antigos(ig, fb), esperado)
+                volta = redes.campos_antigos(esperado)
+                self.assertEqual(redes.de_campos_antigos(*volta), esperado)
+
+    def test_checkin_do_frontend_atual_vira_rede_com_rotulo_certo(self):
+        self.assertEqual(self.checkin(facebook="tiktok/maria.s").status_code, 201)
+        a = Aluno.objects.get()
+        self.assertEqual([(r.rede, r.usuario) for r in a.redes.all()], [("tiktok", "maria.s")])
+        p = self.perfil(a)
+        self.assertEqual(p["redes"], [{"rede": "tiktok", "rotulo": "TikTok", "usuario": "maria.s"}])
+        self.assertEqual((p["instagram"], p["facebook"]), ("", "tiktok/maria.s"))  # o frontend antigo continua lendo
+
+    def test_checkin_com_lista_de_ate_tres_redes(self):
+        lista = [{"rede": "instagram", "usuario": "@maria"}, {"rede": "linkedin", "usuario": "maria-souza"},
+                 {"rede": "outra", "usuario": "https://site.com/maria"}]
+        self.assertEqual(self.checkin(redes=json.dumps(lista)).status_code, 201)
+        a = Aluno.objects.get()
+        p = self.perfil(a)
+        self.assertEqual([r["rede"] for r in p["redes"]], ["instagram", "linkedin", "outra"])
+        self.assertEqual(p["redes"][2]["link"], "https://site.com/maria")
+        self.assertEqual((a.instagram, a.facebook), ("maria", "linkedin/maria-souza"))
+
+    def test_checkin_recusa_rede_invalida_ou_mais_de_tres(self):
+        r = self.checkin(redes=json.dumps([{"rede": "x", "usuario": "nome com espaço"}]))
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("X", r.json()["erros"]["redes"])
+        quatro = [{"rede": "github", "usuario": f"pessoa{i}"} for i in range(4)]
+        self.assertIn("redes", self.checkin(redes=json.dumps(quatro)).json()["erros"])
+        self.assertIn("redes", self.checkin(redes="não é json").json()["erros"])
+        # formato antigo com prefixo também é conferido pela regra da rede
+        self.assertIn("facebook", self.checkin(facebook="telegram/abc").json()["erros"])
+        self.assertFalse(Aluno.objects.exists())
+
+    def test_refazer_checkin_troca_as_redes(self):
+        self.checkin(instagram="maria", facebook="tiktok/maria")
+        self.checkin(facebook="")
+        a = Aluno.objects.get()
+        self.assertFalse(a.redes.exists())
+        self.assertEqual((a.instagram, a.facebook), ("", ""))
+
+    def test_cadastro_antigo_sem_rede_cadastrada_le_os_campos(self):
+        a = aluno("Ana Antiga Silva", instagram="ana.v", facebook="outra/site.com/ana")
+        self.assertEqual([r["rede"] for r in self.perfil(a)["redes"]], ["instagram", "outra"])
+
+    def test_migracao_converte_e_volta(self):
+        import importlib
+
+        from django.apps import apps
+
+        from .models import RedeSocial
+
+        migracao = importlib.import_module("memorial.migrations.0014_redes_sociais")
+        a = aluno("Ana Antiga Silva", instagram="ana.v", facebook="youtube/canal-ana")
+        b = aluno("Beto Antigo Lima", facebook="facebook.com/beto")
+        aluno("Caio Sem Redes")
+        migracao.campos_para_redes(apps, None)
+        self.assertEqual(sorted(RedeSocial.objects.values_list("aluno_id", "rede", "usuario")),
+                         sorted([(a.pk, "instagram", "ana.v"), (a.pk, "youtube", "canal-ana"), (b.pk, "facebook", "beto")]))
+        Aluno.objects.update(instagram="", facebook="")
+        migracao.redes_para_campos(apps, None)
+        self.assertEqual(Aluno.objects.filter(pk=a.pk).values_list("instagram", "facebook").get(), ("ana.v", "youtube/canal-ana"))
+        self.assertEqual(Aluno.objects.filter(pk=b.pk).values_list("instagram", "facebook").get(), ("", "beto"))
+
+    def test_total_de_colegas(self):
+        a = aluno("Ana Turma Silva")
+        for i in range(6):
+            aluno(f"Colega Numero {chr(65 + i)}")
+        aluno("Outra Turma Lima", turma="3º B")
+        p = self.perfil(a)
+        self.assertEqual((len(p["colegas"]), p["totalColegas"]), (4, 6))
+
+    def test_painel_de_aprovacoes_mostra_o_rotulo_da_rede(self):
+        ConfiguracaoMemorial.objects.update(aprovar_perfis=True)
+        self.checkin(facebook="tiktok/maria.s")
+        self.client.force_login(User.objects.create_superuser("chefe", password="senha-longa-1"))
+        pagina = self.client.get("/administracao/")
+        self.assertContains(pagina, "TikTok: tiktok.com/@maria.s")
+        self.assertNotContains(pagina, "Facebook: tiktok")
+
+    def test_painel_edita_as_redes_e_atualiza_os_campos_antigos(self):
+        from .models import RedeSocial
+
+        a = aluno("Ana Painel Silva", instagram="ana.v")
+        rede = RedeSocial.objects.create(aluno=a, rede="instagram", usuario="ana.v")
+        self.client.force_login(User.objects.create_superuser("chefe", password="senha-longa-1"))
+        dados = {
+            "nome": a.nome, "ano": a.ano, "turma": a.turma, "status": a.status, "email": a.email,
+            **_mgmt("redes", total=3, iniciais=1), **_mgmt("fotos"),
+            "redes-0-id": rede.pk, "redes-0-aluno": a.pk, "redes-0-rede": "instagram", "redes-0-usuario": "ana.v", "redes-0-ordem": 0,
+            "redes-1-aluno": a.pk, "redes-1-rede": "facebook", "redes-1-usuario": "https://twitter.com/ana_s", "redes-1-ordem": 1,
+            "redes-2-aluno": a.pk, "redes-2-rede": "github", "redes-2-usuario": "ana silva", "redes-2-ordem": 2,
+        }
+        url = f"/administracao/gerir/alunos/{a.pk}/"
+        r = self.client.post(url, dados)
+        self.assertEqual(r.status_code, 200)  # o GitHub com espaço não passa
+        self.assertContains(r, "Confira o GitHub")
+        dados["redes-2-usuario"] = "ana-silva"
+        r = self.client.post(url, dados)
+        self.assertEqual(r.status_code, 302)
+        a.refresh_from_db()
+        self.assertEqual([(x.rede, x.usuario) for x in a.redes.all()], [("instagram", "ana.v"), ("x", "ana_s"), ("github", "ana-silva")])
+        self.assertEqual((a.instagram, a.facebook), ("ana.v", "x/ana_s"))
+        # uma quarta rede é recusada
+        dados.update({**_mgmt("redes", total=4, iniciais=3), "redes-3-aluno": a.pk, "redes-3-rede": "kwai", "redes-3-usuario": "ana", "redes-3-ordem": 3})
+        for i, x in enumerate(a.redes.all()):
+            dados[f"redes-{i}-id"] = x.pk
+        self.assertEqual(self.client.post(url, dados).status_code, 200)
+        self.assertEqual(a.redes.count(), 3)
+
+    def test_grupo_administrativo_edita_as_redes(self):
+        a = aluno("Ana Grupo Silva")
+        adm = User.objects.create_user("adm", password="senha-longa-1", is_staff=True)
+        adm.groups.add(Group.objects.get(name="Administrativo"))
+        self.client.force_login(adm)
+        self.assertContains(self.client.get(f"/administracao/gerir/alunos/{a.pk}/"), "Adicionar rede social")
+
+    def test_remover_ex_aluno_apaga_as_redes(self):
+        from .models import RedeSocial
+
+        self.checkin(instagram="maria")
+        Aluno.objects.get().delete()
+        self.assertFalse(RedeSocial.objects.exists())
+
+
+# ---------------------------------------------------------------- e-mail de teste (SMTP)
+
+class EmailTesteTests(Base):
+    URL = "/administracao/email-teste/"
+
+    def setUp(self):
+        super().setUp()
+        self.chefe = User.objects.create_superuser("chefe", email="chefe@escola.test", password="senha-longa-1")
+
+    @override_settings(EMAIL_HOST="smtp.escola.test")
+    def test_envia_para_quem_clicou_e_registra(self):
+        self.client.force_login(self.chefe)
+        self.assertContains(self.client.get("/administracao/"), "Enviar e-mail de teste")
+        r = self.client.post(self.URL, follow=True)
+        self.assertContains(r, "E-mail de teste enviado")
+        self.assertEqual([m.to for m in mail.outbox], [["chefe@escola.test"]])
+        self.assertTrue(Registro.objects.filter(tipo="aviso_email", descricao__contains="teste").exists())
+
+    @override_settings(EMAIL_HOST="smtp.escola.test")
+    def test_mostra_o_erro_do_servidor(self):
+        import smtplib
+
+        self.client.force_login(self.chefe)
+        with mock.patch("memorial.notificacoes.EmailMessage.send", side_effect=smtplib.SMTPAuthenticationError(535, b"no")):
+            r = self.client.post(self.URL, follow=True)
+        self.assertContains(r, "usuário ou senha recusados")
+
+    def test_sem_email_host_nao_tenta(self):
+        self.client.force_login(self.chefe)
+        self.assertContains(self.client.post(self.URL, follow=True), "não está configurado")
+        self.assertEqual(mail.outbox, [])
+
+    @override_settings(EMAIL_HOST="smtp.escola.test")
+    def test_avisa_quando_ninguem_recebe(self):
+        User.objects.update(email="")
+        self.client.force_login(self.chefe)
+        self.assertContains(self.client.get("/administracao/"), "ninguém recebe o aviso")
+
+    @override_settings(EMAIL_HOST="smtp.escola.test")
+    def test_so_quem_configura_pode_testar(self):
+        adm = User.objects.create_user("adm", email="adm@escola.test", password="senha-longa-1", is_staff=True)
+        adm.groups.add(Group.objects.get(name="Administrativo"))
+        self.client.force_login(adm)
+        self.assertNotContains(self.client.get("/administracao/"), "Enviar e-mail de teste")
+        self.assertEqual(self.client.post(self.URL).status_code, 403)
+
+    @override_settings(EMAIL_HOST="smtp.escola.test")
+    def test_comando_testar_email(self):
+        call_command("testar_email", stdout=StringIO())
+        self.assertEqual([m.to for m in mail.outbox], [["chefe@escola.test"]])

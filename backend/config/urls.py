@@ -14,6 +14,7 @@ urlpatterns = [
     path("administracao/", administracao.aprovacoes, name="administracao"),
     path("administracao/fotos/", administracao.decidir_fotos, name="administracao_fotos"),
     path("administracao/cadastros/", administracao.decidir_cadastros, name="administracao_cadastros"),
+    path("administracao/email-teste/", administracao.email_teste, name="administracao_email_teste"),
     path("administracao/pendencias.json", administracao.pendencias, name="administracao_pendencias"),
     path("administracao/registro/", administracao.registro, name="administracao_registro"),
     path("administracao/exportar.csv", administracao.exportar, name="administracao_exportar"),

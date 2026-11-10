@@ -14,21 +14,40 @@ import uuid
 from datetime import timedelta
 from pathlib import Path
 
+from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 
+from . import redes
 from .media import gerar_versao_imagem
 
 ANO_MINIMO = 1900
 
-TERMO_PADRAO = (
-    "Autorizo a exibição do meu nome, ano, turma e redes informadas nos totens do Memorial. "
-    "As fotos enviadas só aparecem depois da aprovação da equipe. O e-mail nunca é mostrado e serve "
-    "apenas para contato do Memorial. Posso pedir a remoção dos meus dados a qualquer momento."
-)
+# Mesmo texto de frontend/src/dados/termo.ts (a primeira linha é o título da caixa no check-in).
+# Instalações já em uso guardam o texto no banco (Configuração do memorial): este é só o valor inicial.
+TERMO_PADRAO = "\n".join([
+    "Termo de uso dos dados e da imagem",
+    "",
+    "Ao fazer o check-in no Memorial Dom Bosco Maria Izabel Rodrigues, da UNDB, autorizo, de forma livre e informada, "
+    "o uso dos meus dados e das minhas fotos, nos termos da Lei Geral de Proteção de Dados (Lei nº 13.709/2018).",
+    "",
+    "1. O que é usado. Nome, ano e turma em que estudei, e-mail, rede social e fotos, quando informados.",
+    "",
+    "2. Para quê. Montar meu perfil na Sala 06 (Alunos), exibido nos totens e nas telas do Memorial para que colegas "
+    "me encontrem pelo nome. O e-mail não é exibido: só a equipe o usa, para falar comigo sobre este cadastro. As fotos "
+    "só aparecem depois de aprovadas pela equipe, e declaro ter o direito de usá-las.",
+    "",
+    "3. Uso restrito. Meus dados e minhas imagens não serão vendidos, usados em publicidade nem compartilhados com "
+    "terceiros, salvo obrigação legal.",
+    "",
+    "4. Meus direitos. Posso pedir acesso, correção ou remoção dos meus dados e revogar esta autorização a qualquer "
+    "momento, pelo e-mail de contato no fim desta página ou na recepção do Memorial. Os dados ficam armazenados "
+    "enquanto o Memorial exibir esta sala ou até o meu pedido.",
+])
+TERMO_VERSAO_PADRAO = "2.0"
 
 
 @deconstructible
@@ -82,8 +101,8 @@ class ItemSala(Timestamped):
     publicado = models.BooleanField(default=True)
     demonstrativo = models.BooleanField(
         default=False,
-        help_text='Conteúdo de exemplo. Enquanto a sala tiver algum item assim, o totem mostra o selo '
-        '"Conteúdo de exemplo" no rodapé.',
+        help_text="Conteúdo de exemplo (carregar_exemplo). O totem não mostra selo: serve para a equipe achar e "
+        "remover o que não é oficial.",
     )
     ordem = models.PositiveIntegerField(default=0)
 
@@ -345,8 +364,12 @@ class Aluno(Timestamped):
     turma = models.CharField(max_length=30)
     turma_chave = models.CharField(max_length=30, editable=False, db_index=True)
     email = models.EmailField("e-mail", blank=True, help_text="Privado. Só aparece aqui no admin.")
-    instagram = models.CharField(max_length=60, blank=True, help_text="Só o usuário, sem @.")
-    facebook = models.CharField(max_length=100, blank=True, help_text="Usuário ou endereço do perfil.")
+    # Campos antigos, mantidos para o frontend antigo: são reescritos a partir de RedeSocial (redes.py).
+    instagram = models.CharField(max_length=60, blank=True, editable=False)
+    facebook = models.CharField(
+        "outra rede (formato antigo)", max_length=100, blank=True, editable=False,
+        help_text='Facebook sem prefixo, ou "<rede>/<usuario>" e "outra/<site>/<caminho>".',
+    )
     foto = models.ImageField(
         "foto de perfil", upload_to=_caminho("alunos/perfil"), blank=True,
         help_text="Opcional, cadastrada pela equipe. Vira um avatar de 480 px, sem metadados.",
@@ -390,6 +413,42 @@ class Aluno(Timestamped):
     # Selo NOVO e topo da lista; "Check-in feito agora" no perfil.
     HORAS_NOVO = 24
     HORAS_RECENTE = 2
+
+
+class RedeSocial(Timestamped):
+    """Uma rede social do ex-aluno (até 3). Aparece no perfil como texto: o totem não abre links."""
+
+    aluno = models.ForeignKey(Aluno, on_delete=models.CASCADE, related_name="redes")
+    rede = models.CharField(max_length=12, choices=redes.ESCOLHAS)
+    usuario = models.CharField(
+        "usuário", max_length=100,
+        help_text='Só o usuário, sem @ (ou o endereço do perfil, que é limpo ao salvar). Em "Outra rede": site.com/caminho.',
+    )
+    ordem = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["aluno", "ordem", "id"]
+        verbose_name = "rede social"
+        verbose_name_plural = "redes sociais"
+        constraints = [models.UniqueConstraint(fields=["aluno", "rede", "usuario"], name="rede_social_unica_por_aluno")]
+
+    def __str__(self):
+        return f"{self.get_rede_display()}: {self.exibir}"
+
+    @property
+    def rotulo(self):
+        return self.get_rede_display()
+
+    @property
+    def exibir(self):
+        rede = redes.POR_ID.get(self.rede)
+        return rede.exibir(self.usuario) if rede else self.usuario
+
+    def clean(self):
+        try:
+            self.rede, self.usuario = redes.validar(self.rede, self.usuario)
+        except redes.RedeInvalida as exc:
+            raise ValidationError({"usuario": str(exc)})
 
 
 class FotoAluno(Timestamped):
@@ -459,7 +518,7 @@ class ConfiguracaoMemorial(Timestamped):
     )
     termo_texto = models.TextField("texto do termo de consentimento", default=TERMO_PADRAO)
     termo_versao = models.CharField(
-        "versão do termo", max_length=20, default="1.0",
+        "versão do termo", max_length=20, default=TERMO_VERSAO_PADRAO,
         help_text="Mude a versão sempre que mudar o texto: cada cadastro guarda a versão aceita.",
     )
     email_contato = models.EmailField(

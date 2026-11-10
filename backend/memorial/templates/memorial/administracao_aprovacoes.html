@@ -3,10 +3,22 @@
 {% block corpo %}
 <h1>Aprovações</h1>
 <p class="intro">Nada do que está aqui aparece nos totens. Selecione os itens e decida; os mais antigos vêm primeiro.</p>
-<p class="nota">
-  {% if email_configurado %}Superusuários e o grupo Administrativo também recebem um e-mail a cada envio, com as fotos.
-  {% else %}O aviso por e-mail está desligado: as novidades aparecem só neste painel, enquanto ele estiver aberto. Para ligar, configure <code>EMAIL_HOST</code> no servidor.{% endif %}
-</p>
+<div class="nota">
+  {% if not email_configurado %}
+    <p>O aviso por e-mail está desligado: as novidades aparecem só neste painel, enquanto ele estiver aberto. Para ligar, configure <code>EMAIL_HOST</code> no servidor.</p>
+  {% elif not destinatarios %}
+    <p class="nota--destaque">O e-mail está configurado, mas nenhum superusuário ou membro do grupo Administrativo tem e-mail cadastrado: ninguém recebe o aviso. Cadastre o e-mail no usuário (Admin do Django › Usuários).</p>
+  {% else %}
+    <p>A cada envio com algo para aprovar, {{ destinatarios|length }} pessoa{{ destinatarios|length|pluralize }} da equipe recebe{{ destinatarios|length|pluralize:"m" }} um e-mail, com as fotos.</p>
+  {% endif %}
+  {% if email_configurado and pode_testar_email %}
+    <form method="post" action="{% url 'administracao_email_teste' %}" class="em-linha">
+      {% csrf_token %}
+      <button type="submit" class="botao">Enviar e-mail de teste para mim</button>
+      {% if not request.user.email %}<span>Seu usuário não tem e-mail cadastrado.</span>{% endif %}
+    </form>
+  {% endif %}
+</div>
 
 {% if pode_fotos %}
 <section class="bloco" aria-labelledby="t-fotos">
@@ -80,7 +92,7 @@
                 <td data-rotulo="Nome"><strong>{{ a.nome }}</strong></td>
                 <td class="num" data-rotulo="Ano">{{ a.ano }}</td>
                 <td data-rotulo="Turma">{{ a.turma }}</td>
-                <td data-rotulo="Redes">{% if a.instagram %}Instagram: {{ a.instagram }}{% endif %}{% if a.instagram and a.facebook %}<br>{% endif %}{% if a.facebook %}Facebook: {{ a.facebook }}{% endif %}{% if not a.instagram and not a.facebook %}Nenhuma{% endif %}</td>
+                <td data-rotulo="Redes">{% for r in a.redes.all %}{% if not forloop.first %}<br>{% endif %}{{ r.rotulo }}: {{ r.exibir }}{% empty %}Nenhuma{% endfor %}</td>
                 <td class="num" data-rotulo="Fotos">{{ a.qtd_fotos }}</td>
                 <td class="num" data-rotulo="Check-in">{{ a.checkin_em|date:"d/m/Y H:i" }}</td>
               </tr>

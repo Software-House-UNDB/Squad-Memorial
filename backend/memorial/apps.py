@@ -14,7 +14,11 @@ def _criar_grupo_administrativo(sender, **kwargs):
         return  # migração parcial, antes das tabelas do auth
 
     grupo, _ = Group.objects.get_or_create(name="Administrativo")
-    codigos = ["view_registro", "view_fotoaluno", "change_fotoaluno", "view_aluno", "change_aluno"]
+    codigos = [
+        "view_registro", "view_fotoaluno", "change_fotoaluno", "view_aluno", "change_aluno",
+        # as redes do ex-aluno são editadas junto com o cadastro dele
+        "view_redesocial", "add_redesocial", "change_redesocial", "delete_redesocial",
+    ]
     grupo.permissions.add(*Permission.objects.filter(content_type__app_label="memorial", codename__in=codigos))
 
 

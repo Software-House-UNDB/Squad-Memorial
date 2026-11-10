@@ -98,9 +98,14 @@ EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
+# Porta 587: STARTTLS (EMAIL_USE_TLS=1). Porta 465: SSL direto (EMAIL_USE_SSL=1). Os dois juntos não funcionam.
+EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "0") == "1"
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1" and not EMAIL_USE_SSL
 EMAIL_TIMEOUT = 5  # o check-in do visitante espera o envio: um SMTP fora do ar não pode prendê-lo
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "memorial@localhost")
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+# Para testar sem servidor de e-mail: EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend (mostra no log)
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
 
 # Atrás do nginx
 USE_X_FORWARDED_HOST = True

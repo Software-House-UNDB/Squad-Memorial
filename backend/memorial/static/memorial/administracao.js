@@ -31,12 +31,16 @@
     var botao = grupo.querySelector('[data-adicionar]');
     if (!botao) return;
     var total = grupo.querySelector('input[name="' + grupo.dataset.inline + '-TOTAL_FORMS"]');
+    var maximo = Number(grupo.dataset.maximo || 0);
+    function conferirMaximo() { botao.hidden = maximo > 0 && Number(total.value) >= maximo; }
+    conferirMaximo();
     botao.addEventListener('click', function () {
       var indice = Number(total.value);
       var modelo = document.createElement('div');
       modelo.innerHTML = grupo.querySelector('[data-modelo]').innerHTML.replace(/__prefix__/g, indice);
       grupo.querySelector('[data-itens]').appendChild(modelo.firstElementChild);
       total.value = indice + 1;
+      conferirMaximo();
     });
   });
 

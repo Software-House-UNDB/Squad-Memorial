@@ -18,8 +18,53 @@ log = logging.getLogger(__name__)
 GRUPO_ADMINISTRATIVO = "Administrativo"
 
 
+class ErroEmail(Exception):
+    """Falha ao falar com o servidor de e-mail, com uma mensagem que a equipe consegue entender."""
+
+
 def email_configurado():
     return bool(settings.EMAIL_HOST)
+
+
+def _explicar(exc):
+    """Mensagem curta do erro de SMTP. Nunca inclui a senha (o smtplib não a põe nas exceções)."""
+    import smtplib
+    import socket
+    import ssl
+
+    if isinstance(exc, smtplib.SMTPAuthenticationError):
+        return "usuário ou senha recusados pelo servidor de e-mail (confira EMAIL_HOST_USER e EMAIL_HOST_PASSWORD)."
+    if isinstance(exc, smtplib.SMTPSenderRefused):
+        return f"o servidor recusou o remetente {settings.DEFAULT_FROM_EMAIL} (confira DEFAULT_FROM_EMAIL)."
+    if isinstance(exc, smtplib.SMTPRecipientsRefused):
+        return "o servidor recusou o destinatário."
+    if isinstance(exc, smtplib.SMTPException) and not isinstance(exc, smtplib.SMTPServerDisconnected):
+        return f"o servidor de e-mail respondeu com erro ({exc.__class__.__name__})."
+    if isinstance(exc, ssl.SSLError):
+        return "falha no TLS/SSL (porta 587 usa EMAIL_USE_TLS=1; porta 465 usa EMAIL_USE_SSL=1)."
+    if isinstance(exc, (socket.timeout, TimeoutError)):
+        return f"o servidor {settings.EMAIL_HOST}:{settings.EMAIL_PORT} não respondeu a tempo."
+    if isinstance(exc, (ConnectionError, socket.gaierror, OSError)):
+        return f"não foi possível conectar a {settings.EMAIL_HOST}:{settings.EMAIL_PORT} ({exc.__class__.__name__})."
+    return f"{exc.__class__.__name__}: {exc}"[:200]
+
+
+def enviar_teste(para, url_painel):
+    """E-mail de teste do painel e do comando testar_email. Levanta ErroEmail se não sair."""
+    corpo = (
+        "Este é um e-mail de teste do Memorial Dom Bosco.\n\n"
+        "Se você recebeu, os avisos de fotos e cadastros para aprovar vão chegar à equipe.\n"
+        f"Painel: {url_painel}\n"
+    )
+    try:
+        enviados = EmailMessage("Memorial: e-mail de teste", corpo, to=[para]).send()
+    except Exception as exc:
+        log.warning("E-mail de teste não enviado: %s", exc.__class__.__name__)
+        raise ErroEmail(_explicar(exc)) from exc
+    if not enviados:
+        raise ErroEmail("o servidor de e-mail não aceitou a mensagem.")
+    registrar(Registro.Tipo.AVISO_EMAIL, "E-mail de teste enviado a 1 pessoa da equipe")
+    return enviados
 
 
 def destinatarios():

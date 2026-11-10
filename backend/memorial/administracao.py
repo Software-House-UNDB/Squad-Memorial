@@ -16,12 +16,13 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST
 
 from .models import Aluno, ConfiguracaoMemorial, FotoAluno, Registro, normalizar
-from .notificacoes import email_configurado
+from .notificacoes import ErroEmail, destinatarios, email_configurado, enviar_teste
 from .registro import alterar_em_lote, registrar
 from .secoes import menu
 
@@ -30,6 +31,7 @@ FILA_MAXIMA = 60  # itens por tela de aprovação, os mais antigos primeiro; os 
 VER_REGISTRO = "memorial.view_registro"
 APROVAR_FOTOS = "memorial.change_fotoaluno"
 APROVAR_CADASTROS = "memorial.change_aluno"
+CONFIGURAR = "memorial.change_configuracaomemorial"
 
 
 def _exige(*permissoes):
@@ -90,11 +92,13 @@ def aprovacoes(request):
         "fotos": _fotos_pendentes().select_related("aluno").order_by("criado_em", "id")[:FILA_MAXIMA] if pode_fotos else [],
         "cadastros": _cadastros_pendentes().annotate(
             qtd_fotos=Count("fotos", filter=Q(fotos__status=FotoAluno.Status.PENDENTE)),
-        ).order_by("checkin_em", "id")[:FILA_MAXIMA] if pode_cadastros else [],
+        ).prefetch_related("redes").order_by("checkin_em", "id")[:FILA_MAXIMA] if pode_cadastros else [],
         "fila_maxima": FILA_MAXIMA,
         "aprovar_perfis": ConfiguracaoMemorial.atual().aprovar_perfis,
-        "pode_configurar": request.user.has_perm("memorial.change_configuracaomemorial"),
+        "pode_configurar": request.user.has_perm(CONFIGURAR),
         "email_configurado": email_configurado(),
+        "destinatarios": destinatarios() if email_configurado() else [],
+        "pode_testar_email": request.user.has_perm(CONFIGURAR),
     })
 
 
@@ -131,6 +135,24 @@ def decidir_cadastros(request):
         "aprovar": ("Perfil aprovado", Aluno.Status.APROVADO, "cadastro(s) aprovado(s): já aparecem na Sala 06"),
         "ocultar": ("Perfil oculto", Aluno.Status.OCULTO, "cadastro(s) oculto(s): não aparecem na Sala 06"),
     })
+
+
+@require_POST
+@_exige(CONFIGURAR)
+def email_teste(request):
+    """Confere o SMTP do servidor mandando uma mensagem a quem clicou. Mostra o erro do servidor, se houver."""
+    if not email_configurado():
+        messages.error(request, "O e-mail não está configurado no servidor (EMAIL_HOST vazio).")
+    elif not request.user.email:
+        messages.error(request, "Seu usuário não tem e-mail cadastrado. Cadastre em Admin do Django › Usuários.")
+    else:
+        try:
+            enviar_teste(request.user.email, request.build_absolute_uri(reverse("administracao")))
+        except ErroEmail as exc:
+            messages.error(request, f"O e-mail de teste não foi enviado: {exc}")
+        else:
+            messages.success(request, f"E-mail de teste enviado para {request.user.email}. Confira a caixa de entrada e o spam.")
+    return redirect("administracao")
 
 
 @require_GET

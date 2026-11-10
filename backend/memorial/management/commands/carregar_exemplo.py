@@ -1,7 +1,7 @@
 """Carrega o conteúdo de exemplo do protótipo "Tour do Memorial Dom Bosco".
 
 Fonte: memorial/exemplo/tour.json, extraído do protótipo por scripts/extrair_exemplo.py.
-Tudo é marcado como `demonstrativo` (o totem mostra o selo "Conteúdo de exemplo") e NADA disto é
+Tudo é marcado como `demonstrativo` (para a equipe achar e remover; o totem não mostra selo) e NADA disto é
 fato histórico da escola: são textos e pessoas fictícios para avaliar as telas.
 
     docker compose exec backend python manage.py carregar_exemplo
@@ -35,6 +35,7 @@ from PIL import Image, ImageDraw, ImageFilter
 from memorial.models import (
     Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Marco, Sala, Video, ano_atual,
 )
+from memorial.redes import de_campos_antigos, gravar as gravar_redes
 from memorial.registro import sem_registro
 
 DADOS = Path(__file__).resolve().parents[2] / "exemplo" / "tour.json"
@@ -185,6 +186,7 @@ class Command(BaseCommand):
             if p.get("pic"):
                 aluno.foto = imagem_exemplo(480, 480, TONS[i % len(TONS)], pessoa=True)
             aluno.save()
+            gravar_redes(aluno, de_campos_antigos(aluno.instagram, aluno.facebook))
             for j, (_, ano, legenda) in enumerate(p.get("fotos", [])):
                 FotoAluno.objects.create(
                     aluno=aluno, imagem=imagem_exemplo(1200, 900, TONS[(i * 3 + j) % len(TONS)], semente=i * 10 + j),

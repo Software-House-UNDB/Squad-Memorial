@@ -270,3 +270,7 @@ td:nth-child(1), td:nth-child(2), td:nth-child(3) { white-space: nowrap; overflo
   .resumo > div { border-left: 0; padding: 0; }
   .resumo { grid-template-columns: 1fr 1fr; }
 }
+
+/* Aviso por e-mail, na tela de aprovações */
+div.nota p { margin: 0 0 0.5rem; }
+.em-linha { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin: 0.25rem 0 1rem; }

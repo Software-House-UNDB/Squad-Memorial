@@ -106,7 +106,7 @@ def _montar_inline(inline, request, obj, instancia, post):
     maximo = inline.get_max_num(request, obj)
     conjunto = inlineformset_factory(
         type(instancia), inline.model, form=_classe_form(inline.model, inline.form, editaveis), fk_name=inline.fk_name,
-        extra=inline.get_extra(request, obj), max_num=1000 if maximo is None else maximo,
+        extra=inline.get_extra(request, obj), max_num=1000 if maximo is None else maximo, validate_max=maximo is not None,
         can_delete=inline.can_delete and inline.has_delete_permission(request, obj),
     )
     formset = conjunto(*post, instance=instancia, queryset=inline.get_queryset(request))
@@ -121,7 +121,7 @@ def _montar_inline(inline, request, obj, instancia, post):
     vazio = formset.empty_form
     return {
         "formset": formset, "titulo": str(inline.verbose_name_plural).capitalize(), "singular": str(inline.verbose_name),
-        "itens": itens, "prefixo": formset.prefix,
+        "itens": itens, "prefixo": formset.prefix, "maximo": maximo or "",
         "pode_adicionar": inline.has_add_permission(request, obj) and (maximo is None or maximo > 1),
         "modelo_vazio": {"form": vazio, "blocos": _blocos(fieldsets, vazio, vazio.instance, inline, readonly)},
     }
