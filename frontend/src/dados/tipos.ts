@@ -3,6 +3,7 @@
  * (backend/memorial/serializers.py), e o conjunto de demonstração (dados/demo.ts) também.
  * URLs de mídia são relativas (/media/...).
  */
+import type { RedeId } from './redes';
 
 /**
  * 'conteudo': sala com as 5 abas (Apresentação, Linha do tempo, Marcos, Fotos, Vídeos).
@@ -113,7 +114,7 @@ export interface RespostaSala {
   versao: string;
   config: ConfigMemorial;
   sala: Sala;
-  /** Algum item desta sala é conteúdo de exemplo (mostra o selo no rodapé). */
+  /** Algum item desta sala é conteúdo de exemplo (o frontend não mostra mais o selo no rodapé; o campo segue na API). */
   demonstrativo: boolean;
   marcos: Marco[];
   fotos: Foto[];
@@ -192,8 +193,9 @@ export interface DadosCheckin {
   ano: string;
   turma: string;
   email: string;
-  instagram: string;
-  facebook: string;
+  /** Uma rede social por pessoa (opcional); `usuario` é só o usuário, sem endereço nem arroba. */
+  rede: RedeId | '';
+  usuario: string;
   consentimento: boolean;
   fotos: File[];
   /** Campo isca: pessoas não veem, robôs preenchem. */

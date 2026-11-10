@@ -2,7 +2,7 @@
 .tt {
   position: absolute; inset: 0;
   display: flex; flex-direction: column;
-  background: var(--marfim) radial-gradient(circle at 85% 10%, rgb(194 154 69 / .07), transparent 40%);
+  background: var(--marfim) radial-gradient(circle at 90% 4%, rgb(201 160 74 / .16), transparent 36%);
   color: var(--grafite);
   --rc: var(--sala-1);
 }
@@ -73,10 +73,7 @@
   font-size: var(--t-apoio); color: var(--suave-2);
 }
 .tt-rod b { color: var(--grafite); font-weight: 600; }
-.tt-rod__exemplo { margin-left: auto; font-style: italic; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
-.tt-rod__exemplo img { height: 24px; width: auto; opacity: .8; }
 .tt-rod__aviso { margin-left: auto; display: flex; align-items: center; gap: 8px; color: var(--erro); font-weight: 600; }
-.tt-rod__aviso + .tt-rod__exemplo { margin-left: 18px; }
 
 /* ---------- cartão ---------- */
 .tt-cartao { background: var(--cartao); border: 1px solid var(--linha); border-radius: var(--raio-cartao); box-shadow: var(--sombra-repouso); }

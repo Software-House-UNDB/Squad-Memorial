@@ -1,6 +1,5 @@
 /** Cabeçalho, área principal e rodapé com a dica de uso, comuns a todas as salas. */
 import type { CSSProperties, ReactNode } from 'react';
-import icone from '../assets/memorial/icone.png';
 import { Icone } from '../componentes/Icone';
 import { dois } from '../dados/salas';
 import type { Sala } from '../dados/tipos';
@@ -9,8 +8,6 @@ import { Cabecalho } from './Cabecalho';
 interface PropsMoldura {
   sala: Sala;
   dica: ReactNode;
-  /** Selo "Conteúdo de exemplo" no rodapé. */
-  exemplo?: boolean;
   /** Aviso de conexão no rodapé (Sala 06). */
   aviso?: ReactNode;
   /** Overlays, desenhados sobre a moldura inteira. */
@@ -18,7 +15,7 @@ interface PropsMoldura {
   children: ReactNode;
 }
 
-export function Moldura({ sala, dica, exemplo, aviso, sobre, children }: PropsMoldura) {
+export function Moldura({ sala, dica, aviso, sobre, children }: PropsMoldura) {
   return (
     <div className="tt" style={{ '--rc': sala.cor } as CSSProperties} data-sala={sala.numero}>
       <Cabecalho sala={sala} />
@@ -26,11 +23,6 @@ export function Moldura({ sala, dica, exemplo, aviso, sobre, children }: PropsMo
       <footer className="tt-rod">
         <span className="tt-rod__dica">{dica}</span>
         {aviso && <span className="tt-rod__aviso" role="status"><Icone nome="wifi" tamanho={20} /> {aviso}</span>}
-        {exemplo && (
-          <span className="tt-rod__exemplo">
-            Conteúdo de exemplo · Memorial Dom Bosco <img src={icone} alt="" />
-          </span>
-        )}
       </footer>
       {sobre}
     </div>

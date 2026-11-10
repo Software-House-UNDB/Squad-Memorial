@@ -212,11 +212,11 @@ for (const [w, h] of TELAS) {
   await verificar('perfil, colega da mesma turma e volta', async () => {
     await p.locator('.tt-pc', { hasText: 'Ana Beatriz Silva Moura' }).click();
     await p.locator('.tt-pid__nome', { hasText: 'Ana Beatriz Silva Moura' }).waitFor();
-    confere((await p.locator('.tt-pgeral .m-pol').count()) === 3, '3 fotos aprovadas');
+    confere((await p.locator('.tt-pgeral .fc-foto').count()) === 3, '3 fotos aprovadas');
     confere((await p.locator('.tt-pcard').innerText()).includes('instagram.com/anabeatriz.moura'), 'rede social');
     await foto('perfil');
-    await p.getByRole('tab', { name: 'Colegas' }).last().click();
-    await p.locator('.tt-mate', { hasText: 'Juliana Pinheiro' }).click();
+    await p.getByRole('tab', { name: /^Colegas/ }).last().click();
+    await p.locator('.fc-colega', { hasText: 'Juliana Silva Pinheiro' }).click();
     await p.locator('.tt-pid__nome', { hasText: 'Juliana Silva Pinheiro' }).waitFor();
     await p.getByRole('button', { name: 'Voltar à busca' }).click();
     await p.locator('input[type=search]').waitFor();
@@ -253,6 +253,9 @@ for (const [w, h] of TELAS) {
     await cel.locator('[name=ano]').selectOption('2007');
     await cel.locator('[name=turma]').fill('2º B');
     await cel.locator('[name=email]').fill(`e2e-${Date.now()}@exemplo.invalid`);
+    // uma rede que não é Instagram viaja no campo facebook, com prefixo (tiktok/e2e.teste)
+    await cel.getByRole('button', { name: 'TikTok' }).click();
+    await cel.locator('[name=rede]').fill('e2e.teste');
     await cel.locator('[name=consentimento]').check();
     await cel.getByRole('button', { name: 'Fazer check-in' }).click();
     await cel.getByText(/Check-in feito, Teste!/).waitFor();
@@ -264,8 +267,8 @@ for (const [w, h] of TELAS) {
     confere((await cartao.locator('.tt-novo').count()) === 1, 'selo NOVO');
     await cartao.click();
     await p.locator('.tt-pid__meta', { hasText: 'Check-in feito agora' }).waitFor();
-    await p.getByRole('tab', { name: 'Colegas' }).last().click();
-    confere((await p.locator('.tt-mate', { hasText: 'João Sales' }).count()) === 1, 'colega da mesma turma (2007, 2º B)');
+    confere((await p.locator('.tt-capa__tag').innerText()).toUpperCase().includes('2º B'), 'turma no perfil');
+    confere((await p.locator('.tt-pcard').innerText()).includes('tiktok.com/@e2e.teste'), 'rede social (TikTok) no perfil');
   });
 
   await verificar('a API nunca devolve e-mail', async () => {

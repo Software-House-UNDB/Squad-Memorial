@@ -10,7 +10,7 @@ import { TecladoVirtual } from '../componentes/TecladoVirtual';
 import { quiosque } from '../config/quiosque';
 import type { EstadoBusca } from '../dados/alunos';
 import { decadas, rotuloDecada, trechos } from '../dados/regras';
-import type { Sala } from '../dados/tipos';
+import { type Sala } from '../dados/tipos';
 import type { EstadoTotem } from './estado';
 import { Titulo } from './Moldura';
 

@@ -4,7 +4,7 @@ import { QrCode } from './QrCode';
 
 const PASSOS = [
   ['Leia o QR Code', 'Com a câmera do seu celular.'],
-  ['Preencha seus dados', 'Nome, ano, turma e, se quiser, fotos e redes sociais.'],
+  ['Preencha seus dados', 'Nome, ano, turma e, se quiser, fotos e rede social.'],
   ['Siga o percurso', 'Seu nome aparece aqui, na Sala 06 (Alunos), para os colegas encontrarem.'],
 ] as const;
 
