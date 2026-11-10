@@ -60,8 +60,13 @@ pelo celular do visitante (rede da escola com Wi-Fi aberto, ou um domínio públ
 `frontend/src/dados/exemplo.json` do modo demo; mude os dois juntos e não rode `scripts/extrair_exemplo.py`,
 que ainda lê o protótipo antigo). Em cada espaço: apresentação, 7 décadas, 4 marcos, fotos de exemplo em todos os
 períodos (sem imagem real: o totem mostra uma moldura provisória) e vídeos curtos (precisa de ffmpeg,
-que já vem na imagem) e 22 ex-alunos fictícios. Tudo fica marcado como **demonstrativo** e o rodapé
-do totem mostra "Conteúdo de exemplo" enquanto a sala tiver algum item assim.
+que já vem na imagem) e 22 ex-alunos fictícios. Tudo fica marcado como **demonstrativo**
+(campo `demonstrativo` da API e do banco), mas o totem **não mostra mais** "Conteúdo de exemplo" no rodapé nem o crédito
+nas fotos: o frontend não exibe esse campo.
+
+> **Antes da versão final:** o `carregar_exemplo` grava no banco o crédito "Conteúdo de exemplo · Memorial Dom Bosco" nas fotos
+> e a expressão "foto de exemplo" em legendas. Isso não aparece mais na tela do totem por causa do frontend, mas continua nos dados:
+> troque no Admin (ou no backend, em `carregar_exemplo.py` e `tour.json`) ou rode `carregar_exemplo --remover` e cadastre o conteúdo real.
 
 - `carregar_exemplo --remover` apaga só o conteúdo de exemplo.
 - `carregar_exemplo --limpar` apaga **todo** o conteúdo das salas (marcos, fotos, vídeos) e os
@@ -149,6 +154,13 @@ salas, e o menu do painel mostra só o que cada usuário pode acessar. Para libe
 
 Formatos em `frontend/src/dados/tipos.ts`. URLs de mídia são relativas (`/media/...`).
 
+**Redes sociais no check-in.** O contrato não mudou: o POST continua com `instagram` e `facebook`. A pessoa escolhe **uma** rede
+no celular e o frontend a guarda nesses dois campos: Instagram vai em `instagram` (só o usuário); as demais redes vão em `facebook`
+com prefixo, `<rede>/<usuario>` (ex.: `tiktok/maria`); "Outra rede" vai como `outra/<site>/<caminho>`; o Facebook continua sem prefixo,
+igual aos cadastros antigos. Só `frontend/src/dados/redes.ts` conhece esse formato (funções `empacotar` e `lerRedes`). Efeito até o backend
+ser ajustado: no painel de aprovações e no admin, redes que não são Instagram aparecem com o rótulo "Facebook" (ex.: "Facebook: tiktok/maria").
+Como migrar: [`docs/passagem-para-o-backend.md`](docs/passagem-para-o-backend.md).
+
 O check-in tem limite de frequência por IP (`CHECKIN_LIMITE_MINUTO=5/min`, `CHECKIN_LIMITE_HORA=30/hour`;
 atrás do túnel use `DJANGO_NUM_PROXIES=2`), campo isca anti-robô, até 3 fotos de 10 MB (verificadas e
 reencodadas, sem EXIF; o nginx aceita até 30 MB só nessa rota) e resposta mínima. Mesmo e-mail + mesmo
@@ -168,9 +180,22 @@ Os dados da Sala 06 (aba Colegas) são de pessoas reais:
   O nome também sai do registro de entradas e saídas, que fica só com "Ex-aluno nº N (dados pessoais removidos)";
 - o **registro de entradas e saídas nunca guarda e-mail nem IP**. O CSV exportado traz nomes, e cada exportação fica registrada.
 
+**Termo de uso dos dados e da imagem (check-in):**
+
+- o texto mostrado ao visitante **vem do servidor** (Admin › Configuração do memorial › texto do termo). O frontend tem um texto de reserva
+  (`frontend/src/dados/termo.ts`), usado só como valor inicial e no modo demonstração: se a configuração não carregar, o termo não é mostrado
+  (aparece "Carregando o termo…" ou o erro) e o envio fica bloqueado;
+- a tela mostra a frase "Li e aceito o termo de uso dos meus dados e da minha imagem" e, abaixo, "Ler termo completo" (recolhível, texto justificado);
+- o check-in **só é enviado depois que a configuração carregou**: o botão "Fazer check-in" fica desativado e, se o carregamento falhar, aparece
+  "Não foi possível carregar o termo" com o botão "Tentar de novo";
+- a **versão do termo não aparece mais na tela**, mas o servidor continua gravando em cada cadastro a versão aceita (`consentimento_versao`):
+  ao trocar o texto no Admin, aumente também a versão;
+- o texto de reserva do frontend não fixa idade mínima.
+
 > **Atenção:** o texto do termo de consentimento que vem pronto é um ponto de partida. Ele precisa ser
 > validado pela escola (encarregado de dados / jurídico) antes do uso com o público. Ao mudar o texto,
-> mude também a **versão do termo**: cada cadastro guarda a versão aceita.
+> mude também a **versão do termo**: cada cadastro guarda a versão aceita. O termo atual não fixa idade mínima:
+> o jurídico deve avaliar o caso de menores de 18 anos (LGPD, art. 14, e uso de imagem).
 
 ## Frontend
 
@@ -188,8 +213,24 @@ Os dados da Sala 06 (aba Colegas) são de pessoas reais:
 - **Busca**: teclado virtual próprio (o do Android cobriria metade da tela).
 - **Parâmetros de URL**: `?sala=N`, `?aviso=20&contagem=5&lightbox=10` (segundos), `?diag`,
   `?semtelacheia`, `?tecladonativo` (teclado do sistema, para testar no computador).
-- **Perfil do aluno**: capa na cor da Sala 06, foto, nome e quatro abas (Visão geral, Fotos, Colegas, Sobre).
-  Dentro do perfil as abas da sala somem; o botão **Voltar à busca** leva de volta.
+- **Perfil do aluno** (Sala 06, aba Colegas): visual na cor dourada da página, com capa dourada e o prédio, e um cartão dourado com ano, turma e redes.
+  Fonte padrão nas quatro abas (títulos em serif, o resto em Montserrat). Cabeçalho "Ex-aluno(a) do Colégio Dom Bosco · Turma X · ano".
+  Abas com contador: Visão geral, Fotos (n), Colegas (n, ou "4+": a API devolve no máximo 4 colegas e não informa o total) e Sobre.
+  - **Visão geral**: cartão dourado (com "E-mail oculto pelo Memorial" e, sem redes, "Nenhuma rede social informada"), até 6 fotos com "Ver todas" e colegas da turma com "Ver todos".
+  - **Fotos**: grade de até 12, com legenda. **Colegas**: cartões com nome, turma, ano e "Ver perfil". **Sobre**: três cartões (No Colégio Dom Bosco, No Memorial, Privacidade).
+  - As fotos abrem em tela cheia, no mesmo overlay das salas (setas e Fechar); o Voltar do Android fecha o overlay primeiro.
+  - As redes aparecem como texto, com o ícone de cada rede (`lerRedes`); Kwai e "Outra rede" usam o ícone de link. O totem nunca abre links.
+  - Dentro do perfil as abas da sala somem; o botão **Voltar à busca** leva de volta.
+- **Check-in** (`/checkin`, no celular; `frontend/src/checkin/`):
+  - campos: nome, ano, turma (texto livre, até 30 caracteres; não há pergunta de turno), e-mail, uma rede social opcional, até 3 fotos e o aceite do termo;
+  - **rede social** (opcional, uma por pessoa nesta fase): botões Instagram, TikTok, LinkedIn e Facebook à vista e "Mais redes" com X, YouTube, Threads, Kwai,
+    Pinterest, Snapchat, Telegram, Twitch, GitHub, Behance e "Outra rede". A pessoa digita só o usuário (o prefixo do endereço fica fixo) ou cola o link
+    inteiro e a rede é reconhecida. Em "Outra rede" vale um endereço curto (`site.com/perfil`, até 94 caracteres, sem `https://`, sem parâmetros);
+  - **termo**: aceite com a frase curta e "Ler termo completo" recolhível; sem o termo carregado o envio fica bloqueado (ver Privacidade);
+  - **tela de sucesso**: sem botão de novo check-in (um por celular; a regra de e-mail + ano repetido continua no servidor); mostra a orientação
+    para começar pela Sala 01 e a lista das 6 salas;
+  - **envio**: tempo limite de 60 s com mensagem própria, mensagem clara para o limite de envios (429), aviso "Preparando suas fotos…" ao reduzir as fotos,
+    atributos de teclado nos campos (e-mail, link, nome) e Ano e Turma alinhados lado a lado.
 
 ### Desenvolvimento
 
@@ -209,7 +250,8 @@ Outro servidor: `VITE_BACKEND=http://192.168.0.10:8080 npm run dev`. Depois de m
 Com `VITE_MODO_DEMO=1` no build (variável de ambiente do projeto no Vercel), o app não precisa de
 servidor: usa o conteúdo de exemplo embutido (`frontend/src/dados/exemplo.json`), `?sala=N` (1 a 6) funciona
 normalmente, e o check-in grava no próprio navegador e aparece na Sala 06 aberta nele, com o aviso
-"Modo demonstração: nada é enviado". `vercel.json` já tem a rota `/checkin`. Para ligar o Vercel ao
+"Modo demonstração: nada é enviado". A faixa de demonstração **só aparece nesse modo**: o **build de produção não deve ter
+`VITE_MODO_DEMO=1`**, senão o check-in não chega ao servidor. `vercel.json` já tem a rota `/checkin`. Para ligar o Vercel ao
 servidor de verdade (túnel), veja `vercel.backend.json` e o serviço `cloudflared` do compose.
 
 ### Testes
@@ -221,14 +263,15 @@ docker compose exec backend python manage.py test memorial
 # frontend
 cd frontend
 npm run typecheck
-npm run test:unit                         # regras da busca, períodos, décadas, sala 1 a 6, contraste dos tokens
+npm run test:unit                         # busca, períodos, décadas, sala 1 a 6, redes sociais e validação do check-in, termo, contraste dos tokens
 npx playwright install chromium           # só na primeira vez
 docker compose exec backend python manage.py carregar_exemplo --limpar
 URL=http://localhost:8080/ npm run test:e2e   # em 1600 × 900 e 1920 × 1080 (precisa do backend com as 6 salas)
 ```
 
 O e2e faz um check-in de teste por execução ("Teste E2E …", e-mail `@exemplo.invalid`); apague-os no
-admin quando quiser. As capturas vão para `frontend/.impeccable/review/e2e/`.
+admin quando quiser. No check-in ele confere a validação do nome, escolhe o TikTok (rede guardada com prefixo) e confirma que o perfil aparece
+na Sala 06 sem recarregar, com a turma e `tiktok.com/@…`; também confere que a API nunca devolve e-mail. As capturas vão para `frontend/.impeccable/review/e2e/`.
 
 ## Recomendações para os totens
 
@@ -296,3 +339,16 @@ Precisa de `ffmpeg` instalado para capas e duração dos vídeos (e para os víd
 
 O que mudou no frontend, o contrato que o backend precisa entregar e os cuidados de contraste estão em
 [`docs/mudancas-frontend-tour-6-espacos.md`](docs/mudancas-frontend-tour-6-espacos.md).
+As mudanças de novembro de 2026 (check-in e perfil do aluno) estão na seção "Check-in e perfil" do mesmo documento;
+o que falta no backend está em [`docs/passagem-para-o-backend.md`](docs/passagem-para-o-backend.md).
+
+## Pendências para o backend
+
+Ficaram de fora do frontend por dependerem do backend (detalhes em [`docs/passagem-para-o-backend.md`](docs/passagem-para-o-backend.md)):
+
+- cidade ("Mora em") no perfil;
+- álbuns de fotos no perfil (categoria em cada foto);
+- botão "Conectar" e "Abrir no celular" (QR do perfil);
+- várias redes por pessoa (hoje, uma) e coluna própria para a rede social;
+- total exato de colegas da turma na API (hoje, até 4);
+- troca do crédito e das legendas de exemplo que o `carregar_exemplo` grava no banco.
