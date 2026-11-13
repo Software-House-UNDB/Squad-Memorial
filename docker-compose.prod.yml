@@ -1,0 +1,146 @@
+# Produção: https no nginx, sem túnel, sem porta do banco ou do gunicorn exposta.
+#
+#   cp .env.prod.example .env      # preencha tudo; chmod 600 .env
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Certificado: sem nada configurado, o nginx gera um autoassinado (guardado em dados/certificado/), o caminho
+# para servidor só na VPN. Certificado da instituição: veja nginx/certs/LEIA-ME.md.
+# Let's Encrypt (só se o servidor for alcançável pela internet na porta 80), na primeira vez:
+#   docker compose -f docker-compose.prod.yml --profile certbot run --rm --entrypoint certbot certbot \
+#     certonly --webroot -w /var/www/certbot -d "$SERVER_NAME" --email "$CERTBOT_EMAIL" --agree-tos --no-eff-email
+#   docker compose -f docker-compose.prod.yml restart nginx
+# Renovação automática: docker compose -f docker-compose.prod.yml --profile certbot up -d certbot
+#
+# Dados em pastas do servidor, dentro de DADOS_DIR (padrão: ./dados, ao lado deste arquivo):
+#   dados/media/        fotos e vídeos enviados (admin, painel e check-in)
+#   dados/postgres/     banco de dados
+#   dados/certificado/  certificado autoassinado gerado na primeira subida
+# Backup: scripts/backup.sh (banco + fotos e vídeos). Restauração: scripts/restaurar.sh.
+
+name: memorial
+
+x-logs: &logs
+  logging:
+    driver: json-file
+    options:
+      max-size: "20m"
+      max-file: "5"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?defina POSTGRES_DB no .env}
+      POSTGRES_USER: ${POSTGRES_USER:?defina POSTGRES_USER no .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+    volumes:
+      - ${DADOS_DIR:-./dados}/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [interna]
+    shm_size: 256mb
+    <<: *logs
+
+  # Prepara as pastas do servidor: o backend roda sem root (uid 10001) e precisa escrever em dados/media.
+  # Só mexe no dono do que ainda não é dele (rápido mesmo com muitos vídeos).
+  permissoes:
+    image: memorial-backend:prod
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    user: "0"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["mkdir -p /app/media && find /app/media ! -user 10001 -exec chown 10001:10001 {} +"]
+    volumes:
+      - ${DADOS_DIR:-./dados}/media:/app/media
+    network_mode: none
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    image: memorial-backend:prod
+    restart: unless-stopped
+    env_file: ${ENV_FILE:-.env}
+    environment:
+      DJANGO_DEBUG: "0"
+      DJANGO_HTTPS: "1"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?defina DJANGO_SECRET_KEY no .env}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:?defina DJANGO_ALLOWED_HOSTS no .env}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:?defina DJANGO_CSRF_TRUSTED_ORIGINS no .env}
+      DJANGO_UPLOAD_TEMP_DIR: /app/tmp-envios
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ${DADOS_DIR:-./dados}/media:/app/media
+      - static:/app/static
+      - envios-django:/app/tmp-envios
+    depends_on:
+      db:
+        condition: service_healthy
+      permissoes:
+        condition: service_completed_successfully
+    networks: [interna]
+    <<: *logs
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile.prod
+    image: memorial-nginx:prod
+    restart: unless-stopped
+    environment:
+      SERVER_NAME: ${SERVER_NAME:?defina SERVER_NAME no .env}
+      # Certificado institucional (opcional): caminhos dentro do contêiner, ex. /etc/nginx/certs/fullchain.pem
+      SSL_CERT: ${SSL_CERT:-}
+      SSL_KEY: ${SSL_KEY:-}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ${DADOS_DIR:-./dados}/media:/var/www/media:ro
+      - static:/var/www/static:ro
+      - letsencrypt:/etc/letsencrypt:ro
+      - certbot-www:/var/www/certbot:ro
+      - ${CERTS_DIR:-./nginx/certs}:/etc/nginx/certs:ro
+      - ${DADOS_DIR:-./dados}/certificado:/etc/nginx/certificado-provisorio
+      - envios-nginx:/var/cache/nginx/envios
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks: [interna, publica]
+    <<: *logs
+
+  # Let's Encrypt: emissão (run --rm ... certonly) e renovação a cada 12 h (up -d certbot).
+  certbot:
+    image: certbot/certbot:latest
+    profiles: ["certbot"]
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done"]
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    networks: [publica]
+    <<: *logs
+
+networks:
+  # Banco e gunicorn só nesta rede, sem saída para fora do host além do necessário.
+  interna:
+  publica:
+
+# Só o que pode ser recriado fica em volume do Docker (arquivos do admin e envios em andamento).
+volumes:
+  static:
+  envios-django:
+  envios-nginx:
+  letsencrypt:
+  certbot-www:

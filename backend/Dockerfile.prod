@@ -1,0 +1,49 @@
+# Backend de produção (docker-compose.prod.yml).
+# Diferenças do Dockerfile de desenvolvimento: usuário sem privilégio, dependências em etapa separada,
+# gunicorn com threads (envios grandes do admin não prendem todos os workers) e healthcheck.
+
+# ---------- Etapa 1: dependências ----------
+FROM python:3.12-slim AS deps
+
+ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
+COPY requirements.txt /tmp/requirements.txt
+RUN python -m venv /opt/venv \
+    && /opt/venv/bin/pip install -r /tmp/requirements.txt
+
+# ---------- Etapa 2: imagem final ----------
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    DJANGO_CACHE_DIR=/app/cache \
+    GUNICORN_WORKERS=5 \
+    GUNICORN_THREADS=4 \
+    GUNICORN_TIMEOUT=600
+
+# ffmpeg: gera a capa (poster) e lê a duração dos vídeos enviados
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system --gid 10001 memorial \
+    && useradd --system --uid 10001 --gid memorial --home-dir /app --shell /usr/sbin/nologin memorial
+
+WORKDIR /app
+COPY --from=deps /opt/venv /opt/venv
+COPY --chown=memorial:memorial . .
+
+# Pastas que viram volume: já criadas com o dono certo (um volume nomeado novo herda o dono).
+# Em pasta montada do host (ex.: /srv/memorial/media), rode antes: chown -R 10001:10001 <pasta>
+RUN chmod +x /app/entrypoint.sh \
+    && mkdir -p /app/media /app/static /app/cache /app/tmp-envios \
+    && chown -R memorial:memorial /app/media /app/static /app/cache /app/tmp-envios
+
+USER memorial
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD python -c "import socket; socket.create_connection(('127.0.0.1', 8000), 3).close()" || exit 1
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["sh", "-c", "exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --worker-class gthread --workers ${GUNICORN_WORKERS} --threads ${GUNICORN_THREADS} --timeout ${GUNICORN_TIMEOUT} --graceful-timeout 30 --max-requests 2000 --max-requests-jitter 200 --access-logfile - --forwarded-allow-ips '*'"]

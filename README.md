@@ -326,7 +326,123 @@ A migração `0011` renumera as salas, e o conteúdo já cadastrado vai junto: 1
 3 Artes → 4 Artes, 4 Professoras → 3 Professores, 5 Fechamento → 6 Alunos; a 2 Diretores é nova. Nome, título, subtítulo e cor
 são substituídos. Faça o backup antes e **confira o `?sala=N` de cada totem**: os que estavam em 2 a 5 passam a mostrar outro espaço.
 
+## Produção (`docker-compose.prod.yml`)
+
+O `docker-compose.yml` é o de desenvolvimento (http na 8080, túnel opcional). Em produção use o
+`docker-compose.prod.yml`: https no nginx (80 só redireciona), HSTS e cabeçalhos de segurança, sem túnel,
+banco e gunicorn só na rede interna, backend sem root, gunicorn com threads e logs com rotação.
+
+| Arquivo | O que é |
+|---|---|
+| `docker-compose.prod.yml` | db, backend, nginx, `permissoes` (prepara as pastas) e certbot (perfil `certbot`) |
+| `backend/Dockerfile.prod` | Python 3.12, usuário `memorial` (uid 10001), gunicorn `gthread` configurável pelo `.env`, healthcheck |
+| `nginx/Dockerfile.prod` | build do frontend (sem modo demo) + nginx com o modelo `nginx/prod/nginx.prod.conf.template` |
+| `nginx/prod/15-certificado.envsh` | escolhe o certificado: institucional (`SSL_CERT`/`SSL_KEY`), Let's Encrypt ou autoassinado |
+| `scripts/backup.sh`, `scripts/restaurar.sh` | backup e restauração do banco, das fotos e vídeos e do `.env` |
+| `.env.prod.example` | todas as variáveis; senhas e chaves só no `.env` do servidor |
+
+### Instalar (ex.: em `/opt/composers/memorial`)
+
+```bash
+sudo git clone <repositório> /opt/composers/memorial && cd /opt/composers/memorial
+sudo cp .env.prod.example .env && sudo chmod 600 .env    # SERVER_NAME, DJANGO_SECRET_KEY, POSTGRES_PASSWORD...
+sudo docker compose -f docker-compose.prod.yml up -d --build
+```
+
+Tudo que não pode se perder fica em pastas do servidor, ao lado do compose (mude com `DADOS_DIR`):
+
+```
+/opt/composers/memorial/
+├── dados/
+│   ├── media/        fotos e vídeos (admin, painel e check-in): fotos/, videos/, alunos/
+│   ├── postgres/     banco de dados
+│   └── certificado/  certificado autoassinado (gerado na primeira subida)
+└── backups/          scripts/backup.sh (mude com BACKUP_DIR)
+```
+
+As pastas são criadas e recebem o dono certo sozinhas (serviço `permissoes`, a cada subida). `dados/` e
+`backups/` ficam fora do git e do build do Docker.
+
+### Certificado
+
+- **Só na VPN** (o caso padrão): sem configurar nada, o nginx gera um certificado autoassinado para `SERVER_NAME`
+  (nome interno ou IP do servidor na VPN), válido por 825 dias, guardado em `dados/certificado/`. O navegador
+  avisa até o certificado ser confiável: instale `dados/certificado/fullchain.pem` como certificado confiável
+  em cada totem (Android: Configurações › Segurança › Criptografia e credenciais › Instalar certificado ›
+  Certificado de CA). Sem isso o modo offline (service worker) não funciona.
+- **Certificado da TI** (melhor, se a universidade tiver uma CA interna): `fullchain.pem` e `privkey.pem` em
+  `nginx/certs/` e no `.env` `SSL_CERT=/etc/nginx/certs/fullchain.pem` e `SSL_KEY=/etc/nginx/certs/privkey.pem`.
+- **Let's Encrypt**: só se o servidor responder pela internet na porta 80.
+
+  ```bash
+  set -a; . ./.env; set +a
+  docker compose -f docker-compose.prod.yml --profile certbot run --rm --entrypoint certbot certbot \
+    certonly --webroot -w /var/www/certbot -d "$SERVER_NAME" --email "$CERTBOT_EMAIL" --agree-tos --no-eff-email
+  docker compose -f docker-compose.prod.yml restart nginx
+  docker compose -f docker-compose.prod.yml --profile certbot up -d certbot   # renovação automática
+  ```
+
+### Observações
+
+- O nginx só responde ao nome de `SERVER_NAME`; quem acessar por outro nome (ou pelo IP, se o nome for outro) é
+  recusado. Se os totens usam o IP da VPN, ponha o IP em `SERVER_NAME` (aceita vários, separados por espaço) e
+  em `DJANGO_ALLOWED_HOSTS` / `DJANGO_CSRF_TRUSTED_ORIGINS`.
+- Atrás do proxy reverso da universidade (que já faz o TLS): `DJANGO_NUM_PROXIES=2`.
+- Sem `DJANGO_SECRET_KEY` o Django não sobe (só com `DJANGO_DEBUG=1` ou nos testes). Não use `$` nos valores
+  do `.env`: o Compose lê `$abc` como variável.
+- Depois de subir: Admin › Configuração do memorial › endereço do check-in com o endereço novo, e gere o QR Code de novo.
+
+Teste local do compose de produção (certificado autoassinado, portas altas, dados em outra pasta):
+
+```bash
+# teste.env com SERVER_NAME=localhost, HTTP_PORT=18080, HTTPS_PORT=18443, ENV_FILE=<este arquivo> e o resto
+export COMPOSE_PROJECT_NAME=memorial-prodteste COMPOSE_ENV_FILES=$PWD/teste.env DADOS_DIR=/tmp/memorial-dados BACKUP_DIR=/tmp/memorial-backups
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml exec backend python manage.py carregar_exemplo --limpar
+(cd frontend && URL=https://localhost:18443/ IGNORAR_CERT=1 npm run test:e2e)
+```
+
 ## Backup
+
+Em produção (`docker-compose.prod.yml`):
+
+```bash
+sudo scripts/backup.sh               # banco + fotos e vídeos + cópia do .env
+sudo scripts/backup.sh --so-banco    # só o banco (segundos; pode rodar várias vezes ao dia)
+sudo scripts/restaurar.sh listar
+```
+
+- **Banco**: `backups/banco/memorial-<data>.dump` (`pg_dump` no formato custom, conferido com `pg_restore --list`
+  antes de ser aceito). A senha não aparece na linha de comando.
+- **Fotos e vídeos**: `backups/midia/<data>/`, cópia completa de `dados/media`. Com `rsync` instalado
+  (`apt install rsync`), o que não mudou desde o backup anterior vira hardlink: cada pasta é um backup completo,
+  mas só os arquivos novos ocupam espaço.
+- **`.env`**: `backups/config/env-<data>` (permissão 600). Sem ele, o banco restaurado não abre com outra senha.
+- Ficam os 14 mais novos de cada tipo (`BACKUP_MANTER`). Um backup por vez (trava em `backups/.trava`).
+
+Agendar, com `sudo crontab -e`:
+
+```
+# todo dia às 03:00, completo; às 13:00, só o banco
+0 3 * * *  /opt/composers/memorial/scripts/backup.sh            >> /opt/composers/memorial/backups/backup.log 2>&1
+0 13 * * * /opt/composers/memorial/scripts/backup.sh --so-banco >> /opt/composers/memorial/backups/backup.log 2>&1
+```
+
+**Leve uma cópia para fora do servidor.** Backup no mesmo disco não protege de defeito no disco nem de perda do
+servidor. Ex.: `rsync -aH --delete /opt/composers/memorial/backups/ usuario@outro-servidor:/backups/memorial/`
+(o `-H` mantém os hardlinks).
+
+Restaurar (para o sistema durante a cópia e o sobe de novo no fim):
+
+```bash
+sudo scripts/restaurar.sh banco backups/banco/memorial-2026-11-12_030000.dump   # guarda antes o banco atual
+sudo scripts/restaurar.sh midia backups/midia/2026-11-12_030000
+```
+
+Num servidor novo: instale como acima, copie o `.env` do backup (`backups/config/env-<data>`), suba o sistema
+e restaure o banco e a mídia.
+
+Desenvolvimento (`docker-compose.yml`, volumes do Docker):
 
 ```bash
 docker compose exec db pg_dump -U memorial memorial > backup.sql

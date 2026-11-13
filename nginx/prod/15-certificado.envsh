@@ -1,0 +1,43 @@
+#!/bin/sh
+# Roda antes do envsubst do modelo (a imagem oficial do nginx lê os *.envsh com "source").
+#
+# Define o certificado do nginx de produção:
+#   - SSL_CERT/SSL_KEY do .env, se apontarem para arquivos que existem (certificado institucional);
+#   - senão, o do Let's Encrypt em /etc/letsencrypt/live/<primeiro nome de SERVER_NAME>/;
+#   - senão, um autoassinado gerado uma vez e guardado em dados/certificado/ (servidor só na VPN, ou antes
+#     do certbot). SERVER_NAME pode ser um nome ou o IP do servidor na VPN.
+
+if [ -z "${SERVER_NAME:-}" ]; then
+    echo "certificado: defina SERVER_NAME no .env (ex.: memorial.undb.edu.br)" >&2
+    exit 1
+fi
+
+DOMINIO="${SERVER_NAME%% *}"
+LE_CERT="/etc/letsencrypt/live/${DOMINIO}/fullchain.pem"
+LE_KEY="/etc/letsencrypt/live/${DOMINIO}/privkey.pem"
+
+if [ -n "${SSL_CERT:-}" ] && [ -f "${SSL_CERT}" ] && [ -n "${SSL_KEY:-}" ] && [ -f "${SSL_KEY}" ]; then
+    echo "certificado: usando ${SSL_CERT}"
+elif [ -f "$LE_CERT" ] && [ -f "$LE_KEY" ]; then
+    SSL_CERT="$LE_CERT"
+    SSL_KEY="$LE_KEY"
+    echo "certificado: usando o do Let's Encrypt (${DOMINIO})"
+else
+    # Guardado em dados/certificado/ (pasta do servidor): o mesmo certificado vale entre reinícios, então
+    # basta instalar dados/certificado/fullchain.pem como confiável nos totens uma vez.
+    PROV=/etc/nginx/certificado-provisorio
+    if [ ! -f "$PROV/fullchain.pem" ] || [ ! -f "$PROV/privkey.pem" ]; then
+        mkdir -p "$PROV"
+        SAN="DNS:${DOMINIO}"
+        case "$DOMINIO" in *[!0-9.]*) ;; *) SAN="IP:${DOMINIO}" ;; esac
+        openssl req -x509 -nodes -newkey rsa:2048 -days 825 \
+            -keyout "$PROV/privkey.pem" -out "$PROV/fullchain.pem" \
+            -subj "/CN=${DOMINIO}" -addext "subjectAltName=${SAN}" >/dev/null 2>&1
+        chmod 600 "$PROV/privkey.pem"
+    fi
+    SSL_CERT="$PROV/fullchain.pem"
+    SSL_KEY="$PROV/privkey.pem"
+    echo "certificado: usando o autoassinado de dados/certificado/ para ${DOMINIO} (válido por 825 dias)." >&2
+fi
+
+export SSL_CERT SSL_KEY

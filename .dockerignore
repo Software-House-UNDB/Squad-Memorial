@@ -5,3 +5,8 @@ backend/media
 backend/static
 backend/db.sqlite3
 .env
+# dados e backups da produção (fotos, vídeos, banco): nunca no build
+dados
+backups
+.env.*
+!.env*.example

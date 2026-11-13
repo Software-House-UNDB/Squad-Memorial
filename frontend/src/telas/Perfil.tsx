@@ -159,9 +159,9 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
     return { id, icone: rede.icone, texto: rede.exibir(usuario), rotulo: id === 'outra' ? 'Rede social' : rede.rotulo };
   });
   const turma = p.turma;
-  const nColegas = p.colegas.length;
-  // A API devolve no máximo 4 colegas e não informa o total: com 4, o número é "4+".
-  const colegasMais = nColegas >= MAX_COLEGAS_API;
+  // A API devolve no máximo 4 colegas e o total em totalColegas. Servidor antigo (sem o total): com 4, vira "4+".
+  const nColegas = p.totalColegas ?? p.colegas.length;
+  const colegasMais = p.totalColegas === undefined && p.colegas.length >= MAX_COLEGAS_API;
   /** Número da aba (Fotos e Colegas); Visão geral e Sobre ficam sem. */
   const contador = (a: AbaPerfil) =>
     a === 'fotos' ? { texto: String(p.fotos.length), falado: String(p.fotos.length) }

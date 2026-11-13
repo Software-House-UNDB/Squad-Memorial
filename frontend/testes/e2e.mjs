@@ -6,7 +6,8 @@
  *
  * Roda em 1600 × 900 e 1920 × 1080. Cada execução faz um check-in de teste ("Teste E2E …",
  * e-mail @exemplo.invalid); apague-os no admin se quiser. CHROME=/caminho/do/chrome usa outro
- * navegador. Capturas em .impeccable/review/e2e/.
+ * navegador. IGNORAR_CERT=1 aceita certificado autoassinado (teste local do docker-compose.prod.yml).
+ * Capturas em .impeccable/review/e2e/.
  */
 import { mkdirSync } from 'node:fs';
 import { chromium } from 'playwright';
@@ -37,7 +38,12 @@ async function verificar(nome, fn) {
   }
 }
 
-const navegador = await chromium.launch({ executablePath: process.env.CHROME || undefined });
+const navegador = await chromium.launch({
+  executablePath: process.env.CHROME || undefined,
+  // o service worker não registra com erro de certificado, mesmo com ignoreHTTPSErrors no contexto
+  args: process.env.IGNORAR_CERT === '1' ? ['--ignore-certificate-errors'] : [],
+});
+const CERT = { ignoreHTTPSErrors: process.env.IGNORAR_CERT === '1' };
 
 async function novaPagina(ctx, rotulo) {
   const p = await ctx.newPage();
@@ -64,7 +70,7 @@ async function digitar(p, texto) {
 
 for (const [w, h] of TELAS) {
   console.log(`\n${w} × ${h}`);
-  const ctx = await navegador.newContext({ viewport: { width: w, height: h } });
+  const ctx = await navegador.newContext({ ...CERT, viewport: { width: w, height: h } });
   ctx.on('request', (r) => {
     const u = r.url();
     if (!u.startsWith(ORIGEM) && !u.startsWith('data:') && !u.startsWith('blob:')) externos.add(u);
@@ -244,7 +250,7 @@ for (const [w, h] of TELAS) {
   await verificar('check-in pelo celular aparece na Sala 06 sem recarregar', async () => {
     // só letras: o servidor descarta palavras sem letra no nome
     const nome = `Teste E2E ${w === 1600 ? 'Palco' : 'Tela'} ${Date.now().toString(36).replace(/\d/g, '')}`;
-    const cel = await novaPagina(await navegador.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }), 'celular');
+    const cel = await novaPagina(await navegador.newContext({ ...CERT, viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }), 'celular');
     await cel.goto(`${BASE}checkin`);
     await cel.locator('[name=nome]').fill('Maria');
     await cel.getByRole('button', { name: 'Fazer check-in' }).click();

@@ -7,3 +7,12 @@ backend/db.sqlite3
 
 frontend/node_modules/
 frontend/dist/
+
+# certificados e chaves (nginx de produção)
+nginx/certs/*.pem
+nginx/certs/*.key
+*.pem
+
+# dados e backups da produção (docker-compose.prod.yml)
+/dados/
+/backups/

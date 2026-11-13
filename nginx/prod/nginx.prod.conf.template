@@ -1,0 +1,200 @@
+# nginx de produção (docker-compose.prod.yml). Modelo: o contêiner troca ${SERVER_NAME}, ${SSL_CERT} e
+# ${SSL_KEY} pelos valores do .env ao iniciar (envsubst da imagem oficial). Variáveis do nginx ($uri etc.) ficam.
+#
+# - 80 só responde o desafio do Let's Encrypt e redireciona para 443.
+# - 443 com TLS 1.2/1.3, HSTS e cabeçalhos de segurança.
+# - Mesmas rotas do nginx/nginx.conf de desenvolvimento.
+
+upstream backend {
+    server backend:8000;
+    keepalive 16;
+}
+
+# Respeita o https de um proxy institucional na frente (DJANGO_NUM_PROXIES=2); sem ele, vale o próprio TLS.
+map $http_x_forwarded_proto $proto_real {
+    default $scheme;
+    https   https;
+}
+
+# Sem servidor de versão no cabeçalho e nas páginas de erro
+server_tokens off;
+
+# Envios grandes (vídeos do admin) vão para a área temporária montada no contêiner, não para o disco raiz.
+client_body_temp_path /var/cache/nginx/envios 1 2;
+
+# ---------------------------------------------------------------- http → https
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${SERVER_NAME};
+
+    # Renovação do certificado (serviço certbot, perfil "certbot")
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# Qualquer outro nome (IP direto, Host falso): fecha a conexão sem responder.
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+    location / {
+        return 444;
+    }
+}
+
+# ---------------------------------------------------------------- https
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name ${SERVER_NAME};
+
+    ssl_certificate     ${SSL_CERT};
+    ssl_certificate_key ${SSL_KEY};
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:TLS:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+
+    # Cabeçalhos de segurança (always: valem também em 4xx/5xx).
+    # Repetidos nos blocos que têm add_header próprio, porque o nginx não herda add_header quando o bloco define um.
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "same-origin" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), payment=()" always;
+
+    root /usr/share/nginx/html;
+
+    # Padrão pequeno; cada rota que recebe arquivo abre o seu limite (abaixo).
+    client_max_body_size 1m;
+    client_body_timeout 600s;
+
+    sendfile on;
+    tcp_nopush on;
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/css application/javascript application/json image/svg+xml application/manifest+json text/vtt;
+
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $proto_real;
+
+    # ---------- Django ----------
+    # Check-in pelo celular: até 3 fotos de 10 MB cada.
+    location = /api/memorial/checkin/ {
+        client_max_body_size 30m;
+        proxy_pass http://backend;
+        proxy_read_timeout 120s;
+    }
+
+    location /api/ {
+        proxy_pass http://backend;
+        proxy_read_timeout 60s;
+    }
+
+    # Admin: envio de vídeos grandes.
+    location /admin/ {
+        client_max_body_size 2G;
+        proxy_pass http://backend;
+        proxy_request_buffering off;
+        proxy_read_timeout 600s;
+        proxy_send_timeout 600s;
+    }
+
+    # Painel da administração (login obrigatório). Recebe os mesmos envios do /admin.
+    location /administracao {
+        client_max_body_size 2G;
+        proxy_pass http://backend;
+        proxy_request_buffering off;
+        proxy_read_timeout 600s;
+        proxy_send_timeout 600s;
+    }
+
+    # ---------- Fotos e vídeos ----------
+    # O nginx responde requisições Range: o <video> do totem avança/volta sem baixar o arquivo inteiro.
+    location /media/ {
+        alias /var/www/media/;
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000";
+        add_header Access-Control-Allow-Origin "*";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    # Fotos de ex-alunos: cache curto, para um pedido de remoção chegar logo aos totens.
+    location /media/alunos/ {
+        alias /var/www/media/alunos/;
+        add_header Cache-Control "public, max-age=3600";
+        add_header Access-Control-Allow-Origin "*";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    # Arquivos estáticos do admin do Django
+    location /static/ {
+        alias /var/www/static/;
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    # ---------- Apps ----------
+    # Arquivos com hash no nome: cache eterno
+    location /assets/ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        try_files $uri =404;
+    }
+
+    # Service worker e páginas nunca em cache, senão o totem não recebe versões novas
+    location ~ ^/(sw\.js|workbox-.*\.js|registerSW\.js|manifest\.webmanifest|index\.html)$ {
+        types { application/javascript js; application/manifest+json webmanifest; text/html html; }
+        add_header Cache-Control "no-cache";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "same-origin" always;
+        try_files $uri =404;
+    }
+
+    # Check-in pelo celular: página própria (fora do service worker do totem)
+    location = /checkin {
+        add_header Cache-Control "no-cache";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "same-origin" always;
+        try_files /checkin/index.html =404;
+    }
+    location /checkin/ {
+        add_header Cache-Control "no-cache";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "same-origin" always;
+        try_files $uri /checkin/index.html;
+    }
+
+    # Totem (SPA): qualquer outra rota cai no index.html
+    location / {
+        add_header Cache-Control "no-cache";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "same-origin" always;
+        try_files $uri $uri/ /index.html;
+    }
+}
