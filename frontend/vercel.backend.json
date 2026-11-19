@@ -14,25 +14,21 @@
       "destination": "/checkin/index.html"
     },
     {
-      "source": "/memorial/api/:path*",
-      "destination": "https://SEU-TUNEL.exemplo.com/memorial/api/:path*"
-    },
-    {
-      "source": "/memorial/media/:path*",
-      "destination": "https://SEU-TUNEL.exemplo.com/memorial/media/:path*"
-    },
-    {
-      "source": "/memorial/sala/:n",
+      "source": "/sala/:n",
       "destination": "/index.html"
     },
     {
-      "source": "/memorial/:path*",
-      "destination": "/:path*"
+      "source": "/api/:path*",
+      "destination": "https://SEU-TUNEL.exemplo.com/api/:path*"
+    },
+    {
+      "source": "/media/:path*",
+      "destination": "https://SEU-TUNEL.exemplo.com/media/:path*"
     }
   ],
   "headers": [
     {
-      "source": "/memorial/assets/(.*)",
+      "source": "/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -41,7 +37,7 @@
       ]
     },
     {
-      "source": "/memorial/(sw\\.js|registerSW\\.js|manifest\\.webmanifest|workbox-[^/]+\\.js)",
+      "source": "/(sw\\.js|registerSW\\.js|manifest\\.webmanifest|workbox-[^/]+\\.js)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -51,11 +47,6 @@
     }
   ],
   "redirects": [
-    {
-      "source": "/",
-      "destination": "/memorial/",
-      "permanent": false
-    },
     {
       "source": "/checkin",
       "destination": "/check-in/",

@@ -9,5 +9,4 @@ RUN npm run build
 # Etapa 2: nginx serve o app, as mídias e faz proxy para o Django
 FROM nginx:1.27-alpine
 COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
-# O app é construído com base /memorial/ (vite.config.ts)
-COPY --from=build /app/dist /usr/share/nginx/html/memorial
+COPY --from=build /app/dist /usr/share/nginx/html

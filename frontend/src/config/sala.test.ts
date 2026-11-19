@@ -12,12 +12,12 @@ describe('salaValida', () => {
 });
 
 describe('salaDoCaminho', () => {
-  it('lê o número de /memorial/sala/N', () => {
-    expect(salaDoCaminho('/memorial/sala/3')).toBe('3');
-    expect(salaDoCaminho('/memorial/sala/6/')).toBe('6');
+  it('lê o número de /sala/N', () => {
+    expect(salaDoCaminho('/sala/3')).toBe('3');
+    expect(salaDoCaminho('/sala/6/')).toBe('6');
   });
   it('ignora outros caminhos', () => {
-    for (const c of ['/', '/memorial/', '/memorial/sala/', '/memorial/sala/3/extra', '/check-in/']) {
+    for (const c of ['/', '/memorial/', '/sala/', '/sala/3/extra', '/check-in/']) {
       expect(salaDoCaminho(c)).toBeNull();
     }
   });

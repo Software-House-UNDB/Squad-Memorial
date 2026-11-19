@@ -2,7 +2,7 @@
  * Testes de ponta a ponta (Playwright) contra o sistema completo, com o conteúdo de exemplo:
  *
  *   docker compose exec backend python manage.py carregar_exemplo --limpar
- *   URL=http://localhost:8080 npm run test:e2e   (origem do servidor; o totem fica em /memorial/)
+ *   URL=http://localhost:8080/ npm run test:e2e
  *
  * Roda em 1600 × 900 e 1920 × 1080. Cada execução faz um check-in de teste ("Teste E2E …",
  * e-mail @exemplo.invalid); apague-os no admin se quiser. CHROME=/caminho/do/chrome usa outro
@@ -12,8 +12,8 @@
 import { mkdirSync } from 'node:fs';
 import { chromium } from 'playwright';
 
-const ORIGEM = new URL(process.env.URL ?? 'http://localhost:8080/').origin;
-const BASE = `${ORIGEM}/memorial/`;
+const BASE = (process.env.URL ?? 'http://localhost:8080/').replace(/\/?$/, '/');
+const ORIGEM = new URL(BASE).origin;
 const CAPTURAS = new URL('../.impeccable/review/e2e/', import.meta.url).pathname;
 const TELAS = [[1600, 900], [1920, 1080]];
 mkdirSync(CAPTURAS, { recursive: true });
@@ -52,7 +52,7 @@ async function novaPagina(ctx, rotulo) {
   return p;
 }
 
-/** Abre o totem: "sala=N&..." vira /memorial/sala/N?..., como o navegador quiosque abre. */
+/** Abre o totem: "sala=N&..." vira /sala/N?..., como o navegador quiosque abre. */
 async function abrir(p, query) {
   const m = /^sala=(\d+)&?(.*)$/.exec(query);
   await p.goto(m ? `${BASE}sala/${m[1]}?semtelacheia${m[2] ? `&${m[2]}` : ''}` : `${BASE}?semtelacheia&${query}`);
@@ -83,7 +83,7 @@ for (const [w, h] of TELAS) {
   // ---------------------------------------------------------------- salas pela URL
   const NOMES = ['Fundação', 'Diretores', 'Professores', 'Artes', 'Esporte', 'Alunos'];
   for (let n = 1; n <= 6; n++) {
-    await verificar(`sala ${n} abre por /memorial/sala/${n}`, async () => {
+    await verificar(`sala ${n} abre por /sala/${n}`, async () => {
       await abrir(p, `sala=${n}`);
       confere((await p.locator('.tt-cab__n').innerText()) === `Sala 0${n} de 06`, 'percurso errado');
       confere((await p.locator('.tt-cab__sala b').innerText()) === NOMES[n - 1], 'nome da sala errado');
@@ -280,9 +280,9 @@ for (const [w, h] of TELAS) {
   });
 
   await verificar('a API nunca devolve e-mail', async () => {
-    const lista = await (await p.request.get(`${ORIGEM}/memorial/api/alunos/?q=teste`)).text();
+    const lista = await (await p.request.get(`${ORIGEM}/api/memorial/alunos/?q=teste`)).text();
     const id = JSON.parse(lista).resultados[0]?.id;
-    const perfil = await (await p.request.get(`${ORIGEM}/memorial/api/alunos/${id}/`)).text();
+    const perfil = await (await p.request.get(`${ORIGEM}/api/memorial/alunos/${id}/`)).text();
     for (const corpo of [lista, perfil]) {
       confere(!corpo.includes('@') && !/"e-?mail"/i.test(corpo), 'e-mail na resposta');
     }

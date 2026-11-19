@@ -20,7 +20,6 @@ RUN apk add --no-cache openssl \
     && mkdir -p /var/www/certbot /var/cache/nginx/envios
 
 COPY nginx/prod/nginx.prod.conf.template /etc/nginx/templates/default.conf.template
-COPY nginx/prod/15-certificado.envsh nginx/prod/16-site-atual.envsh nginx/prod/40-recarregar-certificado.sh /docker-entrypoint.d/
-RUN chmod +x /docker-entrypoint.d/15-certificado.envsh /docker-entrypoint.d/16-site-atual.envsh /docker-entrypoint.d/40-recarregar-certificado.sh
-# O app é construído com base /memorial/ (vite.config.ts); o resto do domínio é do site atual da escola.
-COPY --from=build /app/dist /usr/share/nginx/html/memorial
+COPY nginx/prod/15-certificado.envsh nginx/prod/40-recarregar-certificado.sh /docker-entrypoint.d/
+RUN chmod +x /docker-entrypoint.d/15-certificado.envsh /docker-entrypoint.d/40-recarregar-certificado.sh
+COPY --from=build /app/dist /usr/share/nginx/html
