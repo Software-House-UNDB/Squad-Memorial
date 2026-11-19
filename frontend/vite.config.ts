@@ -36,7 +36,7 @@ export default defineConfig({
         description: 'Memorial Dom Bosco Maria Izabel Rodrigues: totens das salas do percurso.',
         lang: 'pt-BR',
         display: 'fullscreen',
-        orientation: 'landscape',
+        orientation: 'any', // totem deitado ou em pé: o palco se ajusta (quiosque/Palco.tsx)
         background_color: '#1F1E1C',
         theme_color: '#1F1E1C',
         start_url: '/',

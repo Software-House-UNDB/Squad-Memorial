@@ -1,5 +1,5 @@
-/* Base do totem. Os tokens vêm de ./tokens.css. O palco é sempre 1600 × 900 px CSS lógicos,
-   escalado para a tela real (quiosque/Palco.tsx), então os tamanhos aqui são em px do palco. */
+/* Base do totem. Os tokens vêm de ./tokens.css. O palco tem 1600 × 900 px CSS lógicos deitado e
+   900 × 1600 em pé, escalado para a tela real (quiosque/Palco.tsx), então os tamanhos aqui são em px do palco. */
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body, #raiz {

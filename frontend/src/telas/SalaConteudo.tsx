@@ -19,6 +19,7 @@ import { Marcos } from './Marcos';
 import { Moldura, Titulo } from './Moldura';
 import type { Aba, PropsSala } from './estado';
 import { Videos } from './Videos';
+import { useOrientacao } from '../quiosque/Palco';
 import './sala5.css';
 
 export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: RespostaSala }) {
@@ -53,11 +54,12 @@ export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: 
   const aluno = useAluno(noPerfil ? st.perfilId : null);
   const urlCheckin = config.urlCheckin || `${location.origin}/check-in/`;
 
+  const retrato = useOrientacao() === 'retrato';
   const dicas: Record<Aba, ReactNode> = {
     apresentacao: <><b>Toque em uma aba</b> para explorar este espaço</>,
     linha: <><b>Toque em uma década</b> para ver o resumo e os acontecimentos</>,
     marcos: <><b>Toque em um marco</b> para ver o texto explicativo</>,
-    fotos: <><b>Toque em uma foto</b> para ampliar · escolha o período na lista à esquerda</>,
+    fotos: <><b>Toque em uma foto</b> para ampliar · escolha o período na lista {retrato ? 'acima' : 'à esquerda'}</>,
     videos: <><b>Toque em um vídeo</b> para assistir em tela cheia</>,
     colegas: naBusca
       ? <><b>Busca sem acento e por parte do nome</b> · ex.: “joao sil” encontra João Pedro da Silva Sales</>
