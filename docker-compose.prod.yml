@@ -3,11 +3,14 @@
 #   cp .env.prod.example .env      # preencha tudo; chmod 600 .env
 #   docker compose -f docker-compose.prod.yml up -d --build
 #
-# Certificado: sem nada configurado, o nginx gera um autoassinado (guardado em dados/certificado/), o caminho
-# para servidor só na VPN. Certificado da instituição: veja nginx/certs/LEIA-ME.md.
+# Domínio: dbosco.com.br, dividido com o site atual da escola. Este nginx atende /memorial/ (totens em
+# /memorial/sala/1 … 6), /administracao/ e /check-in/ e repassa o resto para SITE_ATUAL_URL.
+#
+# Certificado: sem nada configurado, o nginx gera um autoassinado (guardado em dados/certificado/), só para
+# o primeiro teste: com o domínio público, emita o do Let's Encrypt (abaixo). Certificado da instituição: veja nginx/certs/LEIA-ME.md.
 # Let's Encrypt (só se o servidor for alcançável pela internet na porta 80), na primeira vez:
 #   docker compose -f docker-compose.prod.yml --profile certbot run --rm --entrypoint certbot certbot \
-#     certonly --webroot -w /var/www/certbot -d "$SERVER_NAME" --email "$CERTBOT_EMAIL" --agree-tos --no-eff-email
+#     certonly --webroot -w /var/www/certbot -d dbosco.com.br -d www.dbosco.com.br --email "$CERTBOT_EMAIL" --agree-tos --no-eff-email
 #   docker compose -f docker-compose.prod.yml restart nginx
 # Renovação automática: docker compose -f docker-compose.prod.yml --profile certbot up -d certbot
 #
@@ -102,6 +105,9 @@ services:
       # Certificado institucional (opcional): caminhos dentro do contêiner, ex. /etc/nginx/certs/fullchain.pem
       SSL_CERT: ${SSL_CERT:-}
       SSL_KEY: ${SSL_KEY:-}
+      # Servidor onde o site atual de dbosco.com.br está hoje (IP ou nome interno, nunca o próprio domínio).
+      # Tudo fora de /memorial/, /administracao/ e /check-in/ é repassado para lá. Vazio = raiz vai para /memorial/.
+      SITE_ATUAL_URL: ${SITE_ATUAL_URL:-}
     ports:
       - "${HTTP_PORT:-80}:80"
       - "${HTTPS_PORT:-443}:443"

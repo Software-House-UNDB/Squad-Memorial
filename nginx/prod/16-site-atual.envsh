@@ -1,0 +1,59 @@
+#!/bin/sh
+# Roda antes do envsubst do modelo (a imagem oficial do nginx lê os *.envsh com "source": sem exit/return
+# no caminho normal, senão o entrypoint para junto; exit 1 só nos erros de configuração).
+#
+# dbosco.com.br é dividido com o site atual da escola: este nginx atende o memorial (/memorial/...,
+# /administracao/ e /check-in/) e repassa todo o resto para o servidor onde o site atual está hoje.
+# Gera /etc/nginx/memorial/site-atual.conf, incluído no "location /" do modelo:
+#   - SITE_ATUAL_URL preenchido (ex.: https://200.10.20.30): proxy para lá, mantendo o Host dbosco.com.br;
+#   - vazio (testes): a raiz manda para /memorial/.
+
+SAIDA=/etc/nginx/memorial/site-atual.conf
+mkdir -p /etc/nginx/memorial
+
+URL="${SITE_ATUAL_URL:-}"
+URL="${URL%/}"
+
+if [ -z "$URL" ]; then
+    echo "site atual: SITE_ATUAL_URL vazio; a raiz do domínio vai para /memorial/." >&2
+    echo "return 302 /memorial/;" > "$SAIDA"
+else
+    case "$URL" in
+        http://*|https://*) ;;
+        *)
+            echo "site atual: SITE_ATUAL_URL precisa começar com http:// ou https:// (veio: $URL)" >&2
+            exit 1
+            ;;
+    esac
+
+    # O DNS de dbosco.com.br aponta para este servidor: repassar para o próprio nome entraria em loop.
+    HOST_URL="${URL#*://}"
+    HOST_URL="${HOST_URL%%/*}"
+    HOST_URL="${HOST_URL%%:*}"
+    for nome in $SERVER_NAME; do
+        if [ "$HOST_URL" = "$nome" ]; then
+            echo "site atual: SITE_ATUAL_URL aponta para ${nome}, que é este servidor. Use o IP ou o nome interno do servidor do site atual." >&2
+            exit 1
+        fi
+    done
+
+    {
+        echo "proxy_pass ${URL};"
+        # O servidor do site atual continua recebendo o nome do domínio (Host e SNI), como hoje.
+        # (proxy_set_header aqui descarta os do server: os de encaminhamento vão repetidos.)
+        echo 'proxy_set_header Host $host;'
+        echo 'proxy_set_header Connection "";'
+        echo 'proxy_set_header X-Real-IP $remote_addr;'
+        echo 'proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;'
+        echo 'proxy_set_header X-Forwarded-Proto $proto_real;'
+        echo 'proxy_set_header X-Forwarded-Host $host;'
+        echo 'proxy_ssl_server_name on;'
+        echo 'proxy_ssl_name $host;'
+        echo 'proxy_redirect default;'
+        echo 'proxy_read_timeout 120s;'
+        echo 'client_max_body_size 50m;'
+        # Só o HSTS: os demais cabeçalhos (cache, segurança) são os que o site atual já manda.
+        echo 'add_header Strict-Transport-Security "max-age=31536000" always;'
+    } > "$SAIDA"
+    echo "site atual: repassando o que não é do memorial para ${URL}"
+fi

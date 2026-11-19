@@ -13,17 +13,34 @@ celular** do visitante. Quem faz o check-in na entrada pode ser encontrado pelos
 | 06 | Alunos | as mesmas 5 abas **e** a aba **Colegas**: busca de ex-alunos por nome, ano ou década, e o perfil de cada pessoa |
 
 - **Frontend** (`frontend/`): React + Vite + TypeScript, PWA para funcionar offline. Duas páginas:
-  o totem (`/`) e o check-in (`/checkin`). Regras visuais em `DESIGN.md`, produto em `PRODUCT.md`,
+  o totem (`/memorial/sala/N`) e o check-in (`/check-in/`). Regras visuais em `DESIGN.md`, produto em `PRODUCT.md`,
   tokens em `frontend/src/estilos/tokens.css`, marcas em `frontend/src/assets/memorial/`.
-- **Backend** (`backend/`): Django + DRF; o conteúdo é cadastrado pelo `/admin`.
+- **Backend** (`backend/`): Django + DRF; o conteúdo é cadastrado pelo `/memorial/admin/` e pelo painel `/administracao/`.
 - **Nginx**: entrega o app, as fotos e os vídeos, e faz proxy para o Django. PostgreSQL guarda os dados.
 - **Referência**: o protótipo aprovado está em `docs/referencia/tour-memorial-dom-bosco.html`.
 
+### Endereços em dbosco.com.br
+
+O domínio é dividido com o site atual da escola. O memorial ocupa só estes caminhos; todo o resto o nginx
+de produção repassa ao servidor do site atual (`SITE_ATUAL_URL` no `.env`):
+
+| Endereço | O que é |
+|---|---|
+| `https://dbosco.com.br/memorial/sala/1` … `/memorial/sala/6` | totem de cada sala |
+| `https://dbosco.com.br/check-in/` | check-in pelo celular (endereço do QR Code) |
+| `https://dbosco.com.br/administracao/` | painel da administração (aprovações, cadastros, entradas e saídas) |
+| `https://dbosco.com.br/memorial/admin/` | admin do Django |
+| `/memorial/api/`, `/memorial/media/`, `/memorial/static/`, `/memorial/assets/` | API, fotos e vídeos, CSS do admin, arquivos do app |
+
+Endereços antigos continuam funcionando com redirecionamento: `/checkin` → `/check-in/` (QR Codes já impressos)
+e `/?sala=N` → `/memorial/sala/N`.
+
 ```
-nginx :8080 ──┬── /, /checkin   → apps (build do frontend/, embutido na imagem)
-              ├── /media/       → volume "media" (fotos, vídeos, fotos de ex-alunos)
-              ├── /static/      → volume "static" (CSS do admin)
-              └── /api, /admin, /administracao → backend (gunicorn :8000) → db (postgres)
+nginx ──┬── /memorial/sala/N, /check-in/   → apps (build do frontend/, embutido na imagem)
+        ├── /memorial/media/                → dados/media (fotos, vídeos, fotos de ex-alunos)
+        ├── /memorial/static/               → volume "static" (CSS do admin)
+        ├── /memorial/api, /memorial/admin, /administracao → backend (gunicorn :8000) → db (postgres)
+        └── todo o resto                    → site atual da escola (SITE_ATUAL_URL; só em produção)
 ```
 
 ## Subir
@@ -34,25 +51,25 @@ docker compose up -d --build
 docker compose exec backend python manage.py carregar_exemplo   # opcional: conteúdo de exemplo
 ```
 
-- Totens: `http://<servidor>:8080/?sala=1` … `?sala=6`
-- Check-in: `http://<servidor>:8080/checkin` (é o endereço do QR Code)
-- Admin: `http://<servidor>:8080/admin` (usuário do `.env`)
+- Totens: `http://<servidor>:8080/memorial/sala/1` … `/memorial/sala/6`
+- Check-in: `http://<servidor>:8080/check-in/` (é o endereço do QR Code)
+- Admin: `http://<servidor>:8080/memorial/admin/` (usuário do `.env`)
 - Painel da administração: `http://<servidor>:8080/administracao/` (aprovações e entradas e saídas, ver abaixo)
 
 ### Configurar cada totem
 
-1. No navegador quiosque do totem (ex.: Fully Kiosk Browser), abra `http://<servidor>:8080/?sala=N`.
+1. No navegador quiosque do totem (ex.: Fully Kiosk Browser), abra `https://dbosco.com.br/memorial/sala/N`.
 2. A sala fica guardada no aparelho (`memorial:sala`). O app instalado como PWA, aberto sem a query,
-   continua na mesma sala. Sem sala definida, o totem mostra "Escolha a sala deste totem".
-3. Para trocar a sala de um totem, abra de novo o endereço com outro `?sala=N`.
+   continua na mesma sala (`/memorial/`). Sem sala definida, o totem mostra "Escolha a sala deste totem".
+3. Para trocar a sala de um totem, abra de novo `/memorial/sala/N` com outro número.
 4. Abra uma vez com `?diag` para conferir a escala (o palco lógico é 1600 × 900; em telas 16:10 ele
    fica centralizado, com faixas grafite).
 
 ### Placa de check-in
 
 Em **Admin › Configuração do memorial** há o QR Code pronto para a placa, em PNG e SVG. Ele aponta
-para o **endereço do check-in** (vazio = `<este servidor>/checkin`). O endereço precisa ser acessível
-pelo celular do visitante (rede da escola com Wi-Fi aberto, ou um domínio público com o túnel).
+para o **endereço do check-in** (vazio = `<este servidor>/check-in/`, ou seja, `https://dbosco.com.br/check-in/`). Se o campo estiver preenchido
+com um endereço antigo, apague-o (ou troque) e gere o QR Code de novo.
 
 ## Conteúdo de exemplo
 
@@ -93,7 +110,7 @@ apagar um registro apaga os arquivos do disco.
 
 ## Painel da administração
 
-**Onde acessar:** `http://<servidor>:8080/administracao/`, com o mesmo login do `/admin` (a página inicial do `/admin` também
+**Onde acessar:** `https://dbosco.com.br/administracao/`, com o mesmo login do admin (a página inicial do `/memorial/admin/` também
 tem um botão para ele). Em desenvolvimento sem Docker: `http://localhost:8080/administracao/`.
 
 ### Cadastros (`/administracao/gerir/`)
@@ -144,7 +161,7 @@ Em Admin › Usuários, crie o usuário, marque **Membro da equipe**, preencha o
 **Administrativo**, criado sozinho pelas migrações. O grupo aprova fotos e cadastros, edita ex-alunos e vê as entradas e saídas; não altera o conteúdo das
 salas, e o menu do painel mostra só o que cada usuário pode acessar. Para liberar mais, dê as permissões do modelo no usuário ou no grupo.
 
-## API (`/api/memorial/`)
+## API (`/memorial/api/`)
 
 | Endpoint | Uso |
 |---|---|
@@ -155,7 +172,7 @@ salas, e o menu do painel mostra só o que cada usuário pode acessar. Para libe
 | `GET checkin/` | textos do formulário (termo e versão, ano inicial) |
 | `POST checkin/` | multipart: `nome, ano, turma, email, instagram, facebook` (ou `redes`), `consentimento, fotos[]` |
 
-Formatos em `frontend/src/dados/tipos.ts`. URLs de mídia são relativas (`/media/...`).
+Formatos em `frontend/src/dados/tipos.ts`. URLs de mídia são relativas (`/memorial/media/...`).
 
 **Redes sociais.** O servidor guarda **até 3 redes por pessoa** (modelo `RedeSocial`, regras em `backend/memorial/redes.py`, as mesmas
 de `frontend/src/dados/redes.ts`). O POST aceita dois formatos:
@@ -220,7 +237,7 @@ Os dados da Sala 06 (aba Colegas) são de pessoas reais:
 - **Botão Voltar** do Android fecha o overlay aberto, depois o teclado, depois volta do perfil à busca;
   nunca sai do app.
 - **Busca**: teclado virtual próprio (o do Android cobriria metade da tela).
-- **Parâmetros de URL**: `?sala=N`, `?aviso=20&contagem=5&lightbox=10` (segundos), `?diag`,
+- **Endereço e parâmetros de URL**: `/memorial/sala/N` (ou `?sala=N`), `?aviso=20&contagem=5&lightbox=10` (segundos), `?diag`,
   `?semtelacheia`, `?tecladonativo` (teclado do sistema, para testar no computador).
 - **Perfil do aluno** (Sala 06, aba Colegas): visual na cor dourada da página, com capa dourada e o prédio, e um cartão dourado com ano, turma e redes.
   Fonte padrão nas quatro abas (títulos em serif, o resto em Montserrat). Cabeçalho "Ex-aluno(a) do Colégio Dom Bosco · Turma X · ano".
@@ -230,7 +247,7 @@ Os dados da Sala 06 (aba Colegas) são de pessoas reais:
   - As fotos abrem em tela cheia, no mesmo overlay das salas (setas e Fechar); o Voltar do Android fecha o overlay primeiro.
   - As redes aparecem como texto, com o ícone de cada rede (`lerRedes`); Kwai e "Outra rede" usam o ícone de link. O totem nunca abre links.
   - Dentro do perfil as abas da sala somem; o botão **Voltar à busca** leva de volta.
-- **Check-in** (`/checkin`, no celular; `frontend/src/checkin/`):
+- **Check-in** (`/check-in/`, no celular; `frontend/src/checkin/`):
   - campos: nome, ano, turma (texto livre, até 30 caracteres; não há pergunta de turno), e-mail, uma rede social opcional, até 3 fotos e o aceite do termo;
   - **rede social** (opcional, uma por pessoa nesta fase): botões Instagram, TikTok, LinkedIn e Facebook à vista e "Mais redes" com X, YouTube, Threads, Kwai,
     Pinterest, Snapchat, Telegram, Twitch, GitHub, Behance e "Outra rede". A pessoa digita só o usuário (o prefixo do endereço fica fixo) ou cola o link
@@ -248,7 +265,7 @@ Com o `docker compose` rodando (para ter a API em :8080):
 ```bash
 cd frontend
 npm install
-npm run dev          # http://localhost:5173/?sala=1 … ?sala=6 e http://localhost:5173/checkin
+npm run dev          # http://localhost:5173/memorial/sala/1 … /memorial/sala/6 e http://localhost:5173/check-in/
 ```
 
 Outro servidor: `VITE_BACKEND=http://192.168.0.10:8080 npm run dev`. Depois de mudar o frontend,
@@ -257,10 +274,10 @@ Outro servidor: `VITE_BACKEND=http://192.168.0.10:8080 npm run dev`. Depois de m
 ### Modo demonstração (Vercel)
 
 Com `VITE_MODO_DEMO=1` no build (variável de ambiente do projeto no Vercel), o app não precisa de
-servidor: usa o conteúdo de exemplo embutido (`frontend/src/dados/exemplo.json`), `?sala=N` (1 a 6) funciona
+servidor: usa o conteúdo de exemplo embutido (`frontend/src/dados/exemplo.json`), `/memorial/sala/N` (1 a 6) funciona
 normalmente, e o check-in grava no próprio navegador e aparece na Sala 06 aberta nele, com o aviso
 "Modo demonstração: nada é enviado". A faixa de demonstração **só aparece nesse modo**: o **build de produção não deve ter
-`VITE_MODO_DEMO=1`**, senão o check-in não chega ao servidor. `vercel.json` já tem a rota `/checkin`. Para ligar o Vercel ao
+`VITE_MODO_DEMO=1`**, senão o check-in não chega ao servidor. `vercel.json` já tem as rotas `/memorial/...` e `/check-in/`. Para ligar o Vercel ao
 servidor de verdade (túnel), veja `vercel.backend.json` e o serviço `cloudflared` do compose.
 
 ### Testes
@@ -275,7 +292,7 @@ npm run typecheck
 npm run test:unit                         # busca, períodos, décadas, sala 1 a 6, redes sociais e validação do check-in, termo, contraste dos tokens
 npx playwright install chromium           # só na primeira vez
 docker compose exec backend python manage.py carregar_exemplo --limpar
-URL=http://localhost:8080/ npm run test:e2e   # em 1600 × 900 e 1920 × 1080 (precisa do backend com as 6 salas)
+URL=http://localhost:8080 npm run test:e2e   # em 1600 × 900 e 1920 × 1080 (precisa do backend com as 6 salas)
 ```
 
 O e2e faz um check-in de teste por execução ("Teste E2E …", e-mail `@exemplo.invalid`); apague-os no
@@ -296,8 +313,8 @@ ffmpeg -i entrada.mov -c:v libx264 -profile:v high -crf 23 -preset slow \
 mostra a legenda WebVTT, se houver. Fones ou caixas de som ficam por conta da instalação.
 
 **Celular (teste rápido)**: com `npm run dev` o Vite já aceita acessos da rede (`--host`). Abra
-`http://<IP do computador>:5173/?sala=N` no celular, no mesmo Wi-Fi, e deite o aparelho (a tela é 16:9).
-A sala escolhida fica guardada no navegador; use outro `?sala=N` para trocar.
+`http://<IP do computador>:5173/memorial/sala/N` no celular, no mesmo Wi-Fi, e deite o aparelho (a tela é 16:9).
+A sala escolhida fica guardada no navegador; use outro `/memorial/sala/N` para trocar.
 
 **Rede**: o servidor deve ficar na rede interna com IP fixo (ou um nome como `memorial.local`).
 Adicione o endereço em `DJANGO_ALLOWED_HOSTS` e `DJANGO_CSRF_TRUSTED_ORIGINS`. O service worker
@@ -324,7 +341,7 @@ Os arquivos antigos de `/media` (fotos, vídeos, páginas de documento) ficam no
 
 A migração `0011` renumera as salas, e o conteúdo já cadastrado vai junto: 1 Educação → 1 Fundação, 2 Troféus → 5 Esporte,
 3 Artes → 4 Artes, 4 Professoras → 3 Professores, 5 Fechamento → 6 Alunos; a 2 Diretores é nova. Nome, título, subtítulo e cor
-são substituídos. Faça o backup antes e **confira o `?sala=N` de cada totem**: os que estavam em 2 a 5 passam a mostrar outro espaço.
+são substituídos. Faça o backup antes e **confira a sala (`/memorial/sala/N`) de cada totem**: os que estavam em 2 a 5 passam a mostrar outro espaço.
 
 ## Produção (`docker-compose.prod.yml`)
 
@@ -338,6 +355,7 @@ banco e gunicorn só na rede interna, backend sem root, gunicorn com threads e l
 | `backend/Dockerfile.prod` | Python 3.12, usuário `memorial` (uid 10001), gunicorn `gthread` configurável pelo `.env`, healthcheck |
 | `nginx/Dockerfile.prod` | build do frontend (sem modo demo) + nginx com o modelo `nginx/prod/nginx.prod.conf.template` |
 | `nginx/prod/15-certificado.envsh` | escolhe o certificado: institucional (`SSL_CERT`/`SSL_KEY`), Let's Encrypt ou autoassinado |
+| `nginx/prod/16-site-atual.envsh` | repassa ao site atual da escola (`SITE_ATUAL_URL`) tudo o que não é do memorial |
 | `scripts/backup.sh`, `scripts/restaurar.sh` | backup e restauração do banco, das fotos e vídeos e do `.env` |
 | `.env.prod.example` | todas as variáveis; senhas e chaves só no `.env` do servidor |
 
@@ -345,7 +363,7 @@ banco e gunicorn só na rede interna, backend sem root, gunicorn com threads e l
 
 ```bash
 sudo git clone <repositório> /opt/composers/memorial && cd /opt/composers/memorial
-sudo cp .env.prod.example .env && sudo chmod 600 .env    # SERVER_NAME, DJANGO_SECRET_KEY, POSTGRES_PASSWORD...
+sudo cp .env.prod.example .env && sudo chmod 600 .env    # SERVER_NAME, SITE_ATUAL_URL, DJANGO_SECRET_KEY, POSTGRES_PASSWORD...
 sudo docker compose -f docker-compose.prod.yml up -d --build
 ```
 
@@ -363,9 +381,23 @@ Tudo que não pode se perder fica em pastas do servidor, ao lado do compose (mud
 As pastas são criadas e recebem o dono certo sozinhas (serviço `permissoes`, a cada subida). `dados/` e
 `backups/` ficam fora do git e do build do Docker.
 
+### Domínio dbosco.com.br e o site atual
+
+1. Antes de trocar o DNS, anote o IP (ou nome interno) do servidor onde dbosco.com.br está hoje e ponha em
+   `SITE_ATUAL_URL` (ex.: `https://200.10.20.30`). Nunca `https://dbosco.com.br`: depois da troca o nome aponta
+   para cá e entraria em loop (o nginx recusa subir assim). O site atual continua recebendo `Host: dbosco.com.br`.
+2. Suba o compose e confira com `curl -k --resolve dbosco.com.br:443:<IP deste servidor> https://dbosco.com.br/`
+   (deve vir a página atual) e `.../memorial/sala/1`, `.../check-in/`, `.../administracao/`.
+3. Troque o DNS de `dbosco.com.br` e `www.dbosco.com.br` para este servidor e emita o Let's Encrypt (abaixo).
+4. Admin › Configuração do memorial: deixe o endereço do check-in vazio (ou `https://dbosco.com.br/check-in/`) e
+   baixe o QR Code novo para a placa. QR Codes antigos com `/checkin` continuam funcionando.
+5. Totens: abra `https://dbosco.com.br/memorial/sala/N` em cada um.
+
+O HSTS vai sem `includeSubDomains`, para não forçar https em outros subdomínios da escola.
+
 ### Certificado
 
-- **Só na VPN** (o caso padrão): sem configurar nada, o nginx gera um certificado autoassinado para `SERVER_NAME`
+- **Só na VPN** (antes do DNS público): sem configurar nada, o nginx gera um certificado autoassinado para `SERVER_NAME`
   (nome interno ou IP do servidor na VPN), válido por 825 dias, guardado em `dados/certificado/`. O navegador
   avisa até o certificado ser confiável: instale `dados/certificado/fullchain.pem` como certificado confiável
   em cada totem (Android: Configurações › Segurança › Criptografia e credenciais › Instalar certificado ›
@@ -377,7 +409,7 @@ As pastas são criadas e recebem o dono certo sozinhas (serviço `permissoes`, a
   ```bash
   set -a; . ./.env; set +a
   docker compose -f docker-compose.prod.yml --profile certbot run --rm --entrypoint certbot certbot \
-    certonly --webroot -w /var/www/certbot -d "$SERVER_NAME" --email "$CERTBOT_EMAIL" --agree-tos --no-eff-email
+    certonly --webroot -w /var/www/certbot -d dbosco.com.br -d www.dbosco.com.br --email "$CERTBOT_EMAIL" --agree-tos --no-eff-email
   docker compose -f docker-compose.prod.yml restart nginx
   docker compose -f docker-compose.prod.yml --profile certbot up -d certbot   # renovação automática
   ```

@@ -1,7 +1,7 @@
 /**
- * Contrato da API pública (/api/memorial/). O backend monta exatamente estes formatos
+ * Contrato da API pública (/memorial/api/). O backend monta exatamente estes formatos
  * (backend/memorial/serializers.py), e o conjunto de demonstração (dados/demo.ts) também.
- * URLs de mídia são relativas (/media/...).
+ * URLs de mídia são relativas (/memorial/media/...).
  */
 import type { RedeId } from './redes';
 
@@ -31,7 +31,7 @@ export interface ConfigMemorial {
   segundosAtualizacao: number;
   /** Vídeos começam com som (true) ou mudos (false). */
   videosComSom: boolean;
-  /** Endereço que o QR Code do check-in abre. Vazio = <origem do app>/checkin. */
+  /** Endereço que o QR Code do check-in abre. Vazio = <origem do app>/check-in/. */
   urlCheckin: string;
 }
 

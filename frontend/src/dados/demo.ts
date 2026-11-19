@@ -60,7 +60,7 @@ const POR_PAGINA = 12;
 const HORAS_NOVO = 24;
 const CHAVE_CHECKINS = 'memorial:demo:checkins';
 const REFERENCIA = Date.UTC(2026, 9, 27); // data do protótipo: os check-ins de exemplo mantêm a distância de "hoje"
-const VIDEO_EXEMPLO = '/demo/exemplo.webm';
+const VIDEO_EXEMPLO = `${import.meta.env.BASE_URL}demo/exemplo.webm`;
 
 export const TERMO_DEMO = TERMO_PADRAO;
 

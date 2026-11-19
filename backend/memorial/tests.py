@@ -84,7 +84,7 @@ class Base(TestCase):
         base = {"nome": "Maria Clara Souza", "ano": "1998", "turma": "3º A", "email": EMAIL,
                 "instagram": "", "facebook": "", "consentimento": "true", "site": ""}
         base.update(dados)
-        return self.client.post("/api/memorial/checkin/", base)
+        return self.client.post("/memorial/api/checkin/", base)
 
 
 class BuscaTests(Base):
@@ -96,7 +96,7 @@ class BuscaTests(Base):
         aluno("Beatriz Coelho Lima", 1992, "8ª A")
 
     def nomes(self, **params):
-        return [a["nome"] for a in self.get("/api/memorial/alunos/", **params).json()["resultados"]]
+        return [a["nome"] for a in self.get("/memorial/api/alunos/", **params).json()["resultados"]]
 
     def test_sem_acento_e_por_parte_do_nome(self):
         self.assertEqual(self.nomes(q="joao sil"), ["João Pedro da Silva Sales"])
@@ -117,17 +117,17 @@ class BuscaTests(Base):
     def test_anos_do_diretorio_e_paginacao(self):
         for i in range(20):
             aluno(f"Pessoa Teste {i:02d}", 2010)
-        r = self.get("/api/memorial/alunos/").json()
+        r = self.get("/memorial/api/alunos/").json()
         self.assertEqual(r["anos"], [1962, 1992, 1998, 2007, 2010])
         self.assertEqual((r["total"], r["paginas"], len(r["resultados"])), (24, 2, 12))
-        r2 = self.get("/api/memorial/alunos/", pagina=2).json()
+        r2 = self.get("/memorial/api/alunos/", pagina=2).json()
         self.assertEqual(len(r2["resultados"]), 12)
         self.assertFalse({a["id"] for a in r["resultados"]} & {a["id"] for a in r2["resultados"]})
 
     def test_recentes_primeiro_com_selo_novo(self):
         Aluno.objects.update(checkin_em=timezone.now() - timedelta(days=5))
         novo = aluno("Zé Recém Chegado", 2001)
-        r = self.get("/api/memorial/alunos/").json()["resultados"]
+        r = self.get("/memorial/api/alunos/").json()["resultados"]
         self.assertEqual(r[0]["id"], novo.pk)
         self.assertTrue(r[0]["novo"])
         self.assertFalse(any(a["novo"] for a in r[1:]))
@@ -147,15 +147,15 @@ class PrivacidadeTests(Base):
         FotoAluno.objects.create(aluno=self.visivel, imagem=png(), legenda="recusada", status=FotoAluno.Status.RECUSADA)
 
     def test_so_aprovados_com_consentimento_na_lista(self):
-        r = self.get("/api/memorial/alunos/", q="silva").json()
+        r = self.get("/memorial/api/alunos/", q="silva").json()
         self.assertEqual({a["nome"] for a in r["resultados"]}, {"Ana Visível Silva", "Eva Colega Silva"})
 
     def test_perfis_invisiveis_dao_404(self):
         for a in (self.pendente, self.oculto, self.sem_consentimento):
-            self.assertEqual(self.get(f"/api/memorial/alunos/{a.pk}/").status_code, 404)
+            self.assertEqual(self.get(f"/memorial/api/alunos/{a.pk}/").status_code, 404)
 
     def test_perfil_sem_email_e_so_fotos_aprovadas(self):
-        r = self.get(f"/api/memorial/alunos/{self.visivel.pk}/")
+        r = self.get(f"/memorial/api/alunos/{self.visivel.pk}/")
         corpo = r.content.decode()
         for proibido in ("email", "@x.com", "consentimento", "pessoa.real"):
             self.assertNotIn(proibido, corpo)
@@ -169,9 +169,9 @@ class PrivacidadeTests(Base):
         with open("/dev/null", "w") as nada:
             call_command("carregar_exemplo", stdout=nada)
         self.checkin()
-        urls = ["/api/memorial/alunos/", "/api/memorial/checkin/", "/api/memorial/versao/?sala=5"]
-        urls += [f"/api/memorial/sala/{n}/" for n in range(1, 6)]
-        urls += [f"/api/memorial/alunos/{a.pk}/" for a in Aluno.objects.filter(status="aprovado", consentimento=True)]
+        urls = ["/memorial/api/alunos/", "/memorial/api/checkin/", "/memorial/api/versao/?sala=5"]
+        urls += [f"/memorial/api/sala/{n}/" for n in range(1, 6)]
+        urls += [f"/memorial/api/alunos/{a.pk}/" for a in Aluno.objects.filter(status="aprovado", consentimento=True)]
         for url in urls:
             corpo = self.client.get(url).content.decode()
             self.assertNotIn(EMAIL, corpo, url)
@@ -187,7 +187,7 @@ class CheckinTests(Base):
         a = Aluno.objects.get()
         self.assertEqual((a.nome, a.ano, a.turma, a.instagram, a.status), ("Maria Clara Souza", 1998, "3º A", "maria.souza", "aprovado"))
         self.assertEqual(a.consentimento_versao, ConfiguracaoMemorial.atual().termo_versao)
-        self.assertEqual(self.get("/api/memorial/alunos/", q="maria clara").json()["total"], 1)
+        self.assertEqual(self.get("/memorial/api/alunos/", q="maria clara").json()["total"], 1)
 
     def test_mesmo_email_e_ano_atualiza(self):
         self.checkin()
@@ -210,7 +210,7 @@ class CheckinTests(Base):
         c.save()
         self.checkin()
         self.assertEqual(Aluno.objects.get().status, Aluno.Status.PENDENTE)
-        self.assertEqual(self.get("/api/memorial/alunos/").json()["total"], 0)
+        self.assertEqual(self.get("/memorial/api/alunos/").json()["total"], 0)
 
     def test_validacoes_com_as_mensagens_do_prototipo(self):
         casos = {
@@ -247,7 +247,7 @@ class CheckinTests(Base):
             self.assertEqual(len(img.getexif()), 0)
         # pendente: não aparece no perfil
         a = Aluno.objects.get()
-        self.assertEqual(self.get(f"/api/memorial/alunos/{a.pk}/").json()["fotos"], [])
+        self.assertEqual(self.get(f"/memorial/api/alunos/{a.pk}/").json()["fotos"], [])
 
     def test_upload_invalido_recusado(self):
         falso = SimpleUploadedFile("foto.jpg", b"isto nao e uma imagem", content_type="image/jpeg")
@@ -271,10 +271,10 @@ class CheckinTests(Base):
         self.assertEqual(r.status_code, 429)
         self.assertEqual(Aluno.objects.count(), 5)
         # ler a configuração do formulário não é limitado
-        self.assertEqual(self.client.get("/api/memorial/checkin/").status_code, 200)
+        self.assertEqual(self.client.get("/memorial/api/checkin/").status_code, 200)
 
     def test_configuracao_do_formulario(self):
-        r = self.client.get("/api/memorial/checkin/").json()
+        r = self.client.get("/memorial/api/checkin/").json()
         self.assertEqual(r["anoInicial"], 1958)
         self.assertEqual(r["termoVersao"], "1.0")
         self.assertIn("Autorizo", r["termoTexto"])
@@ -291,29 +291,29 @@ class SalaTests(Base):
         Foto.objects.create(sala=self.s1, ano=1961, legenda="Rascunho", publicado=False)
 
     def test_sala_traz_tudo_com_urls_relativas(self):
-        r = self.get("/api/memorial/sala/1/").json()
+        r = self.get("/memorial/api/sala/1/").json()
         self.assertEqual(r["sala"]["nome"], "Fundação")
         self.assertEqual(r["config"]["anoInicial"], 1958)
         self.assertEqual([m["titulo"] for m in r["marcos"]], ["A", "B"])
         self.assertEqual([m["destaque"] for m in r["marcos"]], [False, True])  # um destaque por sala
         self.assertEqual(len(r["fotos"]), 1)
-        self.assertTrue(r["fotos"][0]["src"].startswith("/media/fotos/exibicao/"))
+        self.assertTrue(r["fotos"][0]["src"].startswith("/memorial/media/fotos/exibicao/"))
         self.assertFalse(r["demonstrativo"])
 
     def test_sala_inexistente_ou_inativa(self):
-        self.assertEqual(self.client.get("/api/memorial/sala/9/").status_code, 404)
+        self.assertEqual(self.client.get("/memorial/api/sala/9/").status_code, 404)
         Sala.objects.filter(numero=3).update(ativa=False)
-        self.assertEqual(self.client.get("/api/memorial/sala/3/").status_code, 404)
+        self.assertEqual(self.client.get("/memorial/api/sala/3/").status_code, 404)
 
     def test_versao_muda_so_com_a_propria_sala(self):
-        v1 = self.get("/api/memorial/versao/", sala=1).json()["versao"]
-        v2 = self.get("/api/memorial/versao/", sala=2).json()["versao"]
+        v1 = self.get("/memorial/api/versao/", sala=1).json()["versao"]
+        v2 = self.get("/memorial/api/versao/", sala=2).json()["versao"]
         Marco.objects.create(sala=self.s2, ano=1990, titulo="C", descricao="c")
-        self.assertEqual(self.get("/api/memorial/versao/", sala=1).json()["versao"], v1)
-        self.assertNotEqual(self.get("/api/memorial/versao/", sala=2).json()["versao"], v2)
+        self.assertEqual(self.get("/memorial/api/versao/", sala=1).json()["versao"], v1)
+        self.assertNotEqual(self.get("/memorial/api/versao/", sala=2).json()["versao"], v2)
         Foto.objects.filter(sala=self.s1).first().delete()
-        self.assertNotEqual(self.get("/api/memorial/versao/", sala=1).json()["versao"], v1)
-        self.assertEqual(self.client.get("/api/memorial/versao/").status_code, 400)
+        self.assertNotEqual(self.get("/memorial/api/versao/", sala=1).json()["versao"], v1)
+        self.assertEqual(self.client.get("/memorial/api/versao/").status_code, 400)
 
 
 class ExemploTests(Base):
@@ -327,7 +327,7 @@ class ExemploTests(Base):
             self.assertEqual(Acontecimento.objects.count(), 126)
             self.assertEqual(Registro.objects.exclude(aluno_ref=real.pk).count(), 0)  # exemplo não é movimento real
             self.assertEqual(Aluno.objects.filter(demonstrativo=True).count(), 22)
-            r = self.get("/api/memorial/sala/1/").json()
+            r = self.get("/memorial/api/sala/1/").json()
             self.assertTrue(r["demonstrativo"])
             self.assertGreater(len(r["fotos"]), 100)
             self.assertEqual(len(r["decadas"]), 7)
@@ -335,10 +335,10 @@ class ExemploTests(Base):
             self.assertEqual(len(r["marcos"]), 4)
             self.assertTrue(r["marcos"][0]["texto"])
             self.assertGreater(len(r["apresentacao"]["texto"]), 0)
-            sala6 = self.get("/api/memorial/sala/6/").json()
+            sala6 = self.get("/memorial/api/sala/6/").json()
             self.assertEqual(sala6["sala"]["tipo"], "fechamento")
             self.assertEqual(len(sala6["decadas"]), 7)
-            self.assertEqual(self.get("/api/memorial/alunos/", q="joao sil").json()["resultados"][0]["nome"],
+            self.assertEqual(self.get("/memorial/api/alunos/", q="joao sil").json()["resultados"][0]["nome"],
                              "João Pedro da Silva Sales")
             call_command("carregar_exemplo", "--remover", stdout=nada)
         self.assertEqual(Marco.objects.count() + Foto.objects.count() + Decada.objects.count() + Apresentacao.objects.count(), 0)
@@ -362,22 +362,22 @@ class SeisEspacosTests(Base):
         Acontecimento.objects.create(decada=d, ano=1960, texto="Primeiro", ordem=1)
         Decada.objects.create(sala=sala, rotulo="Oculta", periodo="x", titulo="x", publicado=False)
         Marco.objects.create(sala=sala, ano=1958, titulo="M", descricao="d", texto="longo", foto=png())
-        r = self.get("/api/memorial/sala/6/").json()
+        r = self.get("/memorial/api/sala/6/").json()
         self.assertEqual(r["apresentacao"]["texto"], ["Um.", "Dois."])
-        self.assertTrue(r["apresentacao"]["foto"].startswith("/media/fotos/epoca/"))  # /media/fotos/ fica no cache offline
+        self.assertTrue(r["apresentacao"]["foto"].startswith("/memorial/media/fotos/epoca/"))  # /media/fotos/ fica no cache offline
         self.assertEqual(len(r["decadas"]), 1)
         self.assertEqual([e["texto"] for e in r["decadas"][0]["acontecimentos"]], ["Primeiro", "Segundo"])
         self.assertEqual(r["marcos"][0]["texto"], "longo")
         self.assertTrue(r["marcos"][0]["foto"].endswith(".jpg"))
 
     def test_sala_sem_conteudo_novo_deixa_o_app_derivar(self):
-        r = self.get("/api/memorial/sala/2/").json()
+        r = self.get("/memorial/api/sala/2/").json()
         self.assertIsNone(r["apresentacao"])
         self.assertEqual(r["decadas"], [])
 
     def test_versao_muda_com_decada_e_acontecimento(self):
         sala = Sala.objects.get(numero=1)
-        versao = lambda: self.get("/api/memorial/versao/", sala=1).json()["versao"]  # noqa: E731
+        versao = lambda: self.get("/memorial/api/versao/", sala=1).json()["versao"]  # noqa: E731
         v = versao()
         d = Decada.objects.create(sala=sala, rotulo="A", periodo="B", titulo="C")
         v2 = versao()
@@ -390,31 +390,31 @@ class SeisEspacosTests(Base):
 
     def test_sala_6_mostra_selo_com_conteudo_de_exemplo(self):
         sala = Sala.objects.get(numero=6)
-        self.assertFalse(self.get("/api/memorial/sala/6/").json()["demonstrativo"])
+        self.assertFalse(self.get("/memorial/api/sala/6/").json()["demonstrativo"])
         Marco.objects.create(sala=sala, ano=1958, titulo="M", descricao="d", demonstrativo=True)
-        self.assertTrue(self.get("/api/memorial/sala/6/").json()["demonstrativo"])
+        self.assertTrue(self.get("/memorial/api/sala/6/").json()["demonstrativo"])
 
     def test_acao_publicar_muda_a_versao_do_totem(self):
         sala = Sala.objects.get(numero=1)
         m = Marco.objects.create(sala=sala, ano=1958, titulo="M", descricao="d")
-        v = self.get("/api/memorial/versao/", sala=1).json()["versao"]
+        v = self.get("/memorial/api/versao/", sala=1).json()["versao"]
         admin_user = User.objects.create_superuser("chefe", password="senha-longa-1")
         self.client.force_login(admin_user)
-        self.client.post("/admin/memorial/marco/", {
+        self.client.post("/memorial/admin/memorial/marco/", {
             "action": "despublicar", "_selected_action": [m.pk],
         })
         self.assertFalse(Marco.objects.get(pk=m.pk).publicado)
-        self.assertNotEqual(self.get("/api/memorial/versao/", sala=1).json()["versao"], v)
+        self.assertNotEqual(self.get("/memorial/api/versao/", sala=1).json()["versao"], v)
         self.assertTrue(Registro.objects.filter(descricao__startswith="Tirado do totem", autor="chefe").exists())
 
     def test_admin_abre_com_as_abas_novas(self):
         self.client.force_login(User.objects.create_superuser("chefe", password="senha-longa-1"))
         sala = Sala.objects.get(numero=6)
-        pagina = self.client.get(f"/admin/memorial/sala/{sala.pk}/change/").content.decode()
+        pagina = self.client.get(f"/memorial/admin/memorial/sala/{sala.pk}/change/").content.decode()
         for campo in ("apresentacao_set-0-titulo", "decada_set-TOTAL_FORMS", "marco_set-TOTAL_FORMS", "video_set-TOTAL_FORMS"):
             self.assertIn(campo, pagina)
         d = Decada.objects.create(sala=sala, rotulo="A", periodo="B", titulo="C")
-        self.assertIn("acontecimentos-0-texto", self.client.get(f"/admin/memorial/decada/{d.pk}/change/").content.decode())
+        self.assertIn("acontecimentos-0-texto", self.client.get(f"/memorial/admin/memorial/decada/{d.pk}/change/").content.decode())
 
 
 @override_settings(MEDIA_ROOT=MEDIA, CACHES=CACHE, REST_FRAMEWORK=limites("1000/min"))
@@ -430,7 +430,7 @@ class RegistroTests(Base):
 
     def checkin(self, **extra):
         dados = {"nome": "Maria Conceição", "ano": "1998", "turma": "3º A", "email": EMAIL, "consentimento": "true", **extra}
-        return self.client.post("/api/memorial/checkin/", dados)
+        return self.client.post("/memorial/api/checkin/", dados)
 
     def test_checkin_novo_atualizado_e_foto(self):
         self.assertEqual(self.checkin().status_code, 201)
@@ -467,18 +467,18 @@ class RegistroTests(Base):
         self.client.force_login(self.chefe)
         self.assertTrue(Registro.objects.filter(tipo="login", autor="chefe", direcao="entrada").exists())
         sala = Sala.objects.get(numero=1)
-        self.client.post("/admin/memorial/marco/add/", {
+        self.client.post("/memorial/admin/memorial/marco/add/", {
             "sala": sala.pk, "ano": 1960, "titulo": "Novo", "descricao": "d", "icone": "star", "ordem": 0, "publicado": "on",
         })
         self.assertTrue(Registro.objects.filter(tipo="cadastro_criado", autor="chefe", descricao__contains="Novo").exists())
         m = Marco.objects.get()
-        self.client.post(f"/admin/memorial/marco/{m.pk}/delete/", {"post": "yes"})
+        self.client.post(f"/memorial/admin/memorial/marco/{m.pk}/delete/", {"post": "yes"})
         self.assertTrue(Registro.objects.filter(tipo="cadastro_removido", direcao="saida", autor="chefe").exists())
-        self.client.post("/admin/logout/")
+        self.client.post("/memorial/admin/logout/")
         self.assertTrue(Registro.objects.filter(tipo="logout", autor="chefe", direcao="saida").exists())
 
     def test_login_recusado(self):
-        self.client.post("/admin/login/", {"username": "chefe", "password": "errada"})
+        self.client.post("/memorial/admin/login/", {"username": "chefe", "password": "errada"})
         self.assertTrue(Registro.objects.filter(tipo="login_recusado", descricao__contains="chefe").exists())
         self.assertNotIn("errada", str(list(Registro.objects.values_list("descricao", "busca"))))
 
@@ -487,7 +487,7 @@ class RegistroTests(Base):
         self.assertEqual(list(Registro.objects.values_list("tipo", flat=True)), ["login"])
 
     def test_acesso_ao_painel(self):
-        self.assertRedirects(self.client.get(self.URL), f"/admin/login/?next={self.URL}")
+        self.assertRedirects(self.client.get(self.URL), f"/memorial/admin/login/?next={self.URL}")
         comum = User.objects.create_user("comum", password="senha-longa-1")
         self.client.force_login(comum)
         self.assertEqual(self.client.get(self.URL).status_code, 302)  # não é da equipe
@@ -536,7 +536,7 @@ class RegistroTests(Base):
     def test_registro_nao_edita_nem_apaga_no_admin(self):
         registro = registrar(Registro.Tipo.LOGIN, "x", autor="y")
         self.client.force_login(self.chefe)
-        base = "/admin/memorial/registro/"
+        base = "/memorial/admin/memorial/registro/"
         self.assertEqual(self.client.get(base).status_code, 200)
         self.assertEqual(self.client.get(base + "add/").status_code, 403)
         self.assertEqual(self.client.post(f"{base}{registro.pk}/delete/", {"post": "yes"}).status_code, 403)
@@ -564,10 +564,10 @@ class AprovacaoTests(Base):
         pagina = self.client.get(self.URL)
         self.assertEqual(pagina.context["pendentes"]["fotos"], 1)
         self.assertContains(pagina, foto.miniatura.url)
-        self.assertEqual(self.client.get(f"/api/memorial/alunos/{aluno_id}/").json()["fotos"], [])
+        self.assertEqual(self.client.get(f"/memorial/api/alunos/{aluno_id}/").json()["fotos"], [])
         r = self.client.post(self.URL + "fotos/", {"acao": "aprovar", "selecionados": [foto.pk]}, follow=True)
         self.assertEqual(r.context["pendentes"]["fotos"], 0)
-        self.assertEqual(len(self.client.get(f"/api/memorial/alunos/{aluno_id}/").json()["fotos"]), 1)
+        self.assertEqual(len(self.client.get(f"/memorial/api/alunos/{aluno_id}/").json()["fotos"]), 1)
         self.assertTrue(Registro.objects.filter(descricao__startswith="Foto aprovada", autor="adm").exists())
 
     def test_aprovacao_so_nos_selecionados(self):
@@ -613,9 +613,9 @@ class AprovacaoTests(Base):
         pagina = self.client.get(self.URL)
         self.assertContains(pagina, a.nome)
         self.assertNotContains(pagina, a.email)
-        self.assertEqual(self.client.get(f"/api/memorial/alunos/{a.pk}/").status_code, 404)
+        self.assertEqual(self.client.get(f"/memorial/api/alunos/{a.pk}/").status_code, 404)
         self.client.post(self.URL + "cadastros/", {"acao": "aprovar", "selecionados": [a.pk]})
-        self.assertEqual(self.client.get(f"/api/memorial/alunos/{a.pk}/").status_code, 200)
+        self.assertEqual(self.client.get(f"/memorial/api/alunos/{a.pk}/").status_code, 200)
 
     def test_tela_avisa_quando_a_aprovacao_de_cadastros_esta_desligada(self):
         self.client.force_login(self.adm)
@@ -871,19 +871,19 @@ class EstaticoTests(TestCase):
                 with open(caminho, "w") as f:
                     f.write("b{}")
                 segunda = estatico("memorial/a.css")
-        self.assertRegex(primeira, r"^/static/memorial/a\.css\?v=[0-9a-f]{12}$")
+        self.assertRegex(primeira, r"^/memorial/static/memorial/a\.css\?v=[0-9a-f]{12}$")
         self.assertNotEqual(primeira, segunda)
 
     def test_arquivo_ausente_nao_derruba_a_pagina(self):
         with override_settings(DEBUG=True):
-            self.assertEqual(estatico("memorial/nao-existe.css"), "/static/memorial/nao-existe.css")
+            self.assertEqual(estatico("memorial/nao-existe.css"), "/memorial/static/memorial/nao-existe.css")
 
     def test_painel_usa_a_url_versionada(self):
         User.objects.create_superuser("chefe", password="x")
         self.client.login(username="chefe", password="x")
         html = self.client.get("/administracao/").content.decode()
-        self.assertRegex(html, r'href="/static/memorial/administracao\.css\?v=[0-9a-f]{12}"')
-        self.assertRegex(html, r'src="/static/memorial/administracao\.js\?v=[0-9a-f]{12}"')
+        self.assertRegex(html, r'href="/memorial/static/memorial/administracao\.css\?v=[0-9a-f]{12}"')
+        self.assertRegex(html, r'src="/memorial/static/memorial/administracao\.js\?v=[0-9a-f]{12}"')
 
 
 class UtilTests(TestCase):
@@ -897,7 +897,7 @@ class UtilTests(TestCase):
 
 class RedesTests(Base):
     def perfil(self, a):
-        return self.get(f"/api/memorial/alunos/{a.pk}/").json()
+        return self.get(f"/memorial/api/alunos/{a.pk}/").json()
 
     def test_regras_iguais_as_do_frontend(self):
         from . import redes

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { guardarSala, lerSala } from './config/sala';
+import { caminhoDaSala, guardarSala, lerSala } from './config/sala';
 import { pedirTelaCheia } from './quiosque/guardas';
 import { Palco } from './quiosque/Palco';
 import { EscolhaDeSala } from './telas/EscolhaDeSala';
@@ -17,7 +17,7 @@ export function App() {
 
   const escolher = (n: number) => {
     guardarSala(n);
-    history.replaceState(history.state, '', `?sala=${n}`);
+    history.replaceState(history.state, '', caminhoDaSala(n));
     setSala(n);
   };
 
