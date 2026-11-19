@@ -5,6 +5,7 @@
  *   /sala/N     (sala deste totem, 1 a 6; fica guardada no aparelho; ?sala=N também vale)
  *   ?aviso=20&contagem=5 (segundos)
  *   ?lightbox=10         (segundos)
+ *   ?orientacao=retrato  (força o palco em pé; =paisagem força deitado; sem ele, segue a tela)
  *   ?diag                (painel de diagnóstico de densidade e escala)
  *   ?semtelacheia        (não pedir tela cheia no primeiro toque)
  *   ?tecladonativo       (usa o teclado do sistema na busca, para testar no computador)
@@ -14,6 +15,15 @@
 export function salaDoCaminho(caminho: string): string | null {
   const m = /\/sala\/(\d+)\/?$/.exec(caminho);
   return m ? m[1] : null;
+}
+
+export type Orientacao = 'paisagem' | 'retrato';
+
+/** Lê ?orientacao=retrato|paisagem (aceita também "vertical"/"horizontal"). */
+export function orientacaoDaUrl(v: string | null): Orientacao | null {
+  if (v === 'retrato' || v === 'vertical') return 'retrato';
+  if (v === 'paisagem' || v === 'horizontal') return 'paisagem';
+  return null;
 }
 
 const parametros = new URLSearchParams(typeof location !== 'undefined' ? location.search : '');
@@ -35,8 +45,17 @@ export const quiosque = {
    */
   demo: (import.meta.env.VITE_MODO_DEMO as string | undefined) === '1',
 
-  /** Palco lógico de referência, em px CSS (= dp no WebView Android). 16:9. */
+  /** Palco lógico de referência, em px CSS (= dp no WebView Android). 16:9 deitado. */
   palco: { largura: 1600, altura: 900 },
+
+  /** Palco do totem em pé (9:16): mesmos tamanhos de texto e de toque, outra composição (estilos/retrato.css). */
+  palcoRetrato: { largura: 900, altura: 1600 },
+
+  /**
+   * Orientação do palco: ?orientacao=retrato ou ?orientacao=paisagem fixa uma delas (útil quando o
+   * aparelho informa a tela girada); sem o parâmetro, segue a proporção da tela.
+   */
+  orientacaoFixa: orientacaoDaUrl(parametros.get('orientacao')),
 
   inatividade: {
     /** Sem toque por este tempo, aparece o aviso "Ainda está aí?". */
@@ -53,7 +72,7 @@ export const quiosque = {
   /** Na busca da Sala 06, a lista é atualizada a cada N ms para novos check-ins aparecerem. */
   atualizarBuscaMs: 10_000,
 
-  /** Tenta tela cheia e orientação paisagem no primeiro toque. */
+  /** Tenta tela cheia e trava a orientação atual (deitado ou em pé) no primeiro toque. */
   telaCheiaNoPrimeiroToque: !parametros.has('semtelacheia'),
 
   /** Usa o teclado do sistema em vez do teclado virtual (testes no computador). */

@@ -1,0 +1,151 @@
+/* Totem em pé: palco de 900 × 1600 px CSS (quiosque/Palco.tsx põe .palco--retrato).
+   Mesmos tokens, textos e alvos de toque do palco deitado (mínimos do DESIGN.md: texto 18 px,
+   secundário 16 px, rótulos 14 px, toque 56 px); aqui só muda a composição. As regras deitadas
+   ficam nos arquivos de cada tela e estas vêm por cima delas. */
+
+/* ================================================================ moldura */
+.palco--retrato .tt-cab { gap: 18px; padding: 0 28px; }
+.palco--retrato .tt-cab__marca { height: 40px; }
+.palco--retrato .tt-cab__sala b { font-size: 24px; }
+.palco--retrato .tt-cab__percurso { gap: 12px; }
+.palco--retrato .tt-cab__percurso > span:first-child { display: none; } /* rótulo "PERCURSO" */
+.palco--retrato .tt-cab__fio { width: 12px; margin: 0 3px; }
+
+/* área principal em coluna: abas no topo, título, e a tela da aba ocupa o resto */
+.palco--retrato .tt-main { display: flex; flex-direction: column; padding: 22px 36px 0; }
+.palco--retrato .tt-main > * { flex: none; }
+
+.palco--retrato .tt-abas {
+  position: static; order: -1; align-self: stretch; justify-content: space-between;
+  margin-bottom: 22px;
+}
+.palco--retrato .tt-aba { gap: 8px; padding: 0 14px; }
+.palco--retrato .tt-titulo { max-width: none; }
+.palco--retrato .tt-h1 { font-size: 54px; }
+
+.palco--retrato .tt-rod { height: auto; min-height: 46px; padding: 9px 36px; line-height: 1.35; }
+
+/* as telas das abas: altura que sobra, em vez das alturas fixas do palco deitado */
+.palco--retrato :is(.tt-apres, .tt-linha, .tt-marcos, .tt-fotos, .tt-videos) {
+  flex: 1; min-height: 0; height: auto; margin-top: 24px; padding-bottom: 28px;
+}
+.palco--retrato .tt-vazio { margin-top: 160px; }
+
+/* ================================================================ Apresentação */
+.palco--retrato .tt-apres { flex-direction: column; gap: 30px; }
+.palco--retrato .tt-apres__foto { width: auto; height: auto; flex: 1 1 0; min-height: 420px; } /* a foto fica com a sobra */
+.palco--retrato .tt-apres__txt { flex: none; padding-top: 0; }
+.palco--retrato .tt-apres__atalhos { margin-top: 12px; }
+.palco--retrato .tt-apres__tit { font-size: 42px; }
+.palco--retrato .tt-apres__txt p { max-width: none; }
+
+/* ================================================================ Linha do tempo */
+/* as sete décadas continuam lado a lado (118 px cada): o título curto da década sai, o painel mostra */
+.palco--retrato .tt-linha { gap: 18px; }
+.palco--retrato .tt-dec { padding: 0 2px 6px; }
+.palco--retrato .tt-dec b { font-size: 22px; white-space: nowrap; }
+.palco--retrato .tt-dec small { font-size: var(--t-micro); white-space: nowrap; }
+.palco--retrato .tt-dec__tit { display: none; }
+
+.palco--retrato .tt-painel { flex-direction: column; gap: 26px; padding: 22px 22px 96px; }
+.palco--retrato .tt-painel__foto { width: auto; height: auto; flex: 1 1 0; min-height: 360px; } /* a foto fica com a sobra */
+.palco--retrato .tt-painel__txt { flex: none; }
+.palco--retrato .tt-painel__tit { font-size: 36px; }
+.palco--retrato .tt-painel__ev { padding-right: 0; gap: 12px; }
+
+/* ================================================================ Marcos */
+/* 2 × 2; com mais de quatro, a grade rola para baixo (em vez de para os lados) */
+.palco--retrato .tt-marcos { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 22px; }
+.palco--retrato .tt-marcos.tt-marcos--rola {
+  display: grid; grid-template-rows: none; grid-auto-rows: calc((100% - 22px) / 2);
+  overflow-x: hidden; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain;
+  scroll-snap-type: y proximity; margin-inline: 0; padding-inline: 0; padding-right: 8px;
+}
+.palco--retrato .tt-marcos--rola .tt-mc { width: auto; }
+.palco--retrato .tt-mc__foto { height: 290px; }
+.palco--retrato .tt-mc.is-aberto .tt-mc__foto { height: 150px; }
+
+/* ================================================================ Fotos */
+/* os períodos viram uma faixa que rola para os lados, em cima; a grade fica 2 × 4 (8 por página) */
+.palco--retrato .tt-fotos { flex-direction: column; gap: 22px; }
+.palco--retrato .tt-per { width: auto; padding: 14px 12px 10px; }
+.palco--retrato .tt-per__rot { padding: 0 8px 10px; }
+.palco--retrato .tt-per__lista {
+  flex: none; flex-direction: row; gap: 8px; padding: 0 0 10px;
+  overflow-x: auto; overflow-y: hidden; touch-action: pan-x; overscroll-behavior: contain;
+  mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent);
+}
+.palco--retrato .tt-per__lista::-webkit-scrollbar { height: 8px; }
+.palco--retrato .tt-per__lista button { width: auto; padding: 0 18px; gap: 12px; border: 1px solid var(--linha); background: var(--cartao); }
+.palco--retrato .tt-per__lista button.is-ativo { border-color: var(--rc); background: var(--rc); }
+.palco--retrato .tt-galeria { flex: 1; min-height: 0; }
+.palco--retrato .tt-galeria__cab { flex-wrap: wrap; row-gap: 6px; }
+.palco--retrato .tt-galeria__grade { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(4, 1fr); }
+
+/* ================================================================ Vídeos */
+.palco--retrato .tt-videos { flex-direction: column; gap: 24px; }
+.palco--retrato .tt-destaque { flex: none; height: 600px; }
+.palco--retrato .tt-vlista { flex: 1; min-height: 0; }
+
+/* ================================================================ Sala 06: busca */
+.palco--retrato .tt-busca { flex: 1; min-height: 0; height: auto; display: flex; flex-direction: column; }
+.palco--retrato .tt-busca .tt-titulo { order: 0; }
+.palco--retrato .tt-sbar { flex-wrap: wrap; }
+.palco--retrato .tt-sin { flex: 1 1 100%; }
+.palco--retrato .tt-sel { flex: 1; width: auto; }
+.palco--retrato .tt-chips { flex-wrap: wrap; row-gap: 10px; }
+.palco--retrato .tt-pessoas { grid-template-columns: repeat(2, 1fr); }
+.palco--retrato .tt-rs { flex-wrap: wrap; }
+
+/* teclado: dez teclas de 74 px numa linha de 900 px */
+.palco--retrato .m-teclado { left: -36px; right: -36px; }
+.palco--retrato .m-tecla { min-width: 74px; padding: 0 10px; }
+.palco--retrato .m-tecla--acao, .palco--retrato .m-tecla--pronto { min-width: 150px; }
+.palco--retrato .m-tecla--espaco { min-width: 260px; }
+
+/* ================================================================ Sala 06: perfil */
+.palco--retrato .tt-perfil { margin: -22px -36px 0; }
+.palco--retrato .tt-capa__predio { right: 40px; height: 140px; }
+.palco--retrato .tt-capa__tag { left: 200px; }
+.palco--retrato .tt-pid { height: auto; min-height: 112px; padding: 14px 32px; gap: 20px; }
+.palco--retrato .tt-pid__av { margin-top: -96px; }
+.palco--retrato .tt-pid__nome { font-size: 34px; }
+.palco--retrato .tt-ptabs { padding: 0 24px; overflow-x: auto; }
+.palco--retrato .tt-ptab { flex: none; padding: 0 14px; }
+.palco--retrato .tt-pbody { padding: 18px 32px; }
+.palco--retrato .tt-pgeral { flex-direction: column; gap: 18px; }
+.palco--retrato .tt-pcard { width: auto; align-self: stretch; }
+.palco--retrato .tt-pgeral__dir { align-self: stretch; }
+.palco--retrato .fc-fotos { grid-template-columns: repeat(4, 1fr); }
+.palco--retrato .fc-fotos--geral { grid-template-columns: repeat(6, 1fr); }
+.palco--retrato .fc-foto__img, .palco--retrato .fc-fotos--geral .fc-foto__img { height: 150px; }
+.palco--retrato .fc-colegas { grid-template-columns: repeat(2, 1fr); }
+.palco--retrato .tt-sobre { flex-direction: column; }
+.palco--retrato .tt-sobre > .fcard { width: auto; align-self: stretch; }
+.palco--retrato .tt-sobre__dir { align-self: stretch; }
+
+/* ================================================================ overlays */
+.palco--retrato .m-ov { padding: 110px 40px 40px; }
+.palco--retrato .m-ov__leg { max-width: 820px; }
+.palco--retrato .m-ov__moldura { width: 820px; height: 980px; }
+/* as setas não cabem do lado de fora: ficam sobre a foto, com fundo próprio */
+.palco--retrato .m-ov__nav { background: rgb(31 30 28 / .82); }
+.palco--retrato .m-ov__nav--ant { left: 22px; }
+.palco--retrato .m-ov__nav--prox { right: 22px; }
+
+.palco--retrato .m-ov__video { width: 820px; height: 461px; }
+.palco--retrato .m-ov__controles { width: 820px; gap: 12px; }
+.palco--retrato .m-ov__barra--volume { width: 96px; }
+
+.palco--retrato .m-ck { flex-direction: column; gap: 44px; }
+.palco--retrato .m-ck__texto { width: 760px; }
+.palco--retrato .m-ck__texto h2 { font-size: 46px; }
+
+/* ================================================================ aviso de inatividade e escolha da sala */
+.palco--retrato .t-aviso__caixa { width: 780px; }
+.palco--retrato .t-aviso h2 { font-size: 60px; }
+
+.palco--retrato .t-escolha { padding: 0 40px; }
+.palco--retrato .t-escolha h1 { font-size: 48px; }
+.palco--retrato .t-escolha__lista { display: grid; grid-template-columns: repeat(3, 230px); gap: 20px; }
+.palco--retrato .t-escolha__sala { width: auto; }

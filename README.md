@@ -220,6 +220,7 @@ Os dados da Sala 06 (aba Colegas) são de pessoas reais:
 - **Botão Voltar** do Android fecha o overlay aberto, depois o teclado, depois volta do perfil à busca;
   nunca sai do app.
 - **Busca**: teclado virtual próprio (o do Android cobriria metade da tela).
+- **Totem deitado ou em pé**: o palco é 1600 × 900 deitado e 900 × 1600 em pé, escolhido pela proporção da tela (layout em pé em `frontend/src/estilos/retrato.css`). `?orientacao=retrato` ou `?orientacao=paisagem` força um deles.
 - **Parâmetros de URL**: `?sala=N`, `?aviso=20&contagem=5&lightbox=10` (segundos), `?diag`,
   `?semtelacheia`, `?tecladonativo` (teclado do sistema, para testar no computador).
 - **Perfil do aluno** (Sala 06, aba Colegas): visual na cor dourada da página, com capa dourada e o prédio, e um cartão dourado com ano, turma e redes.

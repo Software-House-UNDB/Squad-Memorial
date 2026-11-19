@@ -51,8 +51,10 @@ export async function pedirTelaCheia() {
   } catch { /* recusado ou não suportado (ex.: quiosque já em tela cheia) */ }
   try {
     const o = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
-    await o.lock?.('landscape');
-  } catch { /* trava não suportada: o palco continua centralizado */ }
+    // trava na orientação em que o totem foi instalado (deitado ou em pé), para um giro acidental do
+    // aparelho não trocar o layout no meio do uso
+    await o.lock?.(window.innerHeight > window.innerWidth ? 'portrait' : 'landscape');
+  } catch { /* trava não suportada: o palco segue a tela */ }
 }
 
 /** Retorna true se já passou do horário de recarga de hoje desde que o app abriu. */
