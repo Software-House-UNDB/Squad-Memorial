@@ -6,7 +6,7 @@
   "outputDirectory": "dist",
   "headers": [
     {
-      "source": "/assets/(.*)",
+      "source": "/memorial/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -15,7 +15,7 @@
       ]
     },
     {
-      "source": "/(sw\\.js|registerSW\\.js|manifest\\.webmanifest|workbox-[^/]+\\.js)",
+      "source": "/memorial/(sw\\.js|registerSW\\.js|manifest\\.webmanifest|workbox-[^/]+\\.js)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -26,8 +26,32 @@
   ],
   "rewrites": [
     {
-      "source": "/checkin",
+      "source": "/check-in",
       "destination": "/checkin/index.html"
+    },
+    {
+      "source": "/check-in/",
+      "destination": "/checkin/index.html"
+    },
+    {
+      "source": "/memorial/sala/:n",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/memorial/:path*",
+      "destination": "/:path*"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/memorial/",
+      "permanent": false
+    },
+    {
+      "source": "/checkin",
+      "destination": "/check-in/",
+      "permanent": true
     }
   ]
 }

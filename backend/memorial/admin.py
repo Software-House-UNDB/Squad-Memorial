@@ -470,7 +470,7 @@ class RegistroAdmin(admin.ModelAdmin):
 
 def endereco_checkin(request, config=None):
     config = config or ConfiguracaoMemorial.atual()
-    return config.url_checkin or request.build_absolute_uri("/checkin")
+    return config.url_checkin or request.build_absolute_uri("/check-in/")
 
 
 @admin.register(ConfiguracaoMemorial)

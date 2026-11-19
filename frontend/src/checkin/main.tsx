@@ -1,5 +1,5 @@
 /**
- * Página de check-in pelo celular (/checkin). Entrada própria do Vite: sem palco, sem guardas de
+ * Página de check-in pelo celular (/check-in/). Entrada própria do Vite: sem palco, sem guardas de
  * quiosque, sem inatividade e fora do service worker do totem.
  */
 import { StrictMode } from 'react';

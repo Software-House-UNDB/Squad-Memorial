@@ -96,9 +96,9 @@ TIME_ZONE = "America/Fortaleza"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "/static/"
+STATIC_URL = "/memorial/static/"
 STATIC_ROOT = BASE_DIR / "static"
-MEDIA_URL = "/media/"
+MEDIA_URL = "/memorial/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Uploads grandes vão para disco temporário em vez de memória.
@@ -127,6 +127,11 @@ EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.smtp.
 # Atrás do nginx
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# O domínio é dividido com o site atual da escola: cookies com nome próprio, para não sobrescrever nem ler
+# os de outro sistema que também use os nomes padrão do Django (sessionid, csrftoken).
+SESSION_COOKIE_NAME = "memorial_sessao"
+CSRF_COOKIE_NAME = "memorial_csrf"
 
 # Produção em https (docker-compose.prod.yml liga): cookies de sessão e CSRF só trafegam cifrados.
 # O redirecionamento 80 → 443 e o HSTS ficam no nginx (nginx/nginx.prod.conf).

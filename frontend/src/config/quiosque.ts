@@ -2,13 +2,19 @@
  * Configuração local do quiosque.
  * Os tempos vêm do admin (Configuração do memorial) e são aplicados por `aplicarConfigServidor`.
  * A URL tem prioridade sobre o admin, para testes e manutenção:
- *   ?sala=N              (sala deste totem, 1 a 5; fica guardada no aparelho)
+ *   /memorial/sala/N     (sala deste totem, 1 a 6; fica guardada no aparelho; ?sala=N também vale)
  *   ?aviso=20&contagem=5 (segundos)
  *   ?lightbox=10         (segundos)
  *   ?diag                (painel de diagnóstico de densidade e escala)
  *   ?semtelacheia        (não pedir tela cheia no primeiro toque)
  *   ?tecladonativo       (usa o teclado do sistema na busca, para testar no computador)
  */
+
+/** Número da sala em /memorial/sala/N (a base do app vem do Vite: /memorial/). */
+export function salaDoCaminho(caminho: string): string | null {
+  const m = /\/sala\/(\d+)\/?$/.exec(caminho);
+  return m ? m[1] : null;
+}
 
 const parametros = new URLSearchParams(typeof location !== 'undefined' ? location.search : '');
 
@@ -59,8 +65,8 @@ export const quiosque = {
   /** Exibe o painel de diagnóstico. */
   diagnostico: parametros.has('diag'),
 
-  /** Valor bruto de ?sala na URL (lido por config/sala.ts). */
-  salaNaUrl: parametros.get('sala'),
+  /** Sala pedida na URL: /memorial/sala/N ou ?sala=N (lida por config/sala.ts). */
+  salaNaUrl: salaDoCaminho(typeof location !== 'undefined' ? location.pathname : '') ?? parametros.get('sala'),
 };
 
 export type ConfigQuiosque = typeof quiosque;

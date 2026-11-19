@@ -514,7 +514,7 @@ class ConfiguracaoMemorial(Timestamped):
     )
     url_checkin = models.URLField(
         "endereço do check-in", blank=True,
-        help_text="O que o QR Code abre. Vazio = <endereço deste servidor>/checkin.",
+        help_text="O que o QR Code abre. Vazio = <endereço deste servidor>/check-in/.",
     )
     termo_texto = models.TextField("texto do termo de consentimento", default=TERMO_PADRAO)
     termo_versao = models.CharField(

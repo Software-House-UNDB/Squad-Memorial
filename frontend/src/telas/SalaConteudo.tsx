@@ -51,7 +51,7 @@ export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: 
   );
   // perfil aberto: carregado aqui (e não no Perfil) para a foto ampliada também enxergar as fotos dele
   const aluno = useAluno(noPerfil ? st.perfilId : null);
-  const urlCheckin = config.urlCheckin || `${location.origin}/checkin`;
+  const urlCheckin = config.urlCheckin || `${location.origin}/check-in/`;
 
   const dicas: Record<Aba, ReactNode> = {
     apresentacao: <><b>Toque em uma aba</b> para explorar este espaço</>,

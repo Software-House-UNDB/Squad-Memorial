@@ -1,6 +1,6 @@
 /**
- * Primeira abertura do totem sem sala definida (sem ?sala=N e nada guardado no aparelho).
- * A escolha fica guardada; para trocar depois, abra o endereço com outro ?sala=N.
+ * Primeira abertura do totem sem sala definida (sem /memorial/sala/N e nada guardado no aparelho).
+ * A escolha fica guardada; para trocar depois, abra /memorial/sala/N com outro número.
  */
 import assinatura from '../assets/memorial/assinatura.png';
 import { dois, SALAS_PADRAO } from '../dados/salas';

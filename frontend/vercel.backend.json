@@ -6,21 +6,33 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/checkin",
+      "source": "/check-in",
       "destination": "/checkin/index.html"
     },
     {
-      "source": "/api/:path*",
-      "destination": "https://SEU-TUNEL.exemplo.com/api/:path*"
+      "source": "/check-in/",
+      "destination": "/checkin/index.html"
     },
     {
-      "source": "/media/:path*",
-      "destination": "https://SEU-TUNEL.exemplo.com/media/:path*"
+      "source": "/memorial/api/:path*",
+      "destination": "https://SEU-TUNEL.exemplo.com/memorial/api/:path*"
+    },
+    {
+      "source": "/memorial/media/:path*",
+      "destination": "https://SEU-TUNEL.exemplo.com/memorial/media/:path*"
+    },
+    {
+      "source": "/memorial/sala/:n",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/memorial/:path*",
+      "destination": "/:path*"
     }
   ],
   "headers": [
     {
-      "source": "/assets/(.*)",
+      "source": "/memorial/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -29,13 +41,25 @@
       ]
     },
     {
-      "source": "/(sw\\.js|registerSW\\.js|manifest\\.webmanifest|workbox-[^/]+\\.js)",
+      "source": "/memorial/(sw\\.js|registerSW\\.js|manifest\\.webmanifest|workbox-[^/]+\\.js)",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "no-cache"
         }
       ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/memorial/",
+      "permanent": false
+    },
+    {
+      "source": "/checkin",
+      "destination": "/check-in/",
+      "permanent": true
     }
   ]
 }
