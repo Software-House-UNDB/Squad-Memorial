@@ -45,8 +45,10 @@ docker compose exec backend python manage.py carregar_exemplo   # opcional: cont
 2. A sala fica guardada no aparelho (`memorial:sala`). O app instalado como PWA, aberto sem a query,
    continua na mesma sala. Sem sala definida, o totem mostra "Escolha a sala deste totem".
 3. Para trocar a sala de um totem, abra de novo o endereço com outro `/sala/N`.
-4. Abra uma vez com `?diag` para conferir a escala (o palco lógico é 1600 × 900; em telas 16:10 ele
-   fica centralizado, com faixas grafite).
+4. O totem pode ficar deitado ou em pé: o palco lógico é 1600 × 900 deitado e 900 × 1600 em pé, escolhido
+   pela proporção da tela (em 16:10 ou 4:3 ele fica centralizado, com faixas grafite). Se o aparelho informar a
+   orientação errada, acrescente `?orientacao=retrato` (ou `=paisagem`) ao endereço.
+5. Abra uma vez com `?diag` para conferir a escala e a orientação.
 
 ### Placa de check-in
 
@@ -258,10 +260,10 @@ Outro servidor: `VITE_BACKEND=http://192.168.0.10:8080 npm run dev`. Depois de m
 ### Modo demonstração (Vercel)
 
 Com `VITE_MODO_DEMO=1` no build (variável de ambiente do projeto no Vercel), o app não precisa de
-servidor: usa o conteúdo de exemplo embutido (`frontend/src/dados/exemplo.json`), `?sala=N` (1 a 6) funciona
+servidor: usa o conteúdo de exemplo embutido (`frontend/src/dados/exemplo.json`), `/sala/N` (1 a 6) funciona
 normalmente, e o check-in grava no próprio navegador e aparece na Sala 06 aberta nele, com o aviso
 "Modo demonstração: nada é enviado". A faixa de demonstração **só aparece nesse modo**: o **build de produção não deve ter
-`VITE_MODO_DEMO=1`**, senão o check-in não chega ao servidor. `vercel.json` já tem a rota `/checkin`. Para ligar o Vercel ao
+`VITE_MODO_DEMO=1`**, senão o check-in não chega ao servidor. `vercel.json` já tem as rotas `/sala/N` e `/check-in/`. Para ligar o Vercel ao
 servidor de verdade (túnel), veja `vercel.backend.json` e o serviço `cloudflared` do compose.
 
 ### Testes
@@ -297,8 +299,8 @@ ffmpeg -i entrada.mov -c:v libx264 -profile:v high -crf 23 -preset slow \
 mostra a legenda WebVTT, se houver. Fones ou caixas de som ficam por conta da instalação.
 
 **Celular (teste rápido)**: com `npm run dev` o Vite já aceita acessos da rede (`--host`). Abra
-`http://<IP do computador>:5173/?sala=N` no celular, no mesmo Wi-Fi, e deite o aparelho (a tela é 16:9).
-A sala escolhida fica guardada no navegador; use outro `?sala=N` para trocar.
+`http://<IP do computador>:5173/sala/N` no celular, no mesmo Wi-Fi. Deitado ou em pé, o palco se ajusta.
+A sala escolhida fica guardada no navegador; use outro `/sala/N` para trocar.
 
 **Rede**: o servidor deve ficar na rede interna com IP fixo (ou um nome como `memorial.local`).
 Adicione o endereço em `DJANGO_ALLOWED_HOSTS` e `DJANGO_CSRF_TRUSTED_ORIGINS`. O service worker
@@ -325,7 +327,7 @@ Os arquivos antigos de `/media` (fotos, vídeos, páginas de documento) ficam no
 
 A migração `0011` renumera as salas, e o conteúdo já cadastrado vai junto: 1 Educação → 1 Fundação, 2 Troféus → 5 Esporte,
 3 Artes → 4 Artes, 4 Professoras → 3 Professores, 5 Fechamento → 6 Alunos; a 2 Diretores é nova. Nome, título, subtítulo e cor
-são substituídos. Faça o backup antes e **confira o `?sala=N` de cada totem**: os que estavam em 2 a 5 passam a mostrar outro espaço.
+são substituídos. Faça o backup antes e **confira o `/sala/N` de cada totem**: os que estavam em 2 a 5 passam a mostrar outro espaço.
 
 ## Produção (`docker-compose.prod.yml`)
 
@@ -345,10 +347,22 @@ banco e gunicorn só na rede interna, backend sem root, gunicorn com threads e l
 ### Instalar (ex.: em `/opt/composers/memorial`)
 
 ```bash
-sudo git clone <repositório> /opt/composers/memorial && cd /opt/composers/memorial
-sudo cp .env.prod.example .env && sudo chmod 600 .env    # SERVER_NAME, DJANGO_SECRET_KEY, POSTGRES_PASSWORD...
-sudo docker compose -f docker-compose.prod.yml up -d --build
+sudo mkdir -p /opt/composers && sudo chown $USER:$USER /opt/composers   # o clone fica com o seu usuário, não com o root
+git clone https://github.com/Software-House-UNDB/Squad-Memorial.git /opt/composers/memorial
+cd /opt/composers/memorial
+cp .env.prod.example .env && chmod 600 .env    # SERVER_NAME, DJANGO_SECRET_KEY, POSTGRES_PASSWORD, GUNICORN_WORKERS...
+docker compose -f docker-compose.prod.yml up -d --build    # o primeiro build leva ~10 min numa VM de 1 vCPU
 ```
+
+O usuário precisa estar no grupo `docker` (`sudo usermod -aG docker $USER` e entrar de novo). Em servidor
+pequeno (1 vCPU, 4 GB) use `GUNICORN_WORKERS=2` e `GUNICORN_THREADS=4`. Para atualizar depois de um merge na `main`:
+
+```bash
+cd /opt/composers/memorial && git pull && docker compose -f docker-compose.prod.yml up -d --build
+```
+
+O `git pull` não mexe no `.env`, em `nginx/certs/` nem em `dados/`; as migrações rodam sozinhas na subida.
+Não use `docker compose down -v` nem `docker system prune --volumes`: apagam dados.
 
 Tudo que não pode se perder fica em pastas do servidor, ao lado do compose (mude com `DADOS_DIR`):
 
@@ -366,6 +380,29 @@ As pastas são criadas e recebem o dono certo sozinhas (serviço `permissoes`, a
 
 ### Certificado
 
+- **Wildcard da instituição** (o caso do `memorial.dbosco.com.br`, coberto por `*.dbosco.com.br`): o nginx precisa
+  da cadeia (certificado + intermediário) e da chave privada, que a TI fornece.
+
+  ```bash
+  # intermediário: o endereço está dentro do próprio certificado ("CA Issuers")
+  openssl x509 -in servidor.crt -noout -text | grep -A1 "CA Issuers"
+  curl -o inter.crt "<endereço que apareceu>"
+  openssl x509 -inform DER -in inter.crt -out inter.pem 2>/dev/null || cp inter.crt inter.pem   # pode vir em DER (binário)
+  { cat servidor.crt; echo; cat inter.pem; } > nginx/certs/fullchain.pem   # o echo evita juntar END e BEGIN na mesma linha
+  grep -c "BEGIN CERTIFICATE" nginx/certs/fullchain.pem                     # tem que dar 2
+
+  # chave: cole o texto em nginx/certs/privkey.pem (linhas de 64 caracteres, entre BEGIN e END) e confira
+  chmod 600 nginx/certs/privkey.pem
+  openssl pkey -in nginx/certs/privkey.pem -noout && echo "chave valida"
+  # os dois resultados têm que ser iguais (a chave é a deste certificado)
+  openssl x509 -in servidor.crt -noout -pubkey | openssl sha256
+  openssl pkey -in nginx/certs/privkey.pem -pubout | openssl sha256
+  ```
+
+  No `.env`: `SSL_CERT=/etc/nginx/certs/fullchain.pem` e `SSL_KEY=/etc/nginx/certs/privkey.pem`, depois
+  `docker compose -f docker-compose.prod.yml up -d --force-recreate nginx`. Veja a validade com
+  `openssl x509 -in nginx/certs/fullchain.pem -noout -enddate` e **combine com a TI a troca antes do vencimento**:
+  o nginx só lê o arquivo novo ao ser recriado.
 - **Só na VPN** (o caso padrão): sem configurar nada, o nginx gera um certificado autoassinado para `SERVER_NAME`
   (nome interno ou IP do servidor na VPN), válido por 825 dias, guardado em `dados/certificado/`. O navegador
   avisa até o certificado ser confiável: instale `dados/certificado/fullchain.pem` como certificado confiável
