@@ -1,7 +1,7 @@
 /**
  * Dados da sala deste totem, sem nunca mudar a tela debaixo do dedo:
  * - Abre com a última cópia guardada (localStorage), então as abas de conteúdo funcionam sem servidor.
- * - Busca /memorial/api/sala/N/ ao abrir e depois consulta /versao/?sala=N periodicamente.
+ * - Busca /api/memorial/sala/N/ ao abrir e depois consulta /versao/?sala=N periodicamente.
  * - Conteúdo novo só é aplicado quando o totem volta ao estado inicial da sala, ou depois de 30 s
  *   sem toque. Idem para uma versão nova do app (service worker) e para a recarga diária.
  * - Miniaturas e capas são baixadas em segundo plano para o cache do service worker (offline).

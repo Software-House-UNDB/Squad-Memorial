@@ -3,12 +3,7 @@
 #
 # - 80 só responde o desafio do Let's Encrypt e redireciona para 443.
 # - 443 com TLS 1.2/1.3, HSTS e cabeçalhos de segurança.
-# - dbosco.com.br é dividido com o site atual da escola. O memorial ocupa só:
-#     /memorial/...      totem (/memorial/sala/1 … 6), api, admin, mídia, estáticos e arquivos do app
-#     /administracao/    painel da administração
-#     /check-in/         check-in pelo celular (endereço do QR Code)
-#   Todo o resto vai para o servidor do site atual (SITE_ATUAL_URL no .env).
-# - Mesmas rotas do memorial que o nginx/nginx.conf de desenvolvimento.
+# - Mesmas rotas do nginx/nginx.conf de desenvolvimento.
 
 upstream backend {
     server backend:8000;
@@ -19,12 +14,6 @@ upstream backend {
 map $http_x_forwarded_proto $proto_real {
     default $scheme;
     https   https;
-}
-
-# Totens antigos abriam /?sala=N: agora é /memorial/sala/N.
-map $arg_sala $sala_antiga {
-    "~^([1-6])$" /memorial/sala/$1;
-    default      "";
 }
 
 # Sem servidor de versão no cabeçalho e nas páginas de erro
@@ -79,7 +68,7 @@ server {
 
     # Cabeçalhos de segurança (always: valem também em 4xx/5xx).
     # Repetidos nos blocos que têm add_header próprio, porque o nginx não herda add_header quando o bloco define um.
-    add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "same-origin" always;
     add_header Permissions-Policy "geolocation=(), microphone=(), payment=()" always;
@@ -105,21 +94,21 @@ server {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $proto_real;
 
-    # ---------- Memorial: Django ----------
+    # ---------- Django ----------
     # Check-in pelo celular: até 3 fotos de 10 MB cada.
-    location = /memorial/api/checkin/ {
+    location = /api/memorial/checkin/ {
         client_max_body_size 30m;
         proxy_pass http://backend;
         proxy_read_timeout 120s;
     }
 
-    location /memorial/api/ {
+    location /api/ {
         proxy_pass http://backend;
         proxy_read_timeout 60s;
     }
 
     # Admin: envio de vídeos grandes.
-    location /memorial/admin/ {
+    location /admin/ {
         client_max_body_size 2G;
         proxy_pass http://backend;
         proxy_request_buffering off;
@@ -127,11 +116,8 @@ server {
         proxy_send_timeout 600s;
     }
 
-    # Painel da administração (login obrigatório). Recebe os mesmos envios do admin.
-    location = /administracao {
-        return 301 /administracao/;
-    }
-    location /administracao/ {
+    # Painel da administração (login obrigatório). Recebe os mesmos envios do /admin.
+    location /administracao {
         client_max_body_size 2G;
         proxy_pass http://backend;
         proxy_request_buffering off;
@@ -139,49 +125,49 @@ server {
         proxy_send_timeout 600s;
     }
 
-    # ---------- Memorial: fotos e vídeos ----------
+    # ---------- Fotos e vídeos ----------
     # O nginx responde requisições Range: o <video> do totem avança/volta sem baixar o arquivo inteiro.
-    location /memorial/media/ {
+    location /media/ {
         alias /var/www/media/;
         expires 30d;
         add_header Cache-Control "public, max-age=2592000";
         add_header Access-Control-Allow-Origin "*";
-        add_header Strict-Transport-Security "max-age=31536000" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header X-Content-Type-Options "nosniff" always;
     }
 
     # Fotos de ex-alunos: cache curto, para um pedido de remoção chegar logo aos totens.
-    location /memorial/media/alunos/ {
+    location /media/alunos/ {
         alias /var/www/media/alunos/;
         add_header Cache-Control "public, max-age=3600";
         add_header Access-Control-Allow-Origin "*";
-        add_header Strict-Transport-Security "max-age=31536000" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header X-Content-Type-Options "nosniff" always;
     }
 
     # Arquivos estáticos do admin do Django
-    location /memorial/static/ {
+    location /static/ {
         alias /var/www/static/;
         expires 30d;
         add_header Cache-Control "public, max-age=2592000";
-        add_header Strict-Transport-Security "max-age=31536000" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header X-Content-Type-Options "nosniff" always;
     }
 
-    # ---------- Memorial: apps (build do frontend em /usr/share/nginx/html/memorial/) ----------
+    # ---------- Apps ----------
     # Arquivos com hash no nome: cache eterno
-    location /memorial/assets/ {
+    location /assets/ {
         add_header Cache-Control "public, max-age=31536000, immutable";
-        add_header Strict-Transport-Security "max-age=31536000" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header X-Content-Type-Options "nosniff" always;
         try_files $uri =404;
     }
 
     # Service worker e páginas nunca em cache, senão o totem não recebe versões novas
-    location ~ ^/memorial/(sw\.js|workbox-.*\.js|registerSW\.js|manifest\.webmanifest|index\.html)$ {
+    location ~ ^/(sw\.js|workbox-.*\.js|registerSW\.js|manifest\.webmanifest|index\.html)$ {
         types { application/javascript js; application/manifest+json webmanifest; text/html html; }
         add_header Cache-Control "no-cache";
-        add_header Strict-Transport-Security "max-age=31536000" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header Referrer-Policy "same-origin" always;
         try_files $uri =404;
@@ -193,39 +179,22 @@ server {
     }
     location /check-in/ {
         add_header Cache-Control "no-cache";
-        add_header Strict-Transport-Security "max-age=31536000" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header Referrer-Policy "same-origin" always;
-        try_files /memorial/checkin/index.html =404;
+        try_files /checkin/index.html =404;
     }
     # Endereço antigo do check-in (QR Codes já impressos) e o arquivo do build.
-    location ~ ^/(memorial/)?checkin/?$ {
+    location ~ ^/checkin/?$ {
         return 301 /check-in/$is_args$args;
     }
 
-    # Totem (SPA): /memorial/sala/1 … /memorial/sala/6 e o resto de /memorial/ caem no index.html
-    location = /memorial {
-        return 301 /memorial/$is_args$args;
-    }
-    location /memorial/ {
+    # Totem (SPA): /sala/1 … /sala/6 (ou /?sala=N) e qualquer outra rota caem no index.html
+    location / {
         add_header Cache-Control "no-cache";
-        add_header Strict-Transport-Security "max-age=31536000" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header Referrer-Policy "same-origin" always;
-        try_files $uri /memorial/index.html;
-    }
-
-    # ---------- Site atual da escola ----------
-    # Endereço antigo do totem (/?sala=N) vai para /memorial/sala/N; o resto da raiz é do site atual.
-    location = / {
-        if ($sala_antiga) {
-            return 301 $sala_antiga;
-        }
-        include /etc/nginx/memorial/site-atual.conf;
-    }
-
-    # Tudo o que não é do memorial: repassado ao servidor do site atual (SITE_ATUAL_URL, ver 16-site-atual.envsh).
-    location / {
-        include /etc/nginx/memorial/site-atual.conf;
+        try_files $uri $uri/ /index.html;
     }
 }

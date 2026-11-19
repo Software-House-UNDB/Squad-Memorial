@@ -45,11 +45,11 @@ export function parametrosAlunos(f: FiltroAlunos): string {
 }
 
 const fonteServidor: Fonte = {
-  sala: (n) => buscar<RespostaSala>(`/memorial/api/sala/${n}/`, 15_000),
-  versao: async (n) => (await buscar<{ versao: string }>(`/memorial/api/versao/?sala=${n}`, 5_000)).versao,
-  alunos: (f) => buscar<PaginaAlunos>(`/memorial/api/alunos/${parametrosAlunos(f)}`, 8_000),
-  aluno: (id) => buscar<AlunoPerfil>(`/memorial/api/alunos/${encodeURIComponent(String(id))}/`, 8_000),
-  configCheckin: () => buscar<ConfigCheckin>('/memorial/api/checkin/', 10_000),
+  sala: (n) => buscar<RespostaSala>(`/api/memorial/sala/${n}/`, 15_000),
+  versao: async (n) => (await buscar<{ versao: string }>(`/api/memorial/versao/?sala=${n}`, 5_000)).versao,
+  alunos: (f) => buscar<PaginaAlunos>(`/api/memorial/alunos/${parametrosAlunos(f)}`, 8_000),
+  aluno: (id) => buscar<AlunoPerfil>(`/api/memorial/alunos/${encodeURIComponent(String(id))}/`, 8_000),
+  configCheckin: () => buscar<ConfigCheckin>('/api/memorial/checkin/', 10_000),
   async checkin(d) {
     const corpo = new FormData();
     for (const k of ['nome', 'ano', 'email', 'site'] as const) corpo.append(k, d[k]);
@@ -66,7 +66,7 @@ const fonteServidor: Fonte = {
     const t = window.setTimeout(() => ctrl.abort(), 60_000);
     let r: Response;
     try {
-      r = await fetch(`${quiosque.api}/memorial/api/checkin/`, { method: 'POST', body: corpo, signal: ctrl.signal });
+      r = await fetch(`${quiosque.api}/api/memorial/checkin/`, { method: 'POST', body: corpo, signal: ctrl.signal });
     } catch {
       if (ctrl.signal.aborted) {
         return { ok: false, erros: { geral: 'O envio demorou demais. Confira a internet e tente de novo; o que você preencheu continua na tela.' } };

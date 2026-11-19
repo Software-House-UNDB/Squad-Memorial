@@ -3,19 +3,14 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import type { Connect, Plugin } from 'vite';
 
-// Em desenvolvimento, /memorial/api e /memorial/media vão para o nginx do docker compose (ou outro servidor).
+// Em desenvolvimento, /api e /media vão para o nginx do docker compose (ou outro servidor).
 // (lê process.env sem depender de @types/node)
 const env = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {};
 const BACKEND = env.VITE_BACKEND ?? 'http://localhost:8080';
 
-// dbosco.com.br é dividido com o site atual da escola. O memorial fica todo sob /memorial/ (totem em
-// /memorial/sala/N, arquivos em /memorial/assets/, api e mídia em /memorial/api/ e /memorial/media/);
-// só o check-in do celular fica na raiz, em /check-in/ (é o endereço do QR Code).
-const BASE = '/memorial/';
-
-/** Em dev e preview, /check-in/ abre a página do check-in (no nginx e no Vercel, a regra é deles). */
+/** Em dev e preview, /check-in/ (e o antigo /checkin) abre a página do check-in (no nginx e no Vercel, a regra é deles). */
 const rotaCheckin = ((req: { url?: string }, _res: unknown, next: () => void) => {
-  if (req.url && /^\/check-?in\/?(\?|$)/.test(req.url)) req.url = req.url.replace(/^\/check-?in\/?/, `${BASE}checkin/index.html`);
+  if (req.url && /^\/check-?in\/?(\?|$)/.test(req.url)) req.url = req.url.replace(/^\/check-?in\/?/, '/checkin/index.html');
   next();
 }) as unknown as Connect.NextHandleFunction;
 const paginaCheckin: Plugin = {
@@ -25,11 +20,10 @@ const paginaCheckin: Plugin = {
 };
 
 // Duas páginas: o totem (index.html) e o check-in pelo celular (checkin/index.html).
-// O nginx serve o build em /memorial/ e a página do check-in em /check-in/.
-// O service worker é só do totem (escopo /memorial/): guarda o app, as salas e as imagens para funcionar
-// sem rede, e nunca toca no site atual da escola nem no check-in.
+// O app é servido pelo nginx do docker compose, na raiz do servidor (base '/').
+// O service worker é só do totem: guarda o app, as salas e as imagens para funcionar sem rede.
 export default defineConfig({
-  base: BASE,
+  base: '/',
   plugins: [
     react(),
     paginaCheckin,
@@ -45,8 +39,7 @@ export default defineConfig({
         orientation: 'landscape',
         background_color: '#1F1E1C',
         theme_color: '#1F1E1C',
-        start_url: BASE,
-        scope: BASE,
+        start_url: '/',
         icons: [
           { src: 'icone-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icone-512.png', sizes: '512x512', type: 'image/png' },
@@ -57,21 +50,20 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,jpg,woff2}'],
         // a página de check-in é do celular do visitante: fica fora do precache e do fallback
         globIgnores: ['checkin/**', 'demo/**'],
-        navigateFallback: `${BASE}index.html`,
-        navigateFallbackAllowlist: [/^\/memorial\//],
-        navigateFallbackDenylist: [/^\/memorial\/(checkin|api|admin|media|static)\//],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/check-?in/, /^\/api\//, /^\/admin/, /^\/media\//, /^\/static\//],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             // Sala do totem: tenta a rede, cai para o cache se o servidor não responder (salas 1 a 4
             // funcionam offline). versao/, alunos/ e checkin/ ficam de fora de propósito: nunca em cache.
-            urlPattern: ({ url }) => /^\/memorial\/api\/sala\/\d+\/$/.test(url.pathname),
+            urlPattern: ({ url }) => /^\/api\/memorial\/sala\/\d+\/$/.test(url.pathname),
             handler: 'NetworkFirst',
             options: { cacheName: 'memorial-salas', networkTimeoutSeconds: 6, expiration: { maxEntries: 10 } },
           },
           {
             // Fotos e capas das salas nunca mudam (nome único por upload): cache primeiro.
-            urlPattern: ({ url }) => /^\/memorial\/media\/(fotos|videos\/capas)\//.test(url.pathname),
+            urlPattern: ({ url }) => /^\/media\/(fotos|videos\/capas)\//.test(url.pathname),
             handler: 'CacheFirst',
             options: {
               cacheName: 'memorial-imagens',
@@ -81,7 +73,7 @@ export default defineConfig({
           },
           {
             // Fotos de ex-alunos: validade curta, para um pedido de remoção chegar logo ao totem.
-            urlPattern: ({ url }) => url.pathname.startsWith('/memorial/media/alunos/'),
+            urlPattern: ({ url }) => url.pathname.startsWith('/media/alunos/'),
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'memorial-alunos',
@@ -97,11 +89,11 @@ export default defineConfig({
   server: {
     host: true,
     proxy: {
-      '/memorial/api': { target: BACKEND },
-      '/memorial/media': { target: BACKEND },
+      '/api': { target: BACKEND },
+      '/media': { target: BACKEND },
     },
   },
-  preview: { proxy: { '/memorial/api': { target: BACKEND }, '/memorial/media': { target: BACKEND } } },
+  preview: { proxy: { '/api': { target: BACKEND }, '/media': { target: BACKEND } } },
   build: {
     rollupOptions: {
       input: { totem: 'index.html', checkin: 'checkin/index.html' },

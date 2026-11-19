@@ -1,6 +1,6 @@
 /**
  * Qual sala é este totem.
- * O navegador quiosque abre `/memorial/sala/N` (o antigo `?sala=N` continua valendo). O número fica guardado no aparelho (memorial:sala), então o
+ * O navegador quiosque abre `/sala/N` (o antigo `?sala=N` continua valendo). O número fica guardado no aparelho (memorial:sala), então o
  * app instalado como PWA, aberto sem a query, continua na mesma sala. Sem sala definida, o totem
  * mostra a tela "Escolha a sala deste totem".
  */
@@ -14,7 +14,7 @@ export function salaValida(v: unknown): number | null {
   return Number.isInteger(n) && n >= 1 && n <= TOTAL_SALAS ? n : null;
 }
 
-/** Endereço do totem de uma sala (ex.: /memorial/sala/3). */
+/** Endereço do totem de uma sala (ex.: /sala/3). */
 export function caminhoDaSala(n: number): string {
   return `${import.meta.env.BASE_URL}sala/${n}`;
 }
