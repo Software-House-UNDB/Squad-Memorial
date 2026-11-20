@@ -8,12 +8,12 @@
 import type { Sala } from './tipos';
 
 export const SALAS_PADRAO: Sala[] = [
-  { numero: 1, slug: 'fundacao', nome: 'Fundação', titulo: 'Fundação', subtitulo: '', cor: '#8E6918', tipo: 'conteudo' },
-  { numero: 2, slug: 'diretores', nome: 'Diretores', titulo: 'Diretores', subtitulo: '', cor: '#2F62B0', tipo: 'conteudo' },
-  { numero: 3, slug: 'professores', nome: 'Professores', titulo: 'Professores', subtitulo: '', cor: '#17805F', tipo: 'conteudo' },
-  { numero: 4, slug: 'artes', nome: 'Artes', titulo: 'Artes', subtitulo: '', cor: '#C43F60', tipo: 'conteudo' },
-  { numero: 5, slug: 'esporte', nome: 'Esportes', titulo: 'Esportes', subtitulo: '', cor: '#B85A0C', tipo: 'conteudo' },
-  { numero: 6, slug: 'alunos', nome: 'Alunos', titulo: 'Alunos', subtitulo: '', cor: '#6E4BA8', tipo: 'fechamento' },
+  { numero: 1, slug: 'fundacao', nome: 'Fundação', titulo: 'Nossas Origens', subtitulo: '', cor: '#8E6918', tipo: 'conteudo' },
+  { numero: 2, slug: 'diretores', nome: 'Diretores', titulo: 'Liderança e Legado', subtitulo: '', cor: '#2F62B0', tipo: 'conteudo' },
+  { numero: 3, slug: 'professores', nome: 'Professores', titulo: 'Mestres de Gerações', subtitulo: '', cor: '#17805F', tipo: 'conteudo' },
+  { numero: 4, slug: 'artes', nome: 'Artes', titulo: 'Palco e Ateliê', subtitulo: '', cor: '#C43F60', tipo: 'conteudo' },
+  { numero: 5, slug: 'esporte', nome: 'Esportes', titulo: 'Campeões', subtitulo: '', cor: '#B85A0C', tipo: 'conteudo' },
+  { numero: 6, slug: 'alunos', nome: 'Alunos', titulo: 'Memórias vivas', subtitulo: '', cor: '#6E4BA8', tipo: 'fechamento' },
 ];
 
 export const salaPadrao = (n: number): Sala => SALAS_PADRAO.find((s) => s.numero === n) ?? SALAS_PADRAO[0];
