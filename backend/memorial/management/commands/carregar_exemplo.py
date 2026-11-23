@@ -153,7 +153,7 @@ class Command(BaseCommand):
             )
             for i, d in enumerate(r["dec"]):
                 decada = Decada.objects.create(
-                    sala=sala, rotulo=dados["decn"][i], periodo=dados["decr"][i], titulo=d["t"], resumo=d["d"],
+                    sala=sala, rotulo=d.get("r") or dados["decn"][i], periodo=d.get("p") or dados["decr"][i], titulo=d["t"], resumo=d["d"],
                     icone=d["icn"], ordem=i, **comum,
                 )
                 for j, evento in enumerate(d["ev"]):

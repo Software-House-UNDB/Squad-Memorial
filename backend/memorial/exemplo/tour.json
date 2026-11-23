@@ -868,74 +868,60 @@
    ],
    "dec": [
     {
-     "t": "Os primeiros anos",
-     "d": "O jardim de infância ganha as primeiras séries do primário e logo precisa de mais espaço.",
-     "ev": [
-      "1958 · Convite às trinta famílias",
-      "1962 · Primeira turma do primário",
-      "1967 · Mudança para a sede própria"
-     ],
-     "icn": "door"
+     "t": "Nasce um sonho chamado Pequeno Polegar",
+     "d": "Em 25 de maio, as professoras Maria Izabel Pereira Rodrigues e Maria de Lourdes Aroso Mendes fundam a escola que daria origem ao Colégio Dom Bosco.",
+     "ev": [],
+     "icn": "door",
+     "r": "1958",
+     "p": "Pequeno Polegar"
     },
     {
-     "t": "A escola cresce",
-     "d": "Chegam o ginásio, novas salas e a primeira biblioteca.",
-     "ev": [
-      "1971 · Início do ensino de 1º grau",
-      "1975 · Ampliação do prédio",
-      "1978 · Primeira biblioteca"
-     ],
-     "icn": "book"
+     "t": "As primeiras crianças no Campo de Ourique",
+     "d": "O Jardim de Infância Pequeno Polegar inicia suas atividades em um bangalô com jardins, no Centro de São Luís, recebendo suas primeiras turmas de crianças.",
+     "ev": [],
+     "icn": "book",
+     "r": "1959",
+     "p": "Campo de Ourique"
     },
     {
-     "t": "Ensino completo",
-     "d": "A escola passa a acompanhar o aluno até o fim do 2º grau.",
-     "ev": [
-      "1982 · Primeira turma do 2º grau",
-      "1985 · Laboratório de ciências",
-      "1988 · Festa dos 30 anos"
-     ],
-     "icn": "cap"
+     "t": "O início do Ensino Primário",
+     "d": "A escola amplia sua proposta educacional e implanta a primeira série do ensino primário, dando início à expansão gradual das séries escolares.",
+     "ev": [],
+     "icn": "cap",
+     "r": "1960",
+     "p": "Ensino Primário"
     },
     {
-     "t": "Identidade própria",
-     "d": "O projeto pedagógico da escola é escrito e o uniforme ganha nova versão.",
-     "ev": [
-      "1992 · Novo uniforme",
-      "1996 · Projeto pedagógico próprio",
-      "1998 · Festa dos 40 anos"
-     ],
-     "icn": "star"
+     "t": "Uma nova etapa na Rua do Passeio",
+     "d": "O Jardim Pequeno Polegar instala-se na Rua do Passeio, nº 288, onde a estrutura escolar cresceria até formar um complexo de prédios e casas interligadas.",
+     "ev": [],
+     "icn": "star",
+     "r": "1961",
+     "p": "Rua do Passeio"
     },
     {
-     "t": "Novos caminhos",
-     "d": "A tecnologia chega às salas e o Grupo Dom Bosco cresce.",
-     "ev": [
-      "2003 · Sala de informática",
-      "2005 · Chegada ao ensino superior",
-      "2008 · Festa dos 50 anos"
-     ],
-     "icn": "laptop"
+     "t": "O Ensino Primário está completo",
+     "d": "Com a implantação progressiva das séries, o Colégio passa a oferecer todo o curso primário, consolidando sua primeira etapa de expansão pedagógica.",
+     "ev": [],
+     "icn": "laptop",
+     "r": "1964",
+     "p": "Primário completo"
     },
     {
-     "t": "A terceira geração",
-     "d": "A gestão passa à terceira geração da família, formada por educadoras.",
-     "ev": [
-      "2012 · Nova geração na gestão",
-      "2015 · Reforma da fachada",
-      "2018 · Festa dos 60 anos"
-     ],
-     "icn": "users"
+     "t": "A ciência ganha destaque",
+     "d": "A escola participa da primeira Feira de Ciências da cidade e é premiada, destacando-se pelo estímulo à experimentação e à aprendizagem prática.",
+     "ev": [],
+     "icn": "users",
+     "r": "1965",
+     "p": "Feira de Ciências"
     },
     {
-     "t": "O Memorial",
-     "d": "A escola reúne sua história e abre um espaço para contá-la.",
-     "ev": [
-      "2020 · Ensino remoto na pandemia",
-      "2023 · Início do acervo",
-      "2026 · Abertura do Memorial"
-     ],
-     "icn": "heart"
+     "t": "Início do Curso Ginasial",
+     "d": "O Colégio amplia sua atuação com a implantação progressiva do curso ginasial, permitindo que os alunos dessem continuidade aos estudos na instituição.",
+     "ev": [],
+     "icn": "heart",
+     "r": "1966",
+     "p": "Curso Ginasial"
     }
    ],
    "marcos": [
@@ -979,74 +965,60 @@
    ],
    "dec": [
     {
-     "t": "A gestão da fundadora",
-     "d": "A Profa. Maria Izabel define a rotina, o regimento e o jeito de receber as famílias.",
-     "ev": [
-      "1958 · A fundadora assume a direção",
-      "1963 · Primeiro regimento escolar",
-      "1968 · Criação da secretaria"
-     ],
-     "icn": "users"
+     "t": "Nasce Luiz Pinho Rodrigues",
+     "d": "Em 2 de maio, nasce em Parnaíba (PI) Luiz Pinho Rodrigues, que se tornaria professor universitário, cirurgião-dentista e uma das grandes lideranças do Colégio Dom Bosco.",
+     "ev": [],
+     "icn": "users",
+     "r": "1921",
+     "p": "Luiz Pinho"
     },
     {
-     "t": "Organização",
-     "d": "A direção ganha apoio de um conselho de professores e da associação de pais.",
-     "ev": [
-      "1972 · Conselho de professores",
-      "1976 · Primeira vice-direção",
-      "1979 · Associação de pais"
-     ],
-     "icn": "book"
+     "t": "Nasce Maria Izabel Pereira Rodrigues",
+     "d": "Em 19 de agosto, nasce em São Luís a educadora que dedicaria sua trajetória à transformação do ensino e à formação de gerações de estudantes maranhenses.",
+     "ev": [],
+     "icn": "book",
+     "r": "1931",
+     "p": "Maria Izabel"
     },
     {
-     "t": "Expansão",
-     "d": "Com o 2º grau, a escola cria a coordenação pedagógica e planeja crescer.",
-     "ev": [
-      "1981 · Coordenação pedagógica",
-      "1986 · Plano de expansão",
-      "1989 · Nova diretoria"
-     ],
-     "icn": "board"
+     "t": "Maria Izabel funda o Pequeno Polegar",
+     "d": "Ao lado da professora Maria de Lourdes Aroso Mendes, Maria Izabel concretiza o sonho de criar uma escola inovadora, que mais tarde se transformaria no Colégio Dom Bosco.",
+     "ev": [],
+     "icn": "board",
+     "r": "1958",
+     "p": "A fundação"
     },
     {
-     "t": "Planejamento",
-     "d": "O planejamento passa a ser feito com professores e famílias.",
-     "ev": [
-      "1993 · Planejamento participativo",
-      "1996 · Projeto pedagógico",
-      "1999 · Avaliação institucional"
-     ],
-     "icn": "clock"
+     "t": "Luiz Pinho e o incentivo à ciência",
+     "d": "Luiz Pinho participa diretamente do desenvolvimento da primeira Feira de Ciências, contribuindo para a valorização da pesquisa e da experimentação entre os alunos.",
+     "ev": [],
+     "icn": "clock",
+     "r": "1965",
+     "p": "Incentivo à ciência"
     },
     {
-     "t": "Grupo Dom Bosco",
-     "d": "A gestão ganha um conselho de administração e chega ao ensino superior.",
-     "ev": [
-      "2002 · Conselho de administração",
-      "2005 · Ensino superior",
-      "2009 · Nova direção geral"
-     ],
-     "icn": "cap"
+     "t": "Luiz Pinho fortalece o esporte escolar",
+     "d": "Como gestor e incentivador do xadrez, cria a escolinha da modalidade, orienta estudantes e ajuda a construir a tradição esportiva do Dom Bosco.",
+     "ev": [],
+     "icn": "cap",
+     "r": "Anos 1970",
+     "p": "Esporte escolar"
     },
     {
-     "t": "Terceira geração",
-     "d": "Netas da fundadora, educadoras com mestrado e doutorado, assumem a gestão.",
-     "ev": [
-      "2012 · Nova geração na gestão",
-      "2016 · Novo plano estratégico",
-      "2019 · Parcerias internacionais"
-     ],
-     "icn": "heart"
+     "t": "O legado de Luiz Pinho Rodrigues",
+     "d": "O falecimento do professor Luiz Pinho, aos 56 anos, marca a história da instituição. Maria Izabel dá continuidade ao projeto educacional construído pelo casal.",
+     "ev": [],
+     "icn": "heart",
+     "r": "1977",
+     "p": "O legado"
     },
     {
-     "t": "Gestão e memória",
-     "d": "A direção conduz a escola na pandemia e cria o plano de memória.",
-     "ev": [
-      "2020 · Gestão na pandemia",
-      "2024 · Plano de memória institucional",
-      "2026 · Abertura do Memorial"
-     ],
-     "icn": "star"
+     "t": "Nova expansão ao lado de Ceres e Elizabeth",
+     "d": "O Colégio inaugura sua sede no Renascença, resultado de uma visão de crescimento que ampliou os espaços de aprendizagem e a infraestrutura escolar.",
+     "ev": [],
+     "icn": "star",
+     "r": "1993",
+     "p": "Renascença"
     }
    ],
    "marcos": [
@@ -1090,74 +1062,60 @@
    ],
    "dec": [
     {
-     "t": "As normalistas",
-     "d": "Professoras normalistas assumem as primeiras turmas e criam a cartilha da escola.",
-     "ev": [
-      "1958 · Primeiras professoras",
-      "1964 · Escola normal",
-      "1969 · Cartilha própria"
-     ],
-     "icn": "users"
+     "t": "As três Marias e o início de uma tradição",
+     "d": "Maria Izabel Rodrigues, Maria de Lourdes Aroso Mendes e Maria Amélia Mendes unem experiência, criatividade e inovação para construir a proposta pedagógica do Pequeno Polegar.",
+     "ev": [],
+     "icn": "users",
+     "r": "1958",
+     "p": "As três Marias"
     },
     {
-     "t": "Novas disciplinas",
-     "d": "Com o 1º grau, cada disciplina ganha seu professor.",
-     "ev": [
-      "1971 · Professores por disciplina",
-      "1974 · Primeiro professor de ciências",
-      "1978 · Reunião pedagógica semanal"
-     ],
-     "icn": "book"
+     "t": "Professoras que marcaram as primeiras gerações",
+     "d": "Educadoras como Maria da Glória Camarão Chaves, a Tia Glorinha, participam da consolidação do ensino e da formação das primeiras gerações de estudantes.",
+     "ev": [],
+     "icn": "book",
+     "r": "Anos 1960",
+     "p": "Primeiras gerações"
     },
     {
-     "t": "Formação",
-     "d": "A escola investe na formação dos professores e nas aulas práticas.",
-     "ev": [
-      "1982 · Coordenação pedagógica",
-      "1985 · Aulas de laboratório",
-      "1988 · Primeiros cursos de formação"
-     ],
-     "icn": "flask"
+     "t": "Professores e alunos descobrem a ciência na prática",
+     "d": "A participação na primeira Feira de Ciências da cidade evidencia uma proposta de ensino que estimula a investigação, a experimentação e o protagonismo dos estudantes.",
+     "ev": [],
+     "icn": "flask",
+     "r": "1965",
+     "p": "Ciência na prática"
     },
     {
-     "t": "Projetos",
-     "d": "As aulas ganham projetos que unem várias disciplinas.",
-     "ev": [
-      "1992 · Primeira feira de ciências",
-      "1995 · Projetos interdisciplinares",
-      "1999 · Semana do professor"
-     ],
-     "icn": "star"
+     "t": "Novos conhecimentos com o Curso Ginasial",
+     "d": "A ampliação do ensino fortalece o corpo docente. Professores como Marina Marques contribuem para o ensino de idiomas e para a diversificação da formação escolar.",
+     "ev": [],
+     "icn": "star",
+     "r": "1966",
+     "p": "Ginasial"
     },
     {
-     "t": "Tecnologia",
-     "d": "Os professores aprendem a usar o computador e a lousa digital em sala.",
-     "ev": [
-      "2003 · Formação em informática",
-      "2006 · Lousa digital",
-      "2009 · Pós-graduação para docentes"
-     ],
-     "icn": "laptop"
+     "t": "A formação docente e o método Montessori",
+     "d": "Com a criação do curso maternal, o Colégio implanta a metodologia montessoriana e investe na capacitação dos professores para novas práticas de educação infantil.",
+     "ev": [],
+     "icn": "laptop",
+     "r": "1974",
+     "p": "Montessori"
     },
     {
-     "t": "Metodologias",
-     "d": "Sala invertida, projetos e mais protagonismo dos alunos.",
-     "ev": [
-      "2013 · Sala invertida",
-      "2016 · Aprendizagem por projetos",
-      "2019 · Mestres e doutores no corpo docente"
-     ],
-     "icn": "cap"
+     "t": "60 anos e uma nova proposta pedagógica",
+     "d": "Ao completar 60 anos, o Dom Bosco lança uma nova proposta pedagógica, alinhada às práticas educacionais mais atualizadas e de referência no mundo.",
+     "ev": [],
+     "icn": "cap",
+     "r": "2018",
+     "p": "60 anos"
     },
     {
-     "t": "Memória viva",
-     "d": "As lembranças dos professores entram para o acervo.",
-     "ev": [
-      "2020 · Aulas remotas",
-      "2023 · Depoimentos gravados",
-      "2026 · Homenagem no Memorial"
-     ],
-     "icn": "heart"
+     "t": "50 anos de docência de Tia Silvia",
+     "d": "A professora mais antiga da casa completa jubileu de ouro e é homenageada pelos seus 50 anos de dedicação ao Colégio Dom Bosco.",
+     "ev": [],
+     "icn": "heart",
+     "r": "2025",
+     "p": "Tia Silvia"
     }
    ],
    "marcos": [
@@ -1201,74 +1159,60 @@
    ],
    "dec": [
     {
-     "t": "O primeiro coral",
-     "d": "As vozes dos alunos se reúnem no coral e no primeiro teatro.",
-     "ev": [
-      "1959 · Primeiro coral",
-      "1964 · Festa junina",
-      "1967 · Grupo de teatro"
-     ],
-     "icn": "music"
+     "t": "A arte nasce junto com o Pequeno Polegar",
+     "d": "Desde os primeiros anos, música, dança, desenhos e dramatizações integram a proposta pedagógica das fundadoras, tornando a expressão artística parte da aprendizagem.",
+     "ev": [],
+     "icn": "music",
+     "r": "1958",
+     "p": "Arte desde o início"
     },
     {
-     "t": "Festivais",
-     "d": "Bandas de alunos apresentam composições próprias.",
-     "ev": [
-      "1972 · Desfile cívico com fanfarra",
-      "1975 · Primeiro festival de música",
-      "1979 · Teatro de fim de ano"
-     ],
-     "icn": "music"
+     "t": "As primeiras apresentações e a Bandinha do Pequeno Polegar",
+     "d": "Peças como O Casamento da Franguinha e a criação da Bandinha do Pequeno Polegar iniciam uma tradição de espetáculos e apresentações artísticas na escola.",
+     "ev": [],
+     "icn": "music",
+     "r": "Anos 1960",
+     "p": "A Bandinha"
     },
     {
-     "t": "O ateliê",
-     "d": "Pintura, gravura e cerâmica chegam ao contraturno.",
-     "ev": [
-      "1983 · Ateliê de artes visuais",
-      "1986 · Mostra de arte",
-      "1989 · Novo auditório"
-     ],
-     "icn": "palette"
+     "t": "Festival de Música Popular do Dom Bosco",
+     "d": "O Colégio realiza a segunda edição do Festival de Música Popular, fortalecendo uma tradição de incentivo à expressão musical e à participação dos estudantes em atividades culturais.",
+     "ev": [],
+     "icn": "palette",
+     "r": "1978",
+     "p": "Festival de Música"
     },
     {
-     "t": "A grande festa",
-     "d": "A festa junina vira um dos maiores eventos do ano.",
-     "ev": [
-      "1994 · Quadrilha junina",
-      "1996 · Concurso de redação e poesia",
-      "1999 · Musical de fim de ano"
-     ],
-     "icn": "star"
+     "t": "Inauguração do Teatro Maria Izabel",
+     "d": "O Colégio inaugura seu teatro com a apresentação do balé As Quatro Estações, de Vivaldi, ampliando os espaços dedicados à arte e à cultura.",
+     "ev": [],
+     "icn": "star",
+     "r": "1994",
+     "p": "O Teatro"
     },
     {
-     "t": "Dança",
-     "d": "Grupos de dança contemporânea e regional se apresentam juntos.",
-     "ev": [
-      "2002 · Grupo de dança",
-      "2004 · Mostra de dança",
-      "2008 · Espetáculo dos 50 anos"
-     ],
-     "icn": "users"
+     "t": "A primeira ópera: A Flauta Mágica",
+     "d": "A educadora Ceres Murad inicia o projeto de alfabetização pela ópera, com o espetáculo A Flauta Mágica, integrando diferentes linguagens artísticas à aprendizagem.",
+     "ev": [],
+     "icn": "users",
+     "r": "1997",
+     "p": "A Flauta Mágica"
     },
     {
-     "t": "Saraus",
-     "d": "Poesia e música ao vivo, com leituras de alunos e famílias.",
-     "ev": [
-      "2011 · Clube de leitura",
-      "2014 · Primeiro sarau literário",
-      "2018 · Festival dos 60 anos"
-     ],
-     "icn": "book"
+     "t": "A ópera ultrapassa os muros da escola",
+     "d": "A metodologia criada no Dom Bosco passa a beneficiar também crianças atendidas pelo Instituto Áurea Faria, ampliando o alcance social do projeto Ópera para Todos.",
+     "ev": [],
+     "icn": "book",
+     "r": "2000",
+     "p": "Ópera sem muros"
     },
     {
-     "t": "A galeria",
-     "d": "Obras de alunos ganham espaço fixo no corredor principal.",
-     "ev": [
-      "2021 · Mostra virtual",
-      "2024 · Galeria permanente",
-      "2026 · Arte no Memorial"
-     ],
-     "icn": "image"
+     "t": "Prêmio Nacional Darcy Ribeiro de Educação",
+     "d": "O projeto Ópera para Todos conquista reconhecimento nacional pela utilização inovadora da arte como instrumento de alfabetização e desenvolvimento infantil.",
+     "ev": [],
+     "icn": "image",
+     "r": "2003",
+     "p": "Prêmio Darcy Ribeiro"
     }
    ],
    "marcos": [
@@ -1312,74 +1256,60 @@
    ],
    "dec": [
     {
-     "t": "Os jogos internos",
-     "d": "As turmas disputam futebol, queimada e atletismo no pátio.",
-     "ev": [
-      "1962 · Primeiros jogos internos",
-      "1965 · Primeiro uniforme esportivo",
-      "1969 · Torneio de queimada"
-     ],
-     "icn": "trophy"
+     "t": "O primeiro título nos JEMs: campeão de xadrez",
+     "d": "Na primeira edição dos Jogos Escolares Maranhenses, o Colégio Dom Bosco participa com uma equipe de xadrez e conquista o título da modalidade, iniciando sua história de vitórias na competição.",
+     "ev": [],
+     "icn": "trophy",
+     "r": "1973",
+     "p": "Xadrez nos JEMs"
     },
     {
-     "t": "O primeiro troféu",
-     "d": "A equipe feminina de vôlei vence fora da escola.",
-     "ev": [
-      "1970 · Título regional de vôlei",
-      "1974 · Quadra coberta",
-      "1979 · Olimpíada estudantil"
-     ],
-     "icn": "medal"
+     "t": "Primeiro título de campeão geral dos JEMs",
+     "d": "O Colégio conquista seu primeiro campeonato geral dos Jogos Escolares Maranhenses, marco inicial de uma trajetória de destaque no esporte estudantil.",
+     "ev": [],
+     "icn": "medal",
+     "r": "1982",
+     "p": "1º campeão geral"
     },
     {
-     "t": "A taça estadual",
-     "d": "O futsal conquista a primeira taça estadual.",
-     "ev": [
-      "1983 · Equipe de natação",
-      "1988 · Campeões estaduais de futsal",
-      "1989 · Jogos dos 30 anos"
-     ],
-     "icn": "trophy"
+     "t": "O segundo campeonato geral",
+     "d": "O Dom Bosco conquista mais um título de campeão geral dos JEMs, reafirmando sua força nas competições esportivas escolares.",
+     "ev": [],
+     "icn": "trophy",
+     "r": "1988",
+     "p": "2º campeão geral"
     },
     {
-     "t": "Tradição",
-     "d": "O interclasses se torna o evento mais esperado do ano.",
-     "ev": [
-      "1991 · Interclasses com todas as séries",
-      "1995 · Handebol feminino",
-      "1998 · Jogos dos 40 anos"
-     ],
-     "icn": "star"
+     "t": "Recorde de 24 troféus",
+     "d": "O Colégio alcança a marca histórica de 24 troféus em uma edição dos Jogos Escolares Maranhenses, evidenciando a força de suas equipes em diferentes modalidades.",
+     "ev": [],
+     "icn": "star",
+     "r": "1989",
+     "p": "24 troféus"
     },
     {
-     "t": "Além da quadra",
-     "d": "As conquistas chegam também às olimpíadas do conhecimento.",
-     "ev": [
-      "2003 · Xadrez escolar",
-      "2006 · Olimpíada de Matemática",
-      "2009 · Medalhas na OBMEP"
-     ],
-     "icn": "medal"
+     "t": "Terceiro título de campeão geral",
+     "d": "O Dom Bosco conquista seu terceiro campeonato geral dos JEMs, preparando o caminho para uma sequência de vitórias sem precedentes na trajetória da instituição.",
+     "ev": [],
+     "icn": "medal",
+     "r": "1992",
+     "p": "3º título geral"
     },
     {
-     "t": "Robótica e esporte",
-     "d": "A equipe de robótica se junta às equipes esportivas.",
-     "ev": [
-      "2012 · Escolinha de esportes",
-      "2016 · Robótica na etapa nacional",
-      "2018 · Jogos dos 60 anos"
-     ],
-     "icn": "star"
+     "t": "Sete campeonatos consecutivos",
+     "d": "O Colégio inicia uma sequência de títulos gerais nos Jogos Escolares Maranhenses, conquistando sete campeonatos consecutivos e consolidando sua posição de destaque no esporte escolar.",
+     "ev": [],
+     "icn": "star",
+     "r": "1994–2000",
+     "p": "Sete seguidos"
     },
     {
-     "t": "A melhor campanha",
-     "d": "A delegação mais premiada da história da escola.",
-     "ev": [
-      "2022 · Volta dos jogos presenciais",
-      "2025 · Jogos escolares",
-      "2026 · Troféus no Memorial"
-     ],
-     "icn": "trophy"
+     "t": "Uma sequência histórica: 17 vezes campeão",
+     "d": "Com mais sete títulos consecutivos, o Dom Bosco encerra 2007 com 17 conquistas de campeão geral dos JEMs, incluindo 14 vitórias seguidas entre 1994 e 2007.",
+     "ev": [],
+     "icn": "trophy",
+     "r": "2001–2007",
+     "p": "17 títulos"
     }
    ],
    "marcos": [
@@ -1423,74 +1353,60 @@
    ],
    "dec": [
     {
-     "t": "Uniforme e cartilha",
-     "d": "Os primeiros alunos aprendem a ler com a cartilha e desfilam de uniforme de gala.",
-     "ev": [
-      "1958 · Primeira turma do jardim",
-      "1962 · Uniforme de gala",
-      "1966 · Primeiro desfile de 7 de Setembro"
-     ],
-     "icn": "users"
+     "t": "Primeira turma formada e aprovação em Medicina",
+     "d": "O Colégio forma sua primeira turma do 2º grau e registra a aprovação de um aluno no curso de Medicina da Universidade Federal do Maranhão.",
+     "ev": [],
+     "icn": "users",
+     "r": "1972",
+     "p": "Primeira turma"
     },
     {
-     "t": "O grêmio",
-     "d": "Os alunos criam o grêmio estudantil e o próprio jornal.",
-     "ev": [
-      "1973 · Grêmio estudantil",
-      "1975 · Jornal dos alunos",
-      "1979 · Primeira gincana"
-     ],
-     "icn": "book"
+     "t": "Primeiro lugar em Medicina na UFMA",
+     "d": "Um estudante do Dom Bosco conquista o primeiro lugar no vestibular de Medicina da Universidade Federal do Maranhão, um marco da trajetória acadêmica da instituição.",
+     "ev": [],
+     "icn": "book",
+     "r": "1976",
+     "p": "1º em Medicina"
     },
     {
-     "t": "As formaturas",
-     "d": "Chega a primeira formatura do 2º grau.",
-     "ev": [
-      "1982 · Formatura do 2º grau",
-      "1985 · Excursão de fim de ano",
-      "1988 · Festa dos 30 anos"
-     ],
-     "icn": "cap"
+     "t": "Primeiros lugares gerais na UFMA e na UEMA",
+     "d": "Alunos do Colégio conquistam, no mesmo ano, o primeiro lugar geral nos vestibulares da Universidade Federal do Maranhão e da Universidade Estadual do Maranhão.",
+     "ev": [],
+     "icn": "cap",
+     "r": "1978",
+     "p": "Vestibulares"
     },
     {
-     "t": "Festas e feiras",
-     "d": "Feira cultural, baile de formatura e muita música no recreio.",
-     "ev": [
-      "1992 · Feira cultural",
-      "1995 · Baile de formatura",
-      "1998 · Festa dos 40 anos"
-     ],
-     "icn": "music"
+     "t": "Aprovação no ITA",
+     "d": "O aluno Fernando Goulart Sousa conquista uma vaga no Instituto Tecnológico de Aeronáutica (ITA), em São José dos Campos.",
+     "ev": [],
+     "icn": "music",
+     "r": "1980",
+     "p": "ITA"
     },
     {
-     "t": "Novos horizontes",
-     "d": "Intercâmbios e olimpíadas internas ampliam o mundo dos alunos.",
-     "ev": [
-      "2002 · Olimpíadas internas",
-      "2005 · Primeiro intercâmbio",
-      "2008 · Festa dos 50 anos"
-     ],
-     "icn": "star"
+     "t": "Rafael Leitão conquista o mundo no xadrez",
+     "d": "O aluno Rafael Leitão torna-se campeão mundial de xadrez na categoria sub-12, levando o nome do Maranhão e do Colégio Dom Bosco ao cenário internacional.",
+     "ev": [],
+     "icn": "star",
+     "r": "1991",
+     "p": "Rafael Leitão"
     },
     {
-     "t": "Conectados",
-     "d": "A escola chega às redes sociais e os alunos criam clubes.",
-     "ev": [
-      "2012 · A escola nas redes sociais",
-      "2015 · Clube de robótica",
-      "2018 · Festa dos 60 anos"
-     ],
-     "icn": "laptop"
+     "t": "Tecnologia e inovação na formação dos alunos",
+     "d": "O Colégio inaugura seu laboratório de informática, o primeiro no Norte e Nordeste. A iniciativa foi destaque em reportagem da revista Veja, em 1993.",
+     "ev": [],
+     "icn": "laptop",
+     "r": "1992",
+     "p": "Informática"
     },
     {
-     "t": "Reencontros",
-     "d": "Ex-alunos voltam à escola e se reencontram no Memorial.",
-     "ev": [
-      "2020 · Aulas em casa",
-      "2024 · Encontro de ex-alunos",
-      "2026 · Check-in no Memorial"
-     ],
-     "icn": "heart"
+     "t": "Dom Bosco conquista o selo IB World School",
+     "d": "O Dom Bosco torna-se a primeira escola do Maranhão a receber a certificação International Baccalaureate (IB), reconhecimento pela formação de alunos que compreendem diferentes realidades e buscam soluções para desafios globais.",
+     "ev": [],
+     "icn": "heart",
+     "r": "2025",
+     "p": "Selo IB"
     }
    ],
    "marcos": [

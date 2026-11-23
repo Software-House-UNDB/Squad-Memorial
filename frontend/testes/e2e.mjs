@@ -100,16 +100,16 @@ for (const [w, h] of TELAS) {
   });
 
   // ---------------------------------------------------------------- linha do tempo e marcos
-  await verificar('linha do tempo: 7 décadas, troca por toque e pelas setas', async () => {
+  await verificar('linha do tempo: 7 marcos, troca por toque e pelas setas', async () => {
     await abrir(p, 'sala=1');
     await p.getByRole('tab', { name: /Linha do tempo/ }).click();
-    confere((await p.locator('.tt-dec').count()) === 7, '7 décadas esperadas');
-    confere((await p.locator('.tt-painel .tt-eyb').innerText()).includes('DÉCADA 1 DE 7'), 'abre na primeira década');
+    confere((await p.locator('.tt-dec').count()) === 7, '7 marcos esperados');
+    confere((await p.locator('.tt-painel .tt-eyb').innerText()).includes('1 DE 7'), 'abre no primeiro marco');
     await p.locator('.tt-dec').nth(3).click();
-    confere((await p.locator('.tt-painel .tt-eyb').innerText()).includes('DÉCADA 4 DE 7'), 'toque na década não mudou');
-    confere((await p.locator('.tt-painel__ev li').count()) === 3, '3 acontecimentos por década');
+    confere((await p.locator('.tt-painel .tt-eyb').innerText()).includes('4 DE 7'), 'toque no marco não mudou');
+    confere((await p.locator('.tt-painel__tit').innerText()).length > 0, 'painel sem título');
     await p.getByRole('button', { name: 'Próxima década' }).click();
-    confere((await p.locator('.tt-painel .tt-eyb').innerText()).includes('DÉCADA 5 DE 7'), 'seta não avançou');
+    confere((await p.locator('.tt-painel .tt-eyb').innerText()).includes('5 DE 7'), 'seta não avançou');
     await foto('linha-do-tempo');
   });
 

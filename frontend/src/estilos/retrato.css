@@ -44,7 +44,7 @@
 .palco--retrato .tt-linha { gap: 18px; }
 .palco--retrato .tt-dec { padding: 0 2px 6px; }
 .palco--retrato .tt-dec b { font-size: 22px; white-space: nowrap; }
-.palco--retrato .tt-dec small { font-size: var(--t-micro); white-space: nowrap; }
+.palco--retrato .tt-dec small { font-size: var(--t-micro); line-height: 1.2; }
 .palco--retrato .tt-dec__tit { display: none; }
 
 .palco--retrato .tt-painel { flex-direction: column; gap: 26px; padding: 22px 22px 96px; }

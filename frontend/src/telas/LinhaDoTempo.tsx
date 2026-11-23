@@ -20,7 +20,7 @@ export function LinhaDoTempo({ decadas, indice, aoEscolher }: Props) {
   const d = decadas[i];
   return (
     <div className="tt-linha entra">
-      <div className="tt-linha__trilho" role="tablist" aria-label="Décadas" style={{ gridTemplateColumns: `repeat(${decadas.length}, 1fr)` }}>
+      <div className="tt-linha__trilho" role="tablist" aria-label="Décadas" style={{ gridTemplateColumns: `repeat(${decadas.length}, minmax(0, 1fr))` }}>
         {decadas.map((x, k) => (
           <button
             key={x.id}
@@ -32,8 +32,7 @@ export function LinhaDoTempo({ decadas, indice, aoEscolher }: Props) {
           >
             <span className="tt-dec__ponto" aria-hidden="true"><i /></span>
             <b className="serif">{x.rotulo}</b>
-            <small className="num">{x.periodo}</small>
-            <span className="tt-dec__tit">{x.titulo}</span>
+            <small className="tt-dec__etq">{x.periodo}</small>
           </button>
         ))}
       </div>
@@ -41,17 +40,19 @@ export function LinhaDoTempo({ decadas, indice, aoEscolher }: Props) {
       <article className="tt-painel tt-cartao" key={d.id} aria-label={`${d.rotulo}: ${d.titulo}`}>
         <FotoEpoca src={d.foto} alt={d.titulo} icone={d.icone} semente={d.id} className="tt-painel__foto" tamanhoIcone={72} />
         <div className="tt-painel__txt">
-          <div className="tt-eyb num">{d.periodo.toUpperCase()} · DÉCADA {i + 1} DE {decadas.length}</div>
+          <div className="tt-eyb num">{d.rotulo.toUpperCase()} · {i + 1} DE {decadas.length}</div>
           <h3 className="tt-painel__tit serif">{d.titulo}</h3>
           {d.resumo && <p className="tt-painel__resumo">{d.resumo}</p>}
-          <ul className="tt-painel__ev">
-            {d.acontecimentos.map((e, k) => (
-              <li key={k}>
-                <span className="tt-painel__ano num">{e.ano}</span>
-                <span>{e.texto}</span>
-              </li>
-            ))}
-          </ul>
+          {d.acontecimentos.length > 0 && (
+            <ul className="tt-painel__ev">
+              {d.acontecimentos.map((e, k) => (
+                <li key={k}>
+                  <span className="tt-painel__ano num">{e.ano}</span>
+                  <span>{e.texto}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <div className="tt-painel__setas">
           <button type="button" className="m-seta" disabled={i <= 0} onClick={() => aoEscolher(i - 1)} aria-label="Década anterior">

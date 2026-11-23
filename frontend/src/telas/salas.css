@@ -11,7 +11,7 @@
 .tt-apres__foto figcaption { font-size: var(--t-apoio); font-style: italic; color: var(--suave-2); }
 .tt-apres__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; padding-top: 8px; }
 .tt-apres__tit { font-size: 44px; font-weight: 700; line-height: 1.05; color: var(--grafite); }
-.tt-apres__txt p { font-size: var(--t-texto); line-height: 1.55; color: var(--grafite-2); max-width: 36em; text-align: justify; }
+.tt-apres__txt p { font-size: var(--t-texto); line-height: 1.55; color: var(--grafite-2); max-width: 36em; text-align: justify; hyphens: auto; }
 .tt-apres__atalhos { margin-top: auto; display: flex; gap: 14px; flex-wrap: wrap; padding-bottom: 6px; }
 .tt-atalho {
   display: flex; align-items: center; gap: 10px; height: var(--toque); padding: 0 24px;
@@ -25,7 +25,7 @@
 .tt-linha__trilho { display: grid; flex: none; position: relative; }
 .tt-dec {
   position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 0 6px 8px; min-height: var(--toque); text-align: center; color: var(--grafite);
+  padding: 0 6px 8px; min-height: var(--toque); min-width: 0; text-align: center; color: var(--grafite);
 }
 .tt-dec::before { /* o fio que liga as décadas */
   content: ''; position: absolute; left: 0; right: 0; top: 27px; height: 2px; background: var(--dourado);
@@ -44,7 +44,7 @@
 .tt-dec b { font-size: 28px; font-weight: 700; line-height: 1.05; }
 .tt-dec.is-ativa b { color: var(--rc); }
 .tt-dec small { font-size: var(--t-apoio); color: var(--suave-2); }
-.tt-dec__tit { font-size: var(--t-apoio); font-weight: 600; line-height: 1.25; color: var(--grafite-2); max-width: 190px; margin-top: 2px; }
+.tt-dec__etq { font-size: var(--t-apoio); font-weight: 600; line-height: 1.25; color: var(--grafite-2); max-width: 190px; margin-top: 2px; text-wrap: balance; white-space: normal; }
 .tt-dec:active .tt-dec__ponto i { transform: scale(1.25); }
 
 .tt-painel {
