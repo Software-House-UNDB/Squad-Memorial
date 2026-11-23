@@ -2,6 +2,7 @@
  * Aba Linha do tempo: as décadas lado a lado (uma linha com pontos) e, abaixo, o painel da década
  * escolhida: foto, resumo e três acontecimentos. As setas passam para a década anterior/seguinte.
  */
+import type { CSSProperties } from 'react';
 import { FotoEpoca } from '../componentes/FotoEpoca';
 import { Icone } from '../componentes/Icone';
 import type { Decada } from '../dados/tipos';
@@ -37,11 +38,22 @@ export function LinhaDoTempo({ decadas, indice, aoEscolher }: Props) {
         ))}
       </div>
 
-      <article className="tt-painel tt-cartao" key={d.id} aria-label={`${d.rotulo}: ${d.titulo}`}>
+      <article
+        className="tt-painel tt-cartao"
+        key={d.id}
+        aria-label={`${d.rotulo}: ${d.titulo}`}
+        data-ano={d.rotulo}
+        data-faixa={d.rotulo.length > 5 ? 'sim' : undefined}
+        style={{ '--pos': `${((i + 0.5) / decadas.length) * 100}%`, '--len': d.rotulo.length } as CSSProperties}
+      >
         <FotoEpoca src={d.foto} alt={d.titulo} icone={d.icone} semente={d.id} className="tt-painel__foto" tamanhoIcone={72} />
         <div className="tt-painel__txt">
-          <div className="tt-eyb num">{d.rotulo.toUpperCase()} · {i + 1} DE {decadas.length}</div>
+          <div className="tt-painel__cab">
+            <span className="tt-painel__ano-grande serif num">{d.rotulo}</span>
+            <span className="tt-painel__tag">{d.periodo}</span>
+          </div>
           <h3 className="tt-painel__tit serif">{d.titulo}</h3>
+          <span className="tt-painel__fio" aria-hidden="true" />
           {d.resumo && <p className="tt-painel__resumo">{d.resumo}</p>}
           {d.acontecimentos.length > 0 && (
             <ul className="tt-painel__ev">
@@ -53,6 +65,12 @@ export function LinhaDoTempo({ decadas, indice, aoEscolher }: Props) {
               ))}
             </ul>
           )}
+          <div className="tt-painel__prog">
+            <span className="tt-eyb num">MARCO {i + 1} DE {decadas.length}</span>
+            <span className="tt-painel__barras" aria-hidden="true">
+              {decadas.map((x, k) => <i key={x.id} className={k === i ? 'is-ativa' : undefined} />)}
+            </span>
+          </div>
         </div>
         <div className="tt-painel__setas">
           <button type="button" className="m-seta" disabled={i <= 0} onClick={() => aoEscolher(i - 1)} aria-label="Década anterior">
