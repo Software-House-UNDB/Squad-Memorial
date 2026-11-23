@@ -863,8 +863,8 @@
    "apicon": "door",
    "apcap": "Fachada da primeira sede · foto de exemplo",
    "intro": [
-    "Em 1958, nasceu em São Luís um projeto educacional que transformaria a vida de gerações de maranhenses. Idealizado pelas professoras Maria Izabel Pereira Rodrigues e Maria de Lourdes Aroso Mendes, com a colaboração da educadora Maria Amélia Mendes, o Jardim de Infância Pequeno Polegar começou com apenas 30 crianças e uma proposta inovadora para a época: oferecer uma educação que unisse conhecimento, afeto, criatividade e respeito à infância.",
-    "O sucesso da iniciativa impulsionou o crescimento da escola, que se transformou no Colégio Dom Bosco. Do pequeno jardim de infância no Campo de Ourique às instalações da Rua do Passeio e, posteriormente, do Renascença, a instituição construiu uma trajetória marcada pelo pioneirismo pedagógico, pela excelência acadêmica e pelo compromisso com a formação humana."
+    "Em 1958, nasceu em São Luís um projeto educacional que transformaria a vida de gerações de maranhenses. Idealizado pelas professoras Maria Izabel Pereira Rodrigues e Maria de Lourdes Aroso Mendes, com a colaboração da educadora Maria Amélia Mendes, o Jardim de Infância **Pequeno Polegar** começou com **apenas 30 crianças** e uma proposta inovadora para a época: oferecer uma educação que unisse conhecimento, afeto, criatividade e respeito à infância.",
+    "O sucesso da iniciativa impulsionou o crescimento da escola, que se transformou no Colégio Dom Bosco. Do pequeno jardim de infância no Campo de Ourique às instalações da Rua do Passeio e, posteriormente, do Renascença, a instituição construiu uma trajetória marcada pelo **pioneirismo pedagógico**, pela excelência acadêmica e pelo compromisso com a formação humana."
    ],
    "dec": [
     {
@@ -960,8 +960,8 @@
    "apicon": "users",
    "apcap": "Reunião de direção · foto de exemplo",
    "intro": [
-    "A história do Colégio Dom Bosco foi construída por lideranças que souberam transformar sonhos em realizações. À frente desse projeto esteve a professora Maria Izabel Pereira Rodrigues, cuja visão educacional orientou o crescimento da instituição. Ao seu lado, o professor Luiz Pinho Rodrigues contribuiu para a gestão escolar, o desenvolvimento de projetos inovadores e o fortalecimento do esporte, deixando um legado que permanece presente na história do Colégio.",
-    "Ao longo das décadas, novas gerações assumiram a missão de dar continuidade a esse trabalho. As filhas, as educadoras Ceres Murad e Elizabeth Rodrigues, seguidas pela terceira geração da família, Rebeca, Raíssa, Eric, Evandro e Isabella, contribuíram para a evolução do Dom Bosco, preservando seus valores fundamentais e incorporando novas perspectivas à educação."
+    "A história do Colégio Dom Bosco foi construída por lideranças que souberam transformar sonhos em realizações. À frente desse projeto esteve a professora **Maria Izabel Pereira Rodrigues**, cuja visão educacional orientou o crescimento da instituição. Ao seu lado, o professor **Luiz Pinho Rodrigues** contribuiu para a gestão escolar, o desenvolvimento de projetos inovadores e o fortalecimento do esporte, deixando um legado que permanece presente na história do Colégio.",
+    "Ao longo das décadas, novas gerações assumiram a missão de dar continuidade a esse trabalho. As filhas, as educadoras Ceres Murad e Elizabeth Rodrigues, seguidas pela **terceira geração da família**, Rebeca, Raíssa, Eric, Evandro e Isabella, contribuíram para a evolução do Dom Bosco, preservando seus valores fundamentais e incorporando novas perspectivas à educação."
    ],
    "dec": [
     {
@@ -1001,7 +1001,7 @@
      "d": "Como gestor e incentivador do xadrez, cria a escolinha da modalidade, orienta estudantes e ajuda a construir a tradição esportiva do Dom Bosco.",
      "ev": [],
      "icn": "cap",
-     "r": "1970s",
+     "r": "1970",
      "p": "Esporte escolar"
     },
     {
@@ -1057,7 +1057,7 @@
    "apicon": "board",
    "apcap": "Professora e turma · foto de exemplo",
    "intro": [
-    "Por trás de cada geração formada pelo Colégio Dom Bosco estão professores que fizeram da educação muito mais do que a transmissão de conhecimentos. Desde os primeiros anos do Pequeno Polegar, educadoras como Maria Amélia Mendes, Maria da Glória Camarão Chaves, carinhosamente conhecida como Tia Glorinha, Marina Marques e Silvia Moraes, nossa querida Tia Silvia, ajudaram a construir uma proposta pedagógica que valoriza a criatividade, a descoberta e o desenvolvimento integral dos alunos.",
+    "Por trás de cada geração formada pelo Colégio Dom Bosco estão professores que fizeram da educação muito mais do que a transmissão de conhecimentos. Desde os primeiros anos do Pequeno Polegar, educadoras como **Maria Amélia Mendes**, Maria da Glória Camarão Chaves, carinhosamente conhecida como **Tia Glorinha**, Marina Marques e Silvia Moraes, nossa querida **Tia Silvia**, ajudaram a construir uma proposta pedagógica que valoriza a criatividade, a descoberta e o desenvolvimento integral dos alunos.",
     "Ao longo de décadas, inúmeros educadores deixaram suas marcas nas salas de aula, nos projetos, nas atividades culturais e nas lembranças dos estudantes. Mais do que ensinar conteúdos, despertaram talentos, incentivaram sonhos e construíram vínculos que atravessam gerações. Este espaço é dedicado àqueles que fizeram do ensino uma missão e ajudaram a escrever a história do Dom Bosco."
    ],
    "dec": [
@@ -1074,7 +1074,7 @@
      "d": "Educadoras como Maria da Glória Camarão Chaves, a Tia Glorinha, participam da consolidação do ensino e da formação das primeiras gerações de estudantes.",
      "ev": [],
      "icn": "book",
-     "r": "1960s",
+     "r": "1960",
      "p": "Primeiras gerações"
     },
     {
@@ -1155,7 +1155,7 @@
    "apcap": "Coral no auditório · foto de exemplo",
    "intro": [
     "A arte faz parte da identidade do Colégio Dom Bosco desde sua fundação. Nos primeiros anos do Pequeno Polegar, a música, a dança, o teatro e as atividades criativas já integravam o cotidiano escolar. Apresentações como O Casamento da Franguinha, a Bandinha do Pequeno Polegar, os festivais de música popular e os espetáculos teatrais deram início a uma tradição que transformou os palcos em importantes espaços de aprendizagem e expressão artística.",
-    "Essa trajetória ganhou novos capítulos com a inauguração do Teatro Maria Izabel Rodrigues, em 1994, e com a criação do projeto Ópera para Todos, idealizado pela educadora Ceres Murad, em 1997. Ao integrar literatura, música, teatro e dança ao processo de alfabetização, o projeto conquistou reconhecimento nacional com o Prêmio Darcy Ribeiro de Educação, em 2003. Uma história que demonstra como a arte pode educar, emocionar e transformar vidas."
+    "Essa trajetória ganhou novos capítulos com a inauguração do **Teatro Maria Izabel Rodrigues, em 1994**, e com a criação do projeto **Ópera para Todos**, idealizado pela educadora Ceres Murad, em 1997. Ao integrar literatura, música, teatro e dança ao processo de alfabetização, o projeto conquistou reconhecimento nacional com o **Prêmio Darcy Ribeiro de Educação, em 2003**. Uma história que demonstra como a arte pode educar, emocionar e transformar vidas."
    ],
    "dec": [
     {
@@ -1171,7 +1171,7 @@
      "d": "Peças como O Casamento da Franguinha e a criação da Bandinha do Pequeno Polegar iniciam uma tradição de espetáculos e apresentações artísticas na escola.",
      "ev": [],
      "icn": "music",
-     "r": "1960s",
+     "r": "1960",
      "p": "A Bandinha"
     },
     {
@@ -1251,8 +1251,8 @@
    "apicon": "trophy",
    "apcap": "Equipe de vôlei · foto de exemplo",
    "intro": [
-    "O esporte ocupa um lugar de destaque na história do Colégio Dom Bosco. Incentivada pelo professor Luiz Pinho Rodrigues, a prática esportiva tornou-se parte essencial da formação dos alunos, unindo disciplina, espírito de equipe e superação. Apaixonado pelo xadrez, o professor criou a escolinha da modalidade e ajudou a formar gerações de enxadristas, como o Mestre Internacional de Xadrez Rafael Leitão, que ganhou seu primeiro título mundial quando ainda estava na 5ª série. Assim, teve início uma tradição de conquistas que se estendeu a diferentes modalidades esportivas.",
-    "Nos Jogos Escolares Maranhenses (JEMs), o Dom Bosco construiu uma das trajetórias mais vitoriosas do esporte estudantil, conquistando 17 títulos de campeão geral. Do xadrez ao basquete, da natação ao voleibol, suas equipes e atletas marcaram época. Mais do que medalhas e troféus, deixaram um legado de dedicação, amizade, respeito e orgulho de representar o Colégio."
+    "O esporte ocupa um lugar de destaque na história do Colégio Dom Bosco. Incentivada pelo professor **Luiz Pinho Rodrigues**, a prática esportiva tornou-se parte essencial da formação dos alunos, unindo disciplina, espírito de equipe e superação. Apaixonado pelo xadrez, o professor criou a escolinha da modalidade e ajudou a formar gerações de enxadristas, como o Mestre Internacional de Xadrez **Rafael Leitão**, que ganhou seu primeiro título mundial quando ainda estava na 5ª série. Assim, teve início uma tradição de conquistas que se estendeu a diferentes modalidades esportivas.",
+    "Nos Jogos Escolares Maranhenses (JEMs), o Dom Bosco construiu uma das trajetórias mais vitoriosas do esporte estudantil, conquistando **17 títulos de campeão geral**. Do xadrez ao basquete, da natação ao voleibol, suas equipes e atletas marcaram época. Mais do que medalhas e troféus, deixaram um legado de dedicação, amizade, respeito e orgulho de representar o Colégio."
    ],
    "dec": [
     {
@@ -1348,8 +1348,8 @@
    "apicon": "users",
    "apcap": "Turma no pátio · foto de exemplo",
    "intro": [
-    "A verdadeira história do Colégio Dom Bosco está nas pessoas que passaram por suas salas de aula, corredores, pátios e espaços de convivência. Desde as primeiras crianças do Pequeno Polegar, em 1958, milhares de estudantes construíram aqui uma parte importante de suas vidas. Entre amizades, descobertas, desafios e conquistas, cada geração deixou suas próprias lembranças e contribuiu para formar a identidade da escola.",
-    "Muitos desses alunos seguiram caminhos de destaque nas ciências, nas artes, no esporte, nas profissões e em diferentes áreas da sociedade. Neste Memorial, fotografias, histórias e reencontros ajudam a preservar essas experiências, porque a trajetória do Dom Bosco também é feita das histórias de cada aluno que passou por aqui."
+    "A verdadeira história do Colégio Dom Bosco está nas pessoas que passaram por suas salas de aula, corredores, pátios e espaços de convivência. Desde as primeiras crianças do Pequeno Polegar, em 1958, **milhares de estudantes** construíram aqui uma parte importante de suas vidas. Entre amizades, descobertas, desafios e conquistas, cada geração deixou suas próprias lembranças e contribuiu para formar a identidade da escola.",
+    "Muitos desses alunos seguiram caminhos de destaque nas ciências, nas artes, no esporte, nas profissões e em diferentes áreas da sociedade. Neste Memorial, **fotografias, histórias e reencontros** ajudam a preservar essas experiências, porque a trajetória do Dom Bosco também é feita das histórias de **cada aluno que passou por aqui**."
    ],
    "dec": [
     {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  apresentacaoDaSala, corresponde, decadas, decadasDaSala, iniciais, nomeCurto, nomeDaDecada, periodosDasFotos, rotuloDecada, trechos,
+  apresentacaoDaSala, corresponde, decadas, decadasDaSala, iniciais, nomeCurto, nomeDaDecada, periodosDasFotos, rotuloDecada, separarDestaques, trechos,
 } from './regras';
 import type { Foto, Marco, Sala } from './tipos';
 
@@ -74,5 +74,31 @@ describe('tour de 6 espaços', () => {
   it('sem apresentação na API, usa o título e o subtítulo da sala', () => {
     const sala = { titulo: 'Diretores', subtitulo: 'Quem conduziu a escola' } as Sala;
     expect(apresentacaoDaSala({ sala })).toMatchObject({ titulo: 'Diretores', texto: ['Quem conduziu a escola'] });
+  });
+});
+
+describe('separarDestaques', () => {
+  it('texto sem marcação volta inteiro', () => {
+    expect(separarDestaques('Sem destaque.')).toEqual([{ texto: 'Sem destaque.', destaque: false }]);
+  });
+
+  it('separa o trecho marcado, no meio, no começo e no fim', () => {
+    expect(separarDestaques('Aqui **um** e **dois**, fim **três**')).toEqual([
+      { texto: 'Aqui ', destaque: false },
+      { texto: 'um', destaque: true },
+      { texto: ' e ', destaque: false },
+      { texto: 'dois', destaque: true },
+      { texto: ', fim ', destaque: false },
+      { texto: 'três', destaque: true },
+    ]);
+  });
+
+  it('marcação sem par ou vazia fica como texto comum', () => {
+    expect(separarDestaques('abre ** e não fecha')).toEqual([{ texto: 'abre ** e não fecha', destaque: false }]);
+    expect(separarDestaques('vazio **** aqui')).toEqual([{ texto: 'vazio **** aqui', destaque: false }]);
+  });
+
+  it('texto vazio não quebra', () => {
+    expect(separarDestaques('')).toEqual([{ texto: '', destaque: false }]);
   });
 });

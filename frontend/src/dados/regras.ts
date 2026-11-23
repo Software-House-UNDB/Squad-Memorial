@@ -20,6 +20,24 @@ export function corresponde(nome: string, q: string): boolean {
 }
 
 /**
+ * Divide um parágrafo em trechos, separando o que vem entre **asteriscos duplos** (destaque do
+ * texto de apresentação). Marcação sem par ou vazia vira texto comum, então um "**" solto nunca
+ * some com o resto do parágrafo nem aparece quebrado na tela.
+ */
+export function separarDestaques(texto: string): { texto: string; destaque: boolean }[] {
+  const saida: { texto: string; destaque: boolean }[] = [];
+  const re = /\*\*([^*]+?)\*\*/g;
+  let fim = 0;
+  for (let m = re.exec(texto); m; m = re.exec(texto)) {
+    if (m.index > fim) saida.push({ texto: texto.slice(fim, m.index), destaque: false });
+    saida.push({ texto: m[1], destaque: true });
+    fim = m.index + m[0].length;
+  }
+  if (fim < texto.length || !saida.length) saida.push({ texto: texto.slice(fim), destaque: false });
+  return saida;
+}
+
+/**
  * Divide o nome em trechos, marcando o que corresponde à busca. Compara caractere a caractere já
  * normalizado, então "João" com a busca "joao" realça o nome inteiro, acento incluído.
  */
