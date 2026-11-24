@@ -334,7 +334,18 @@ são substituídos. Faça o backup antes e **confira o `/sala/N` de cada totem**
 ## Atualizando para os títulos novos e a linha do tempo por ano
 
 As migrações `0016` a `0018` trocam os textos de ajuda do painel e os títulos das salas ("Nossas Origens", "Liderança e Legado"…),
-só onde ainda está o texto de fábrica. O **conteúdo de exemplo que já está no banco não muda sozinho**: a linha do tempo continua
+só onde ainda está o texto de fábrica. Os **textos de apresentação e a linha do tempo não vêm nas migrações**: quem grava é o
+`carregar_exemplo`. Depois do merge e do `docker compose up -d --build`, os títulos novos já aparecem, mas um banco sem conteúdo
+de exemplo continua sem apresentação e sem linha do tempo. Nesse caso basta carregar o exemplo:
+
+```bash
+docker compose exec backend python manage.py carregar_exemplo
+```
+
+Para conferir, abra `/sala/1` … `/sala/6` (recarregue com Ctrl+Shift+R se o navegador guardou a versão antiga) ou veja a API
+em `/api/memorial/sala/1/`. Para desfazer no ambiente de teste, `carregar_exemplo --remover`.
+
+O **conteúdo de exemplo que já está no banco não muda sozinho**: a linha do tempo continua
 por décadas ("Anos 60", com acontecimentos) e a apresentação com os textos antigos, e rodar `carregar_exemplo` de novo não faz nada
 ("já está carregado"). Para trazer o exemplo novo (7 pontos, um marco por ano, apresentações com destaque), faça o backup e:
 
