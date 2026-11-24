@@ -8,7 +8,7 @@ fato histórico da escola: são textos e pessoas fictícios para avaliar as tela
     docker compose exec backend python manage.py carregar_exemplo --limpar   # apaga o conteúdo das salas antes
     docker compose exec backend python manage.py carregar_exemplo --remover  # só remove o que é exemplo
 
-Cria, em cada um dos 6 espaços: a apresentação, 7 décadas, 4 marcos, fotos de exemplo em todos os
+Cria, em cada um dos 6 espaços: a apresentação, 7 pontos na linha do tempo (um marco por ano), 4 marcos, fotos de exemplo em todos os
 períodos de 5 anos (sem imagem real: o totem mostra uma moldura provisória) e vídeos curtos gerados
 com ffmpeg. Na Sala 06, também 22 ex-alunos, com avatares e fotos aprovadas desenhados aqui mesmo.
 
@@ -153,7 +153,7 @@ class Command(BaseCommand):
             )
             for i, d in enumerate(r["dec"]):
                 decada = Decada.objects.create(
-                    sala=sala, rotulo=dados["decn"][i], periodo=dados["decr"][i], titulo=d["t"], resumo=d["d"],
+                    sala=sala, rotulo=d.get("r") or dados["decn"][i], periodo=d.get("p") or dados["decr"][i], titulo=d["t"], resumo=d["d"],
                     icone=d["icn"], ordem=i, **comum,
                 )
                 for j, evento in enumerate(d["ev"]):
@@ -167,7 +167,7 @@ class Command(BaseCommand):
                 for ordem, (ano, legenda) in enumerate(fotos_do_periodo(dados, chave, indice, inicio, fim)):
                     fotos.append(Foto(sala=sala, ano=ano, legenda=legenda, credito=CREDITO, ordem=ordem, **comum))
             Foto.objects.bulk_create(fotos)
-            self.stdout.write(f"Sala {chave}: {len(r['dec'])} décadas, {len(r['marcos'])} marcos, {len(fotos)} fotos de exemplo.")
+            self.stdout.write(f"Sala {chave}: {len(r['dec'])} pontos na linha do tempo, {len(r['marcos'])} marcos, {len(fotos)} fotos de exemplo.")
 
     def carregar_alunos(self, dados):
         config = ConfiguracaoMemorial.atual()

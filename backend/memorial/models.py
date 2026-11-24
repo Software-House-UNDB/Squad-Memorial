@@ -160,7 +160,7 @@ class Sala(Timestamped):
 
     numero = models.PositiveSmallIntegerField(
         "número", unique=True, validators=[MinValueValidator(1), MaxValueValidator(6)],
-        help_text="O totem desta sala abre em /?sala=N.",
+        help_text="O totem desta sala abre em /sala/N.",
     )
     slug = models.SlugField(unique=True)
     nome = models.CharField(max_length=40, help_text='Curto, vai no cabeçalho: "Fundação".')
@@ -207,10 +207,15 @@ class Apresentacao(ItemComFoto):
 
 
 class Decada(ItemComFoto):
-    """Uma década da aba Linha do tempo: foto, resumo e os acontecimentos."""
+    """Um ponto da aba Linha do tempo (um marco por ponto): ano, etiqueta, foto e resumo."""
 
-    rotulo = models.CharField("rótulo", max_length=20, help_text='Como aparece na linha: "Anos 60".')
-    periodo = models.CharField("período", max_length=30, help_text='"1958 a 1969".')
+    rotulo = models.CharField(
+        "rótulo", max_length=20,
+        help_text='O ano, como aparece na linha e em destaque no painel: "1958". Também vale um período curto: "2001 a 2007".',
+    )
+    periodo = models.CharField(
+        "período", max_length=30, help_text='Etiqueta curta abaixo do ano, na linha e no painel: "Pequeno Polegar".',
+    )
     titulo = models.CharField("título", max_length=60)
     resumo = models.CharField(max_length=240, blank=True, help_text="Uma ou duas frases.")
     icone = models.CharField(
@@ -226,7 +231,7 @@ class Decada(ItemComFoto):
 
 
 class Acontecimento(Timestamped):
-    """Um fato de uma década. O totem foi desenhado para três por década."""
+    """Um fato de um ponto da linha do tempo (opcional: a lista só aparece quando há algum)."""
 
     decada = models.ForeignKey(Decada, on_delete=models.CASCADE, related_name="acontecimentos")
     ano = models.PositiveSmallIntegerField(validators=[MinValueValidator(ANO_MINIMO)])

@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "montserrat",
+        "createdAt": "2026-11-24T15:00:55.115Z",
+        "reason": "DESIGN.md (linha 144) define Montserrat como a fonte de texto do Memorial, a mesma do totem; o painel segue o sistema visual"
+      }
+    ]
+  }
+}

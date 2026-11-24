@@ -113,9 +113,9 @@ Os tokens ficam em `frontend/src/estilos/tokens.css`; para aplicar o manual da m
 - **Suave** / **Suave-2** (`#5A5F62` / `#656A6D`): textos de apoio. O protótipo usava `#73787B` (4,19:1).
 - **Branco gelo** (`--marfim`, `#F6F8F8`), **areia**, **cartão** (`#FFFFFF`), **linha**: superfícies.
 - **Branco** (`--branco`, `#FFFFFF`): **todo texto sobre a cor do espaço** (aba ativa, selo, ano, cartão de
-  marco aberto, cartão do perfil). Não use o branco gelo aí: sobre a Esporte ele dá 4,37:1.
+  marco aberto, cartão do perfil). Não use o branco gelo aí: sobre a Esportes ele dá 4,37:1.
 - **Cor do espaço**: 1 Fundação `#8E6918`, 2 Diretores `#2F62B0`, 3 Professores `#17805F`,
-  4 Artes `#C43F60`, 5 Esporte `#B85A0C`, 6 Alunos `#6E4BA8`. Entra no selo do cabeçalho, na borda
+  4 Artes `#C43F60`, 5 Esportes `#B85A0C`, 6 Alunos `#6E4BA8`. Entra no selo do cabeçalho, na borda
   inferior do cabeçalho, na aba ativa, no ano dos marcos, no período/década selecionado, no cartão de
   marco aberto e na capa e no cartão do perfil (degradê da cor para uma versão 40% mais escura).
 
@@ -219,6 +219,6 @@ deslocamento. `prefers-reduced-motion` desliga tudo.
 - **Do** manter alvos de 56 px e texto corrido de 18 px no palco.
 - **Do** mostrar o selo "Conteúdo de exemplo" enquanto a sala tiver conteúdo demonstrativo.
 - **Don't** escrever com `--dourado` sobre branco gelo, areia ou cartão.
-- **Don't** pôr texto branco gelo (`--marfim`) sobre a cor do espaço: na Esporte dá 4,37:1.
+- **Don't** pôr texto branco gelo (`--marfim`) sobre a cor do espaço: na Esportes dá 4,37:1.
 - **Don't** carregar fontes, ícones ou scripts de CDN: tudo precisa funcionar offline.
 - **Don't** mostrar e-mail de ex-aluno em lugar nenhum da interface.

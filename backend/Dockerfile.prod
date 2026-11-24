@@ -46,4 +46,6 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
     CMD python -c "import socket; socket.create_connection(('127.0.0.1', 8000), 3).close()" || exit 1
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["sh", "-c", "exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --worker-class gthread --workers ${GUNICORN_WORKERS} --threads ${GUNICORN_THREADS} --timeout ${GUNICORN_TIMEOUT} --graceful-timeout 30 --max-requests 2000 --max-requests-jitter 200 --access-logfile - --forwarded-allow-ips '*'"]
+# --no-control-socket: o gunicorn 27 abre um socket de controle em /app/.gunicorn, que o usuário sem privilégio
+# não pode criar (e o memorial não usa); sem a opção, todo boot registra um ERROR no log.
+CMD ["sh", "-c", "exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --worker-class gthread --workers ${GUNICORN_WORKERS} --threads ${GUNICORN_THREADS} --timeout ${GUNICORN_TIMEOUT} --graceful-timeout 30 --max-requests 2000 --max-requests-jitter 200 --access-logfile - --forwarded-allow-ips '*' --no-control-socket"]

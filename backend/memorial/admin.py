@@ -167,7 +167,7 @@ class SalaAdmin(admin.ModelAdmin):
     def endereco_totem(self, obj):
         if not obj or not obj.pk:
             return "—"
-        return format_html("<code>/?sala={}</code> (abra este endereço no navegador quiosque do totem)", obj.numero)
+        return format_html("<code>/sala/{}</code> (abra este endereço no navegador quiosque do totem)", obj.numero)
 
     @admin.display(description="marcos")
     def qtd_marcos(self, obj):

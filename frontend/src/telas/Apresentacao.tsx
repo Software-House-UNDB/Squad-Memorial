@@ -1,6 +1,7 @@
 /** Aba Apresentação: foto de época, texto de abertura do espaço e atalhos para as outras abas. */
 import { FotoEpoca } from '../componentes/FotoEpoca';
 import { Icone } from '../componentes/Icone';
+import { separarDestaques } from '../dados/regras';
 import type { Apresentacao as TApresentacao } from '../dados/tipos';
 import type { Aba } from './estado';
 
@@ -26,7 +27,11 @@ export function Apresentacao({ apresentacao: a, semente, aoIr }: Props) {
       <div className="tt-apres__txt">
         <div className="tt-eyb">APRESENTAÇÃO</div>
         <h2 className="tt-apres__tit serif">{a.titulo}</h2>
-        {a.texto.map((p, i) => <p key={i}>{p}</p>)}
+        {a.texto.map((p, i) => (
+          <p key={i}>
+            {separarDestaques(p).map((t, j) => (t.destaque ? <strong key={j} className="tt-apres__dest">{t.texto}</strong> : t.texto))}
+          </p>
+        ))}
         <div className="tt-apres__atalhos">
           {ATALHOS.map((x) => (
             <button key={x.aba} type="button" className="tt-atalho" onClick={() => aoIr(x.aba)}>

@@ -3,14 +3,16 @@
 Tour do Memorial em **seis espaços, com um totem touchscreen por espaço**, e um **check-in pelo
 celular** do visitante. Quem faz o check-in na entrada pode ser encontrado pelos colegas na Sala 06 (Alunos).
 
-| Sala | Nome | O totem mostra |
-|---|---|---|
-| 01 | Fundação | Apresentação, Linha do tempo (7 décadas), Marcos (4 cartões), Fotos (períodos de 5 anos) e Vídeos |
-| 02 | Diretores | idem |
-| 03 | Professores | idem |
-| 04 | Artes | idem |
-| 05 | Esporte | idem |
-| 06 | Alunos | as mesmas 5 abas **e** a aba **Colegas**: busca de ex-alunos por nome, ano ou década, e o perfil de cada pessoa |
+| Sala | Nome | Título no totem | O totem mostra |
+|---|---|---|---|
+| 01 | Fundação | Nossas Origens | Apresentação, Linha do tempo (7 pontos, um marco por ano), Marcos (4 cartões), Fotos (períodos de 5 anos) e Vídeos |
+| 02 | Diretores | Liderança e Legado | idem |
+| 03 | Professores | Mestres de Gerações | idem |
+| 04 | Artes | Palco e Ateliê | idem |
+| 05 | Esportes | Campeões | idem |
+| 06 | Alunos | Memórias vivas | as mesmas 5 abas **e** a aba **Colegas**: busca de ex-alunos por nome, ano ou década, e o perfil de cada pessoa |
+
+Nome e título se editam no painel (Salas); os de fábrica vêm da migração `0017_titulos_das_salas`.
 
 - **Frontend** (`frontend/`): React + Vite + TypeScript, PWA para funcionar offline. Duas páginas:
   o totem (`/sala/N`) e o check-in (`/check-in/`). Regras visuais em `DESIGN.md`, produto em `PRODUCT.md`,
@@ -60,15 +62,15 @@ pelo celular do visitante (rede da escola com Wi-Fi aberto, ou um domínio públ
 
 `carregar_exemplo` carrega o conteúdo do tour (`backend/memorial/exemplo/tour.json`, igual ao
 `frontend/src/dados/exemplo.json` do modo demo; mude os dois juntos e não rode `scripts/extrair_exemplo.py`,
-que ainda lê o protótipo antigo). Em cada espaço: apresentação, 7 décadas, 4 marcos, fotos de exemplo em todos os
+que ainda lê o protótipo antigo). Em cada espaço: apresentação, 7 pontos na linha do tempo, 4 marcos, fotos de exemplo em todos os
 períodos (sem imagem real: o totem mostra uma moldura provisória) e vídeos curtos (precisa de ffmpeg,
 que já vem na imagem) e 22 ex-alunos fictícios. Tudo fica marcado como **demonstrativo**
 (campo `demonstrativo` da API e do banco), mas o totem **não mostra mais** "Conteúdo de exemplo" no rodapé nem o crédito
 nas fotos: o frontend não exibe esse campo.
 
-> **Antes da versão final:** o `carregar_exemplo` grava no banco o crédito "Conteúdo de exemplo · Memorial Dom Bosco" nas fotos
-> e a expressão "foto de exemplo" em legendas. Isso não aparece mais na tela do totem por causa do frontend, mas continua nos dados:
-> troque no Admin (ou no backend, em `carregar_exemplo.py` e `tour.json`) ou rode `carregar_exemplo --remover` e cadastre o conteúdo real.
+> **Antes da versão final:** o `carregar_exemplo` grava no banco o crédito "Conteúdo de exemplo · Memorial Dom Bosco" nas fotos.
+> Ele não aparece na tela do totem (o frontend não mostra o crédito do exemplo), mas continua nos dados:
+> troque no Admin (ou no backend, em `carregar_exemplo.py`) ou rode `carregar_exemplo --remover` e cadastre o conteúdo real.
 
 - `carregar_exemplo --remover` apaga só o conteúdo de exemplo.
 - `carregar_exemplo --limpar` apaga **todo** o conteúdo das salas (marcos, fotos, vídeos) e os
@@ -80,7 +82,7 @@ nas fotos: o frontend não exibe esse campo.
 |---|---|
 | **Salas** | nome, título, subtítulo e cor de cada sala; apresentação, décadas, marcos e vídeos na própria página (também na Sala 06); **Adicionar fotos** envia várias de uma vez, todas com o ano informado |
 | **Apresentações** | título, texto (parágrafos separados por linha em branco), foto de época, legenda e ícone; uma por sala |
-| **Décadas** | rótulo, período, título, resumo, ícone e foto; os **acontecimentos** (três por década) ficam na página da década |
+| **Décadas** | os pontos da linha do tempo: **rótulo** (o ano em destaque, ex.: `1958`), **período** (a etiqueta curta, ex.: `Pequeno Polegar`), título, resumo, ícone e foto. **Acontecimentos** são opcionais: a lista só aparece no painel do ponto quando há algum |
 | **Marcos** | ano, título, descrição curta, texto explicativo, foto de época, ícone e **destaque inicial** (um por sala) |
 | **Fotos** | imagem, ano (define o período de 5 anos), legenda (até 140), crédito, texto alternativo |
 | **Vídeos** | arquivo, capa (automática se vazia), tipo, **destaque** (um por sala), legenda WebVTT opcional |
@@ -328,6 +330,21 @@ Os arquivos antigos de `/media` (fotos, vídeos, páginas de documento) ficam no
 A migração `0011` renumera as salas, e o conteúdo já cadastrado vai junto: 1 Educação → 1 Fundação, 2 Troféus → 5 Esporte,
 3 Artes → 4 Artes, 4 Professoras → 3 Professores, 5 Fechamento → 6 Alunos; a 2 Diretores é nova. Nome, título, subtítulo e cor
 são substituídos. Faça o backup antes e **confira o `/sala/N` de cada totem**: os que estavam em 2 a 5 passam a mostrar outro espaço.
+
+## Atualizando para os títulos novos e a linha do tempo por ano
+
+As migrações `0016` a `0018` trocam os textos de ajuda do painel e os títulos das salas ("Nossas Origens", "Liderança e Legado"…),
+só onde ainda está o texto de fábrica. O **conteúdo de exemplo que já está no banco não muda sozinho**: a linha do tempo continua
+por décadas ("Anos 60", com acontecimentos) e a apresentação com os textos antigos, e rodar `carregar_exemplo` de novo não faz nada
+("já está carregado"). Para trazer o exemplo novo (7 pontos, um marco por ano, apresentações com destaque), faça o backup e:
+
+```bash
+docker compose -f docker-compose.prod.yml exec backend python manage.py carregar_exemplo --remover
+docker compose -f docker-compose.prod.yml exec backend python manage.py carregar_exemplo
+```
+
+O `--remover` apaga só o que está marcado como **Demonstrativo**, inclusive o que a equipe editou sem desmarcar o campo;
+conteúdo oficial e ex-alunos reais ficam.
 
 ## Produção (`docker-compose.prod.yml`)
 

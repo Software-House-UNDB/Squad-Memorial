@@ -57,7 +57,7 @@ Implementado no backend (migrações `0010` a `0012`) e cadastrado pelo `/admin`
   `fundacao #8E6918`, `diretores #2F62B0`, `professores #17805F`, `artes #C43F60`, `esporte #B85A0C`, `alunos #6E4BA8`.
   A Sala 06 tem `tipo: "fechamento"`; as demais, `"conteudo"`.
 - `apresentacao` (opcional): `{ titulo, texto: string[], foto?: url|null, legenda, icone }`.
-- `decadas` (opcional, 7 itens): `{ id, rotulo: "Anos 60", periodo: "1958 a 1969", titulo, resumo, icone, foto?, acontecimentos: [{ano, texto} × 3] }`.
+- `decadas` (opcional, 7 itens): `{ id, rotulo: "1958", periodo: "Pequeno Polegar", titulo, resumo, icone, foto?, acontecimentos: [{ano, texto}] }`. Desde a linha do tempo editorial (PR #11), cada ponto é um marco: `rotulo` é o ano em destaque, `periodo` a etiqueta curta, e `acontecimentos` é opcional (a lista some quando vazia).
 - `marcos[]`: 4 por espaço; campos novos opcionais `foto` (url|null) e `texto` (texto longo, aberto no toque).
 - Sem `decadas`, o app monta as décadas a partir dos `marcos`; sem `apresentacao`, usa título e subtítulo da sala.
 - Os tipos estão em `frontend/src/dados/tipos.ts`; o conjunto de exemplo (`dados/demo.ts` + `exemplo.json`) já segue este formato.
@@ -76,14 +76,14 @@ Implementado no backend (migrações `0010` a `0012`) e cadastrado pelo `/admin`
 ```bash
 cd frontend
 npm ci && npm run typecheck && npm run test:unit && npm run build
-VITE_MODO_DEMO=1 npm run dev     # abra /?sala=1 … /?sala=6 em 1600×900
+VITE_MODO_DEMO=1 npm run dev     # abra /sala/1 … /sala/6 em 1600×900
 ```
 
 ## Check-in e perfil (novembro de 2026)
 
 Escopo: **somente `frontend/`** (e a documentação). O contrato da API não mudou. Nada em `backend/`.
 
-### Check-in (`/checkin`)
+### Check-in (`/check-in/`)
 
 | Arquivo | O que faz |
 |---|---|

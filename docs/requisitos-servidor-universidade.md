@@ -17,7 +17,7 @@ Tudo roda em contêineres Docker num único host (`docker-compose.yml`):
 
 ```
 celular do visitante ─┐
-totens (6, Android) ──┼─▶ nginx :80 ─┬── /, /checkin        → build do frontend (React + Vite, PWA)
+totens (6, Android) ──┼─▶ nginx :80 ─┬── /sala/N, /check-in/ → build do frontend (React + Vite, PWA)
 equipe (navegador) ───┘              ├── /media/            → volume "media" (fotos e vídeos)
                                      ├── /static/           → volume "static" (CSS do admin)
                                      └── /api, /admin,

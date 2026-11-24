@@ -81,7 +81,7 @@ for (const [w, h] of TELAS) {
   const foto = (n) => p.screenshot({ path: `${CAPTURAS}${w}-${n}.png` });
 
   // ---------------------------------------------------------------- salas pela URL
-  const NOMES = ['Fundação', 'Diretores', 'Professores', 'Artes', 'Esporte', 'Alunos'];
+  const NOMES = ['Fundação', 'Diretores', 'Professores', 'Artes', 'Esportes', 'Alunos'];
   for (let n = 1; n <= 6; n++) {
     await verificar(`sala ${n} abre por /sala/${n}`, async () => {
       await abrir(p, `sala=${n}`);
@@ -100,16 +100,16 @@ for (const [w, h] of TELAS) {
   });
 
   // ---------------------------------------------------------------- linha do tempo e marcos
-  await verificar('linha do tempo: 7 décadas, troca por toque e pelas setas', async () => {
+  await verificar('linha do tempo: 7 marcos, troca por toque e pelas setas', async () => {
     await abrir(p, 'sala=1');
     await p.getByRole('tab', { name: /Linha do tempo/ }).click();
-    confere((await p.locator('.tt-dec').count()) === 7, '7 décadas esperadas');
-    confere((await p.locator('.tt-painel .tt-eyb').innerText()).includes('DÉCADA 1 DE 7'), 'abre na primeira década');
+    confere((await p.locator('.tt-dec').count()) === 7, '7 marcos esperados');
+    confere((await p.locator('.tt-painel .tt-eyb').innerText()).includes('1 DE 7'), 'abre no primeiro marco');
     await p.locator('.tt-dec').nth(3).click();
-    confere((await p.locator('.tt-painel .tt-eyb').innerText()).includes('DÉCADA 4 DE 7'), 'toque na década não mudou');
-    confere((await p.locator('.tt-painel__ev li').count()) === 3, '3 acontecimentos por década');
+    confere((await p.locator('.tt-painel .tt-eyb').innerText()).includes('4 DE 7'), 'toque no marco não mudou');
+    confere((await p.locator('.tt-painel__tit').innerText()).length > 0, 'painel sem título');
     await p.getByRole('button', { name: 'Próxima década' }).click();
-    confere((await p.locator('.tt-painel .tt-eyb').innerText()).includes('DÉCADA 5 DE 7'), 'seta não avançou');
+    confere((await p.locator('.tt-painel .tt-eyb').innerText()).includes('5 DE 7'), 'seta não avançou');
     await foto('linha-do-tempo');
   });
 
@@ -244,7 +244,7 @@ for (const [w, h] of TELAS) {
     await qr.waitFor();
     const caixa = await qr.boundingBox();
     confere(caixa && caixa.width > 250, 'QR pequeno demais');
-    confere((await p.locator('.m-ck__url b').innerText()).endsWith('/check-in/'), 'endereço do check-in');
+    confere((await p.locator('.m-ck__url b').innerText()).endsWith('/check-in'), 'endereço do check-in');
     await foto('qr');
     await p.getByRole('button', { name: 'Fechar' }).click();
   });
@@ -280,9 +280,11 @@ for (const [w, h] of TELAS) {
   });
 
   await verificar('a API nunca devolve e-mail', async () => {
-    const lista = await (await p.request.get(`${ORIGEM}/api/memorial/alunos/?q=teste`)).text();
+    // pelo fetch do próprio navegador: mesma origem, mesmo DNS e certificado que o totem usa
+    const texto = (url) => p.evaluate(async (u) => (await fetch(u)).text(), url);
+    const lista = await texto(`${ORIGEM}/api/memorial/alunos/?q=teste`);
     const id = JSON.parse(lista).resultados[0]?.id;
-    const perfil = await (await p.request.get(`${ORIGEM}/api/memorial/alunos/${id}/`)).text();
+    const perfil = await texto(`${ORIGEM}/api/memorial/alunos/${id}/`);
     for (const corpo of [lista, perfil]) {
       confere(!corpo.includes('@') && !/"e-?mail"/i.test(corpo), 'e-mail na resposta');
     }

@@ -37,7 +37,8 @@ interface ExemploSala {
   apcap: string;
   intro: string[];
   /** 7 décadas: título, resumo, três acontecimentos ("1958 · Convite às famílias") e ícone. */
-  dec: { t: string; d: string; ev: string[]; icn: string }[];
+  /** r = ano na linha (ex.: "1958"), p = etiqueta curta (ex.: "Pequeno Polegar"); sem eles valem decn/decr. */
+  dec: { t: string; d: string; ev: string[]; icn: string; r?: string; p?: string }[];
   /** 4 marcos: ícone, ano, título, resumo e texto explicativo. */
   marcos: [string, number, string, string, string][];
 }
@@ -105,8 +106,8 @@ function montarSala(numero: number): RespostaSala {
   const decadas: Decada[] = r
     ? r.dec.map((d, i) => ({
         id: numero * 100 + i,
-        rotulo: DADOS.decn[i],
-        periodo: DADOS.decr[i],
+        rotulo: d.r ?? DADOS.decn[i],
+        periodo: d.p ?? DADOS.decr[i],
         titulo: d.t,
         resumo: d.d,
         icone: d.icn,
