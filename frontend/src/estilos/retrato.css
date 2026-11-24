@@ -43,14 +43,19 @@
 /* as sete décadas continuam lado a lado (118 px cada): o título curto da década sai, o painel mostra */
 .palco--retrato .tt-linha { gap: 18px; }
 .palco--retrato .tt-dec { padding: 0 2px 6px; }
-.palco--retrato .tt-dec b { font-size: 22px; white-space: nowrap; }
-.palco--retrato .tt-dec small { font-size: var(--t-micro); white-space: nowrap; }
+.palco--retrato .tt-dec b { font-size: 22px; white-space: normal; }
+.palco--retrato .tt-dec small { font-size: var(--t-micro); line-height: 1.2; }
 .palco--retrato .tt-dec__tit { display: none; }
 
 .palco--retrato .tt-painel { flex-direction: column; gap: 26px; padding: 22px 22px 96px; }
 .palco--retrato .tt-painel__foto { width: auto; height: auto; flex: 1 1 0; min-height: 360px; } /* a foto fica com a sobra */
 .palco--retrato .tt-painel__txt { flex: none; }
-.palco--retrato .tt-painel__tit { font-size: 36px; }
+.palco--retrato .tt-painel__tit { font-size: 36px; margin-top: 8px; }
+.palco--retrato .tt-painel__ano-grande { font-size: 70px; }
+.palco--retrato .tt-painel__resumo { font-size: 24px; }
+.palco--retrato .tt-painel.tt-cartao { --wm: min(150px, calc(600px / var(--len, 4))); }
+.palco--retrato .tt-painel::before { font-size: var(--wm); height: calc(var(--wm) * .8); width: 100%; justify-content: flex-start; padding: 0 0 0 22px; }
+.palco--retrato .tt-painel__prog { display: none; } /* no retrato o espaço é da foto; o trilho já mostra o andamento */
 .palco--retrato .tt-painel__ev { padding-right: 0; gap: 12px; }
 
 /* ================================================================ Marcos */

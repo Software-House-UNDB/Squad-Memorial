@@ -11,7 +11,8 @@
 .tt-apres__foto figcaption { font-size: var(--t-apoio); font-style: italic; color: var(--suave-2); }
 .tt-apres__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; padding-top: 8px; }
 .tt-apres__tit { font-size: 44px; font-weight: 700; line-height: 1.05; color: var(--grafite); }
-.tt-apres__txt p { font-size: var(--t-texto); line-height: 1.55; color: var(--grafite-2); max-width: 36em; }
+.tt-apres__txt p { font-size: var(--t-texto); line-height: 1.55; color: var(--grafite-2); max-width: 36em; text-align: left; hyphens: manual; }
+.tt-apres__dest { font-weight: 600; color: var(--rc); }
 .tt-apres__atalhos { margin-top: auto; display: flex; gap: 14px; flex-wrap: wrap; padding-bottom: 6px; }
 .tt-atalho {
   display: flex; align-items: center; gap: 10px; height: var(--toque); padding: 0 24px;
@@ -25,7 +26,7 @@
 .tt-linha__trilho { display: grid; flex: none; position: relative; }
 .tt-dec {
   position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 0 6px 8px; min-height: var(--toque); text-align: center; color: var(--grafite);
+  padding: 0 6px 8px; min-height: var(--toque); min-width: 0; text-align: center; color: var(--grafite);
 }
 .tt-dec::before { /* o fio que liga as décadas */
   content: ''; position: absolute; left: 0; right: 0; top: 27px; height: 2px; background: var(--dourado);
@@ -44,7 +45,7 @@
 .tt-dec b { font-size: 28px; font-weight: 700; line-height: 1.05; }
 .tt-dec.is-ativa b { color: var(--rc); }
 .tt-dec small { font-size: var(--t-apoio); color: var(--suave-2); }
-.tt-dec__tit { font-size: var(--t-apoio); font-weight: 600; line-height: 1.25; color: var(--grafite-2); max-width: 190px; margin-top: 2px; }
+.tt-dec__etq { font-size: var(--t-apoio); font-weight: 600; line-height: 1.25; color: var(--grafite-2); max-width: 190px; margin-top: 2px; text-wrap: balance; white-space: normal; }
 .tt-dec:active .tt-dec__ponto i { transform: scale(1.25); }
 
 .tt-painel {
@@ -53,15 +54,40 @@
 }
 .tt-painel__foto { width: 440px; flex: none; height: 100%; }
 .tt-painel__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
-.tt-painel__tit { font-size: 38px; font-weight: 700; line-height: 1.05; color: var(--grafite); }
-.tt-painel__resumo { font-size: var(--t-texto); line-height: 1.5; color: var(--grafite-2); }
+.tt-painel__cab { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.tt-painel__ano-grande { font-size: 112px; font-weight: 600; line-height: .86; letter-spacing: -.02em; color: var(--rc); }
+.tt-painel__tag {
+  display: inline-block; padding: 7px 18px; border-radius: var(--raio-pilula); border: 1.5px solid var(--rc);
+  color: var(--rc); font-size: var(--t-apoio); font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+}
+.tt-painel__tit { margin-top: 12px; font-size: 38px; font-weight: 700; line-height: 1.08; color: var(--grafite); }
+.tt-painel__fio { display: block; width: 72px; height: 4px; border-radius: 2px; background: var(--rc); margin: 12px 0 10px; }
+.tt-painel__resumo { font-size: 24px; line-height: 1.5; color: var(--grafite-2); max-width: 40em; }
+.tt-painel__prog { margin-top: auto; display: flex; align-items: center; gap: 18px; padding-bottom: 6px; }
+.tt-painel__barras { display: flex; gap: 6px; }
+.tt-painel__barras i { display: block; width: 26px; height: 5px; border-radius: 3px; background: var(--suave-2); opacity: .35; }
+.tt-painel__barras i.is-ativa { background: var(--rc); opacity: 1; width: 44px; }
 .tt-painel__ev { margin-top: 6px; display: flex; flex-direction: column; gap: 8px; padding-right: 120px; }
 .tt-painel__ev li { display: flex; align-items: baseline; gap: 14px; font-size: var(--t-texto); line-height: 1.4; }
 .tt-painel__ano {
   flex: none; min-width: 64px; text-align: center; padding: 2px 10px; border-radius: var(--raio-pilula);
   background: var(--rc); color: var(--branco); font-size: var(--t-apoio); font-weight: 700;
 }
-.tt-painel__setas { position: absolute; right: 24px; bottom: 22px; display: flex; gap: 12px; }
+/* Painel em estilo editorial: o ano vira marca d'água e um triângulo liga o cartão ao ponto escolhido. */
+.tt-painel.tt-cartao { --wm: min(330px, calc(1320px / var(--len, 4))); isolation: isolate; background: linear-gradient(135deg, var(--cartao) 40%, color-mix(in srgb, var(--rc) 7%, var(--cartao))); }
+.tt-painel::before { /* o ano, grande e quase transparente, cortado na base do cartão */
+  content: attr(data-ano); position: absolute; right: 0; bottom: 0; width: 75%; height: calc(var(--wm) * .76); padding-right: 26px;
+  display: flex; justify-content: flex-end; align-items: flex-start; overflow: hidden; pointer-events: none; z-index: 0;
+  font-family: var(--serif); font-size: var(--wm); font-weight: 600; line-height: .9; letter-spacing: -.03em; white-space: nowrap;
+  color: color-mix(in srgb, var(--rc) 5%, transparent); -webkit-text-stroke: 2px color-mix(in srgb, var(--rc) 16%, transparent);
+}
+.tt-painel[data-faixa]::before { display: none; } /* faixa de anos ("2001 a 2007"): o ano grande já mostra, sem repetir no fundo */
+.tt-painel::after { /* o triângulo que aponta para o ponto da linha */
+  content: ''; position: absolute; top: -19px; left: calc(var(--pos) - 15px); z-index: 3;
+  border-left: 15px solid transparent; border-right: 15px solid transparent; border-bottom: 15px solid var(--rc);
+}
+.tt-painel__foto, .tt-painel__txt { position: relative; z-index: 1; }
+.tt-painel__setas { position: absolute; right: 24px; bottom: 22px; display: flex; gap: 12px; z-index: 4; } /* acima do texto e do ano, senão não recebem o toque */
 
 /* ---------- Marcos ---------- */
 .tt-marcos { margin-top: 20px; height: 556px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
