@@ -244,7 +244,7 @@ for (const [w, h] of TELAS) {
     await qr.waitFor();
     const caixa = await qr.boundingBox();
     confere(caixa && caixa.width > 250, 'QR pequeno demais');
-    confere((await p.locator('.m-ck__url b').innerText()).endsWith('/check-in/'), 'endereço do check-in');
+    confere((await p.locator('.m-ck__url b').innerText()).endsWith('/check-in'), 'endereço do check-in');
     await foto('qr');
     await p.getByRole('button', { name: 'Fechar' }).click();
   });
@@ -280,9 +280,11 @@ for (const [w, h] of TELAS) {
   });
 
   await verificar('a API nunca devolve e-mail', async () => {
-    const lista = await (await p.request.get(`${ORIGEM}/api/memorial/alunos/?q=teste`)).text();
+    // pelo fetch do próprio navegador: mesma origem, mesmo DNS e certificado que o totem usa
+    const texto = (url) => p.evaluate(async (u) => (await fetch(u)).text(), url);
+    const lista = await texto(`${ORIGEM}/api/memorial/alunos/?q=teste`);
     const id = JSON.parse(lista).resultados[0]?.id;
-    const perfil = await (await p.request.get(`${ORIGEM}/api/memorial/alunos/${id}/`)).text();
+    const perfil = await texto(`${ORIGEM}/api/memorial/alunos/${id}/`);
     for (const corpo of [lista, perfil]) {
       confere(!corpo.includes('@') && !/"e-?mail"/i.test(corpo), 'e-mail na resposta');
     }
