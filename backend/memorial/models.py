@@ -160,7 +160,7 @@ class Sala(Timestamped):
 
     numero = models.PositiveSmallIntegerField(
         "número", unique=True, validators=[MinValueValidator(1), MaxValueValidator(6)],
-        help_text="O totem desta sala abre em /?sala=N.",
+        help_text="O totem desta sala abre em /sala/N.",
     )
     slug = models.SlugField(unique=True)
     nome = models.CharField(max_length=40, help_text='Curto, vai no cabeçalho: "Fundação".')
