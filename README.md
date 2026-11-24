@@ -5,7 +5,7 @@ celular** do visitante. Quem faz o check-in na entrada pode ser encontrado pelos
 
 | Sala | Nome | O totem mostra |
 |---|---|---|
-| 01 | Fundação | Apresentação, Linha do tempo (7 décadas), Marcos (4 cartões), Fotos (períodos de 5 anos) e Vídeos |
+| 01 | Fundação | Apresentação, Linha do tempo (7 pontos, um marco por ano), Marcos (4 cartões), Fotos (períodos de 5 anos) e Vídeos |
 | 02 | Diretores | idem |
 | 03 | Professores | idem |
 | 04 | Artes | idem |
@@ -60,7 +60,7 @@ pelo celular do visitante (rede da escola com Wi-Fi aberto, ou um domínio públ
 
 `carregar_exemplo` carrega o conteúdo do tour (`backend/memorial/exemplo/tour.json`, igual ao
 `frontend/src/dados/exemplo.json` do modo demo; mude os dois juntos e não rode `scripts/extrair_exemplo.py`,
-que ainda lê o protótipo antigo). Em cada espaço: apresentação, 7 décadas, 4 marcos, fotos de exemplo em todos os
+que ainda lê o protótipo antigo). Em cada espaço: apresentação, 7 pontos na linha do tempo, 4 marcos, fotos de exemplo em todos os
 períodos (sem imagem real: o totem mostra uma moldura provisória) e vídeos curtos (precisa de ffmpeg,
 que já vem na imagem) e 22 ex-alunos fictícios. Tudo fica marcado como **demonstrativo**
 (campo `demonstrativo` da API e do banco), mas o totem **não mostra mais** "Conteúdo de exemplo" no rodapé nem o crédito
@@ -80,7 +80,7 @@ nas fotos: o frontend não exibe esse campo.
 |---|---|
 | **Salas** | nome, título, subtítulo e cor de cada sala; apresentação, décadas, marcos e vídeos na própria página (também na Sala 06); **Adicionar fotos** envia várias de uma vez, todas com o ano informado |
 | **Apresentações** | título, texto (parágrafos separados por linha em branco), foto de época, legenda e ícone; uma por sala |
-| **Décadas** | rótulo, período, título, resumo, ícone e foto; os **acontecimentos** (três por década) ficam na página da década |
+| **Décadas** | os pontos da linha do tempo: **rótulo** (o ano em destaque, ex.: `1958`), **período** (a etiqueta curta, ex.: `Pequeno Polegar`), título, resumo, ícone e foto. **Acontecimentos** são opcionais: a lista só aparece no painel do ponto quando há algum |
 | **Marcos** | ano, título, descrição curta, texto explicativo, foto de época, ícone e **destaque inicial** (um por sala) |
 | **Fotos** | imagem, ano (define o período de 5 anos), legenda (até 140), crédito, texto alternativo |
 | **Vídeos** | arquivo, capa (automática se vazia), tipo, **destaque** (um por sala), legenda WebVTT opcional |

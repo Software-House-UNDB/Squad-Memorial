@@ -357,6 +357,14 @@ class SeisEspacosTests(Base):
             (5, "esporte", "#B85A0C", "conteudo"), (6, "alunos", "#6E4BA8", "fechamento"),
         ])
 
+    def test_titulos_das_salas_iguais_aos_do_frontend(self):
+        # migração 0017: os mesmos títulos de frontend/src/dados/salas.ts, sem subtítulo
+        self.assertEqual(list(Sala.objects.values_list("numero", "nome", "titulo", "subtitulo")), [
+            (1, "Fundação", "Nossas Origens", ""), (2, "Diretores", "Liderança e Legado", ""),
+            (3, "Professores", "Mestres de Gerações", ""), (4, "Artes", "Palco e Ateliê", ""),
+            (5, "Esportes", "Campeões", ""), (6, "Alunos", "Memórias vivas", ""),
+        ])
+
     def test_apresentacao_decadas_e_marco_no_contrato(self):
         sala = Sala.objects.get(numero=6)
         Apresentacao.objects.create(sala=sala, titulo="Abertura", texto="Um.\n\n  Dois.\n", foto=png(), legenda="L", icone="home")
