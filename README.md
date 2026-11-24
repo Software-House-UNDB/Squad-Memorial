@@ -3,14 +3,16 @@
 Tour do Memorial em **seis espaços, com um totem touchscreen por espaço**, e um **check-in pelo
 celular** do visitante. Quem faz o check-in na entrada pode ser encontrado pelos colegas na Sala 06 (Alunos).
 
-| Sala | Nome | O totem mostra |
-|---|---|---|
-| 01 | Fundação | Apresentação, Linha do tempo (7 pontos, um marco por ano), Marcos (4 cartões), Fotos (períodos de 5 anos) e Vídeos |
-| 02 | Diretores | idem |
-| 03 | Professores | idem |
-| 04 | Artes | idem |
-| 05 | Esporte | idem |
-| 06 | Alunos | as mesmas 5 abas **e** a aba **Colegas**: busca de ex-alunos por nome, ano ou década, e o perfil de cada pessoa |
+| Sala | Nome | Título no totem | O totem mostra |
+|---|---|---|---|
+| 01 | Fundação | Nossas Origens | Apresentação, Linha do tempo (7 pontos, um marco por ano), Marcos (4 cartões), Fotos (períodos de 5 anos) e Vídeos |
+| 02 | Diretores | Liderança e Legado | idem |
+| 03 | Professores | Mestres de Gerações | idem |
+| 04 | Artes | Palco e Ateliê | idem |
+| 05 | Esportes | Campeões | idem |
+| 06 | Alunos | Memórias vivas | as mesmas 5 abas **e** a aba **Colegas**: busca de ex-alunos por nome, ano ou década, e o perfil de cada pessoa |
+
+Nome e título se editam no painel (Salas); os de fábrica vêm da migração `0017_titulos_das_salas`.
 
 - **Frontend** (`frontend/`): React + Vite + TypeScript, PWA para funcionar offline. Duas páginas:
   o totem (`/sala/N`) e o check-in (`/check-in/`). Regras visuais em `DESIGN.md`, produto em `PRODUCT.md`,

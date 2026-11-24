@@ -7,7 +7,7 @@
 web
 
 Seis totens touchscreen Android (um por espaço), em navegador quiosque e tela cheia, rodando o mesmo PWA;
-cada um abre em `/?sala=N` e mostra só a própria sala. O check-in é uma página web comum, aberta no
+cada um abre em `/sala/N` e mostra só a própria sala. O check-in é uma página web comum, aberta no
 celular do visitante pelo QR Code da placa de entrada.
 
 ## Users
@@ -24,8 +24,8 @@ instrução. No check-in, cada um usa o próprio celular, em pé, na entrada.
 ## Product Purpose
 
 O **Memorial Dom Bosco Maria Izabel Rodrigues** conta a história da escola (fundada em 1958) em seis
-espaços: Fundação, Diretores, Professores, Artes, Esporte e Alunos. Cada espaço tem Apresentação, linha do
-tempo por décadas, marcos, fotos por períodos de 5 anos e vídeos. Na Sala 06 (Alunos), aba Colegas, quem
+espaços: Fundação, Diretores, Professores, Artes, Esportes e Alunos. Cada espaço tem Apresentação, linha do
+tempo (um marco por ano), marcos, fotos por períodos de 5 anos e vídeos. Na Sala 06 (Alunos), aba Colegas, quem
 fez check-in na entrada é encontrado pelos colegas, pelo nome, pelo ano ou pela década. Dá certo quando o visitante faz o check-in em menos de um minuto, segue o
 percurso e, no fim, encontra o próprio nome e os colegas da mesma turma.
 
