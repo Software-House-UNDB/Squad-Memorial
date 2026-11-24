@@ -81,7 +81,7 @@ for (const [w, h] of TELAS) {
   const foto = (n) => p.screenshot({ path: `${CAPTURAS}${w}-${n}.png` });
 
   // ---------------------------------------------------------------- salas pela URL
-  const NOMES = ['Fundação', 'Diretores', 'Professores', 'Artes', 'Esporte', 'Alunos'];
+  const NOMES = ['Fundação', 'Diretores', 'Professores', 'Artes', 'Esportes', 'Alunos'];
   for (let n = 1; n <= 6; n++) {
     await verificar(`sala ${n} abre por /sala/${n}`, async () => {
       await abrir(p, `sala=${n}`);
