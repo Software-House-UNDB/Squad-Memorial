@@ -76,14 +76,14 @@ Implementado no backend (migrações `0010` a `0012`) e cadastrado pelo `/admin`
 ```bash
 cd frontend
 npm ci && npm run typecheck && npm run test:unit && npm run build
-VITE_MODO_DEMO=1 npm run dev     # abra /?sala=1 … /?sala=6 em 1600×900
+VITE_MODO_DEMO=1 npm run dev     # abra /sala/1 … /sala/6 em 1600×900
 ```
 
 ## Check-in e perfil (novembro de 2026)
 
 Escopo: **somente `frontend/`** (e a documentação). O contrato da API não mudou. Nada em `backend/`.
 
-### Check-in (`/checkin`)
+### Check-in (`/check-in/`)
 
 | Arquivo | O que faz |
 |---|---|
