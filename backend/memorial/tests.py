@@ -323,15 +323,18 @@ class ExemploTests(Base):
             call_command("carregar_exemplo", stdout=nada)
             self.assertEqual(Marco.objects.count(), 24)  # 4 por espaço
             self.assertEqual(Apresentacao.objects.count(), 6)
-            self.assertEqual(Decada.objects.count(), 42)  # 7 por espaço
-            self.assertEqual(Acontecimento.objects.count(), 126)
+            self.assertEqual(Decada.objects.count(), 42)  # 7 pontos na linha do tempo por espaço
+            # a linha do tempo nova traz um marco por ponto, sem lista de acontecimentos
+            self.assertEqual(Acontecimento.objects.count(), 0)
             self.assertEqual(Registro.objects.exclude(aluno_ref=real.pk).count(), 0)  # exemplo não é movimento real
             self.assertEqual(Aluno.objects.filter(demonstrativo=True).count(), 22)
             r = self.get("/api/memorial/sala/1/").json()
             self.assertTrue(r["demonstrativo"])
             self.assertGreater(len(r["fotos"]), 100)
             self.assertEqual(len(r["decadas"]), 7)
-            self.assertEqual(len(r["decadas"][0]["acontecimentos"]), 3)
+            self.assertEqual(len(r["decadas"][0]["acontecimentos"]), 0)
+            # rótulo e etiqueta vêm do próprio ponto ("r" e "p" no tour.json), não da década genérica
+            self.assertEqual((r["decadas"][0]["rotulo"], r["decadas"][0]["periodo"]), ("1958", "Pequeno Polegar"))
             self.assertEqual(len(r["marcos"]), 4)
             self.assertTrue(r["marcos"][0]["texto"])
             self.assertGreater(len(r["apresentacao"]["texto"]), 0)
