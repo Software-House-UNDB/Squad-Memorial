@@ -33,8 +33,10 @@ nginx :8080 ──┬── /, /check-in/ → apps (build do frontend/, embutido
 ```bash
 cp .env.example .env        # troque DJANGO_SECRET_KEY e as senhas
 docker compose up -d --build
-docker compose exec backend python manage.py carregar_exemplo   # opcional: conteúdo de exemplo
+docker compose exec backend python manage.py carregar_exemplo   # opcional: fotos, vídeos, marcos e ex-alunos de exemplo
 ```
+
+Ao subir, o backend já grava os textos das 6 salas (apresentação e linha do tempo); veja [Textos das salas](#textos-das-salas).
 
 - Totens: `http://<servidor>:8080/sala/1` … `/sala/6` (o antigo `?sala=N` continua valendo)
 - Check-in: `http://<servidor>:8080/check-in/` (é o endereço do QR Code; `/checkin` redireciona)
@@ -75,6 +77,20 @@ nas fotos: o frontend não exibe esse campo.
 - `carregar_exemplo --remover` apaga só o conteúdo de exemplo.
 - `carregar_exemplo --limpar` apaga **todo** o conteúdo das salas (marcos, fotos, vídeos) e os
   ex-alunos de exemplo, e carrega de novo. **Ex-alunos reais nunca são apagados por este comando.**
+
+## Textos das salas
+
+O `entrypoint.sh` roda `carregar_textos` toda vez que o backend sobe. Ele grava a apresentação e os 7 pontos da linha do tempo
+de cada sala (os textos do PR #11, `feat/textos-das-salas`), lidos de `backend/memorial/exemplo/tour.json`, sem fotos, vídeos,
+marcos nem ex-alunos.
+
+- Só preenche o que está vazio: a apresentação de uma sala sem apresentação e a linha do tempo de uma sala sem nenhum ponto.
+  O que a equipe cadastrou ou editou no painel **nunca é trocado**, e rodar de novo não duplica nada.
+- Entra como conteúdo **oficial** (não demonstrativo): `carregar_exemplo --remover` não apaga. Se o banco já tiver o exemplo,
+  o `carregar_exemplo` aproveita esses textos em vez de criar outros.
+- Uma sala cuja apresentação (ou linha do tempo inteira) for apagada no painel recebe os textos de novo no próximo boot.
+  Para desligar, ponha `CARREGAR_TEXTOS=0` no ambiente do backend.
+- Pelo terminal: `docker compose exec backend python manage.py carregar_textos`.
 
 ## Admin
 
@@ -334,16 +350,10 @@ são substituídos. Faça o backup antes e **confira o `/sala/N` de cada totem**
 ## Atualizando para os títulos novos e a linha do tempo por ano
 
 As migrações `0016` a `0018` trocam os textos de ajuda do painel e os títulos das salas ("Nossas Origens", "Liderança e Legado"…),
-só onde ainda está o texto de fábrica. Os **textos de apresentação e a linha do tempo não vêm nas migrações**: quem grava é o
-`carregar_exemplo`. Depois do merge e do `docker compose up -d --build`, os títulos novos já aparecem, mas um banco sem conteúdo
-de exemplo continua sem apresentação e sem linha do tempo. Nesse caso basta carregar o exemplo:
-
-```bash
-docker compose exec backend python manage.py carregar_exemplo
-```
-
-Para conferir, abra `/sala/1` … `/sala/6` (recarregue com Ctrl+Shift+R se o navegador guardou a versão antiga) ou veja a API
-em `/api/memorial/sala/1/`. Para desfazer no ambiente de teste, `carregar_exemplo --remover`.
+só onde ainda está o texto de fábrica. Os **textos de apresentação e a linha do tempo** vêm do `carregar_textos`, que o backend roda sozinho ao subir: depois do merge
+e do `docker compose up -d --build`, as salas sem apresentação ou sem linha do tempo já ganham os textos (veja
+[Textos das salas](#textos-das-salas)). Para conferir, abra `/sala/1` … `/sala/6` (recarregue com Ctrl+Shift+R se o navegador
+guardou a versão antiga) ou veja a API em `/api/memorial/sala/1/`.
 
 O **conteúdo de exemplo que já está no banco não muda sozinho**: a linha do tempo continua
 por décadas ("Anos 60", com acontecimentos) e a apresentação com os textos antigos, e rodar `carregar_exemplo` de novo não faz nada

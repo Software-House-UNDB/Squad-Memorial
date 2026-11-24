@@ -33,12 +33,13 @@ from django.utils import timezone
 from PIL import Image, ImageDraw, ImageFilter
 
 from memorial.models import (
-    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Marco, Sala, Video, ano_atual,
+    Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Marco, Sala, Video, ano_atual,
 )
 from memorial.redes import de_campos_antigos, gravar as gravar_redes
 from memorial.registro import sem_registro
 
-DADOS = Path(__file__).resolve().parents[2] / "exemplo" / "tour.json"
+from .carregar_textos import DADOS, gravar_apresentacao, gravar_linha_do_tempo
+
 CREDITO = "Conteúdo de exemplo · Memorial Dom Bosco"
 # Data da proposta do protótipo: os check-ins de exemplo ficam a mesma distância de "hoje".
 REFERENCIA = date(2026, 10, 27)
@@ -148,17 +149,11 @@ class Command(BaseCommand):
         comum = {"demonstrativo": True, "publicado": True}
         for chave, r in dados["R"].items():
             sala = Sala.objects.get(numero=int(chave))
-            Apresentacao.objects.create(
-                sala=sala, titulo=r["aptitle"], texto="\n\n".join(r["intro"]), legenda=r["apcap"], icone=r["apicon"], **comum,
-            )
-            for i, d in enumerate(r["dec"]):
-                decada = Decada.objects.create(
-                    sala=sala, rotulo=d.get("r") or dados["decn"][i], periodo=d.get("p") or dados["decr"][i], titulo=d["t"], resumo=d["d"],
-                    icone=d["icn"], ordem=i, **comum,
-                )
-                for j, evento in enumerate(d["ev"]):
-                    ano, texto = evento.split(" · ", 1)
-                    Acontecimento.objects.create(decada=decada, ano=int(ano), texto=texto, ordem=j)
+            # Os textos podem já estar lá, gravados pelo carregar_textos (ou cadastrados pela equipe): ficam como estão.
+            if not Apresentacao.objects.filter(sala=sala).exists():
+                gravar_apresentacao(sala, r, **comum)
+            if not Decada.objects.filter(sala=sala).exists():
+                gravar_linha_do_tempo(sala, r, dados, **comum)
             for i, (icone, ano, titulo, descricao, texto) in enumerate(r["marcos"]):
                 Marco.objects.create(sala=sala, ano=ano, titulo=titulo, descricao=descricao, texto=texto, icone=icone,
                                      ordem=i, **comum)

@@ -348,6 +348,36 @@ class ExemploTests(Base):
         self.assertEqual(list(Aluno.objects.all()), [real])
 
 
+class TextosTests(Base):
+    def test_grava_so_os_textos_e_nao_troca_o_que_existe(self):
+        with open("/dev/null", "w") as nada:
+            call_command("carregar_textos", stdout=nada)
+            self.assertEqual(Apresentacao.objects.filter(demonstrativo=False).count(), 6)
+            self.assertEqual(Decada.objects.filter(demonstrativo=False).count(), 42)
+            self.assertEqual(Marco.objects.count() + Foto.objects.count() + Aluno.objects.count(), 0)
+            self.assertEqual(Registro.objects.count(), 0)
+            r = self.get("/api/memorial/sala/1/").json()
+            self.assertEqual(r["apresentacao"]["titulo"], "Onde tudo começou, em 1958")
+            self.assertEqual((r["decadas"][0]["rotulo"], r["decadas"][0]["periodo"]), ("1958", "Pequeno Polegar"))
+
+            # o que a equipe editou fica; rodar de novo não duplica
+            Apresentacao.objects.filter(sala__numero=2).update(titulo="Editado pela equipe")
+            call_command("carregar_textos", stdout=nada)
+            self.assertEqual(Apresentacao.objects.count(), 6)
+            self.assertEqual(Decada.objects.count(), 42)
+            self.assertEqual(Apresentacao.objects.get(sala__numero=2).titulo, "Editado pela equipe")
+
+            # o exemplo completo convive com os textos e o --remover não os apaga
+            call_command("carregar_exemplo", stdout=nada)
+            self.assertEqual(Apresentacao.objects.count(), 6)
+            self.assertEqual(Decada.objects.count(), 42)
+            self.assertEqual(Marco.objects.count(), 24)
+            call_command("carregar_exemplo", "--remover", stdout=nada)
+        self.assertEqual(Apresentacao.objects.count(), 6)
+        self.assertEqual(Decada.objects.count(), 42)
+        self.assertEqual(Marco.objects.count() + Aluno.objects.count(), 0)
+
+
 class SeisEspacosTests(Base):
     def test_salas_iguais_as_do_frontend(self):
         salas = list(Sala.objects.values_list("numero", "slug", "cor", "tipo"))
