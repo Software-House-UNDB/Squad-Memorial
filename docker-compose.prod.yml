@@ -113,6 +113,8 @@ services:
       - letsencrypt:/etc/letsencrypt:ro
       - certbot-www:/var/www/certbot:ro
       - ${CERTS_DIR:-./nginx/certs}:/etc/nginx/certs:ro
+      # Site do agendamento (outro repositório, só arquivos estáticos): servido em /agendamento/
+      - ${AGENDAMENTO_DIR:-./agendamento}:/usr/share/nginx/html/agendamento:ro
       - ${DADOS_DIR:-./dados}/certificado:/etc/nginx/certificado-provisorio
       - envios-nginx:/var/cache/nginx/envios
     depends_on:

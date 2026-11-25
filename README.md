@@ -459,6 +459,22 @@ As pastas são criadas e recebem o dono certo sozinhas (serviço `permissoes`, a
   docker compose -f docker-compose.prod.yml --profile certbot up -d certbot   # renovação automática
   ```
 
+### Agendamento de visitas (`/agendamento/`)
+
+O agendamento é outro repositório: uma página estática (`memorial-agendamento-site/`) cujo backend é um Google
+Apps Script (vagas, convite no Google Agenda, e-mail e planilha). O nginx só serve os arquivos, montados de
+`AGENDAMENTO_DIR`:
+
+```bash
+git clone <repositório do agendamento> /opt/composers/agendamento
+# .env: AGENDAMENTO_DIR=../agendamento/memorial-agendamento-site
+docker compose -f docker-compose.prod.yml up -d --force-recreate nginx
+```
+
+Para atualizar a página: `git -C /opt/composers/agendamento pull` (não precisa recriar o nginx). Antes de usar,
+cole em `SCRIPT_URL` (no `index.html` do repositório de agendamento) o endereço do app da Web do Apps Script; vazio,
+a página fica em modo demonstração.
+
 ### Acesso de fora da rede da escola
 
 O sistema inteiro responde para a rede da escola (e para a VPN). Para quem vem de fora, só o **check-in**
