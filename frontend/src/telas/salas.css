@@ -5,7 +5,7 @@
 .tt-vazio { margin-top: 120px; text-align: center; font-size: var(--t-texto); color: var(--suave); }
 
 /* ---------- Apresentação ---------- */
-.tt-apres { display: flex; gap: 56px; margin-top: 22px; height: 552px; }
+.tt-apres { display: flex; gap: 56px; margin-top: 22px; height: calc(552px + var(--cresce, 0px)); }
 .tt-apres__foto { width: 600px; flex: none; margin: 0; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
 .tt-apres__foto .m-epoca { flex: 1; min-height: 0; }
 .tt-apres__foto figcaption { font-size: var(--t-apoio); font-style: italic; color: var(--suave-2); }
@@ -22,7 +22,7 @@
 .tt-atalho:active { background: var(--rc); color: var(--branco); }
 
 /* ---------- Linha do tempo ---------- */
-.tt-linha { margin-top: 18px; height: 560px; display: flex; flex-direction: column; gap: 14px; }
+.tt-linha { margin-top: 18px; height: calc(560px + var(--cresce, 0px)); display: flex; flex-direction: column; gap: 14px; }
 .tt-linha__trilho { display: grid; flex: none; position: relative; }
 .tt-dec {
   position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;
@@ -90,7 +90,7 @@
 .tt-painel__setas { position: absolute; right: 24px; bottom: 22px; display: flex; gap: 12px; z-index: 4; } /* acima do texto e do ano, senão não recebem o toque */
 
 /* ---------- Marcos ---------- */
-.tt-marcos { margin-top: 20px; height: 556px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+.tt-marcos { margin-top: 20px; height: calc(556px + var(--cresce, 0px)); display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
 .tt-marcos--rola {
   display: flex; overflow-x: auto; overflow-y: hidden; touch-action: pan-x; overscroll-behavior-x: contain;
   scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: var(--dourado) var(--linha);
@@ -102,7 +102,7 @@
   transition: background var(--dur) var(--curva), border-color var(--dur) var(--curva), transform var(--dur) var(--curva);
 }
 .tt-mc:active { transform: scale(.985); }
-.tt-mc__foto { position: relative; display: block; flex: none; height: 214px; padding: 10px 10px 0; transition: height var(--dur) var(--curva); }
+.tt-mc__foto { position: relative; display: block; flex: none; height: calc(214px + var(--cresce, 0px)); padding: 10px 10px 0; transition: height var(--dur) var(--curva); }
 .tt-mc__foto .m-epoca { height: 100%; padding: 6px; box-shadow: none; }
 .tt-mc__ano {
   position: absolute; left: 20px; bottom: 10px; padding: 2px 14px; border-radius: var(--raio-pilula);
@@ -124,7 +124,7 @@
 .tt-mc.is-aberto .tt-mc__curto { display: none; }
 
 /* ---------- Fotos ---------- */
-.tt-fotos { display: flex; gap: 28px; margin-top: 22px; height: 552px; }
+.tt-fotos { display: flex; gap: 28px; margin-top: 22px; height: calc(552px + var(--cresce, 0px)); }
 .tt-per { width: 272px; flex: none; display: flex; flex-direction: column; padding: 16px 10px 12px 12px; min-height: 0; }
 .tt-per__rot { font-size: var(--t-micro); letter-spacing: .2em; font-weight: 700; color: var(--dourado-texto); padding: 0 12px 10px; }
 .tt-per__lista {
@@ -151,7 +151,7 @@
 .tt-galeria__grade { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 22px; padding: 2px 4px 6px; }
 
 /* ---------- Vídeos ---------- */
-.tt-videos { display: flex; gap: 28px; margin-top: 22px; height: 552px; }
+.tt-videos { display: flex; gap: 28px; margin-top: 22px; height: calc(552px + var(--cresce, 0px)); }
 .tt-destaque { flex: 1.25; min-width: 0; display: flex; flex-direction: column; overflow: hidden; text-align: left; box-shadow: 0 14px 30px rgb(35 33 29 / .14); }
 .tt-destaque:active { transform: scale(.99); }
 .tt-destaque__tela { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; overflow: hidden; }

@@ -8,7 +8,7 @@
  * dividida pela densidade. O palco preserva a composição em qualquer caso; o painel ?diag mostra a
  * densidade real e o tamanho efetivo dos alvos, para ajustar a densidade do sistema no equipamento.
  */
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { quiosque, type Orientacao } from '../config/quiosque';
 import './palco.css';
 import '../estilos/retrato.css';
@@ -24,17 +24,30 @@ export function orientacaoDaTela(largura: number, altura: number, fixa: Orientac
   return fixa ?? (altura > largura ? 'retrato' : 'paisagem');
 }
 
-export const medidasDoPalco = (o: Orientacao) => (o === 'retrato' ? quiosque.palcoRetrato : quiosque.palco);
+/**
+ * Medidas do palco. Sem a tela, as de referência (1600 × 900 e 900 × 1600). Com a tela, a largura de
+ * referência se mantém e a altura acompanha a proporção da tela dentro de quiosque.alturaPalco: em
+ * 16:10, 4:3 ou 3:4 o palco ocupa a tela toda em vez de deixar faixas, e a sobra de altura vai para
+ * as telas das abas (--sobra no CSS). Em 16:9 e 9:16 nada muda.
+ */
+export function medidasDoPalco(o: Orientacao, tela?: { largura: number; altura: number }) {
+  const base = o === 'retrato' ? quiosque.palcoRetrato : quiosque.palco;
+  if (!tela || tela.largura <= 0 || tela.altura <= 0) return base;
+  const { min, max } = quiosque.alturaPalco[o];
+  const altura = Math.round(Math.min(max, Math.max(min, base.largura * (tela.altura / tela.largura))));
+  return { largura: base.largura, altura };
+}
 
 function calcular() {
-  const orientacao = orientacaoDaTela(window.innerWidth, window.innerHeight);
-  const { largura, altura } = medidasDoPalco(orientacao);
-  return { orientacao, escala: Math.min(window.innerWidth / largura, window.innerHeight / altura) };
+  const tela = { largura: window.innerWidth, altura: window.innerHeight };
+  const orientacao = orientacaoDaTela(tela.largura, tela.altura);
+  const { largura, altura } = medidasDoPalco(orientacao, tela);
+  return { orientacao, largura, altura, escala: Math.min(tela.largura / largura, tela.altura / altura) };
 }
 
 export function Palco({ children }: { children: ReactNode }) {
-  const [{ escala, orientacao }, setMedida] = useState(calcular);
-  const { largura, altura } = medidasDoPalco(orientacao);
+  const [{ escala, orientacao, largura, altura }, setMedida] = useState(calcular);
+  const sobra = altura - medidasDoPalco(orientacao).altura;
 
   useEffect(() => {
     const ajustar = () => setMedida(calcular());
@@ -55,7 +68,10 @@ export function Palco({ children }: { children: ReactNode }) {
           <div
             className={`palco palco--${orientacao}`}
             data-orientacao={orientacao}
-            style={{ width: largura, height: altura, transform: `translate(-50%, -50%) scale(${escala})` }}
+            style={{
+              width: largura, height: altura, transform: `translate(-50%, -50%) scale(${escala})`,
+              '--sobra': `${sobra}px`,
+            } as CSSProperties}
           >
             {children}
           </div>

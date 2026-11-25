@@ -90,9 +90,13 @@ Referência de composição: o protótipo `docs/referencia/tour-memorial-dom-bos
 `/* totem (1600x900) */`). A composição é a mesma; os tamanhos foram aumentados para leitura de pé, a
 50–80 cm da tela, e o contraste foi corrigido (ver "Contraste").
 
-- **Palco lógico 1600 × 900 (16:9)**, escalado para a tela real e centralizado. Em telas 16:10 sobram
-  faixas `--grafite-3` em cima e embaixo. Nada rola na página; só listas internas (períodos, resultados,
-  vídeos) rolam, com barra visível.
+- **Palco lógico 1600 × 900 (16:9)**, escalado para a tela real e centralizado. A largura de referência é
+  fixa (1600 deitado, 900 em pé) e a altura acompanha a proporção da tela: deitado até 1600 × 1200 (4:3), em pé
+  de 900 × 1200 (3:4) a 900 × 2000. A sobra (`--sobra`) faz as telas das abas crescerem até 100 px deitado e
+  160 px em pé; o resto vira respiro no papel, acima e abaixo da área principal. Em pé num tablet 3:4 a sobra é
+  negativa e as fotos das abas encolhem até um piso. Fora desses limites ainda sobram faixas `--grafite-3`.
+  Em 16:9 e 9:16 nada muda. Nada rola na página; só listas internas (períodos, resultados, vídeos) rolam,
+  com barra visível.
 - **Estrutura comum**: cabeçalho 78 px (+ borda de 3 px) · área principal (margens de 52 px) · rodapé 46 px com a dica de
   uso da aba e, à direita, o selo "Conteúdo de exemplo · Memorial Dom Bosco" quando a sala tiver
   conteúdo demonstrativo.
