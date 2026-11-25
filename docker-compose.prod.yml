@@ -102,6 +102,8 @@ services:
       # Certificado institucional (opcional): caminhos dentro do contêiner, ex. /etc/nginx/certs/fullchain.pem
       SSL_CERT: ${SSL_CERT:-}
       SSL_KEY: ${SSL_KEY:-}
+      # Faixas da rede da escola (e da VPN): só elas veem totens, painel e admin; de fora, só check-in e agendamento.
+      REDE_INTERNA: ${REDE_INTERNA:-10.0.0.0/8 172.16.0.0/12 192.168.0.0/16}
     ports:
       - "${HTTP_PORT:-80}:80"
       - "${HTTPS_PORT:-443}:443"
@@ -111,6 +113,8 @@ services:
       - letsencrypt:/etc/letsencrypt:ro
       - certbot-www:/var/www/certbot:ro
       - ${CERTS_DIR:-./nginx/certs}:/etc/nginx/certs:ro
+      # Site do agendamento (outro repositório, só arquivos estáticos): servido em /agendamento/
+      - ${AGENDAMENTO_DIR:-./agendamento}:/usr/share/nginx/html/agendamento:ro
       - ${DADOS_DIR:-./dados}/certificado:/etc/nginx/certificado-provisorio
       - envios-nginx:/var/cache/nginx/envios
     depends_on:
