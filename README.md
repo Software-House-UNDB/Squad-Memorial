@@ -50,7 +50,8 @@ Ao subir, o backend já grava os textos das 6 salas (apresentação e linha do t
    continua na mesma sala. Sem sala definida, o totem mostra "Escolha a sala deste totem".
 3. Para trocar a sala de um totem, abra de novo o endereço com outro `/sala/N`.
 4. O totem pode ficar deitado ou em pé: o palco lógico é 1600 × 900 deitado e 900 × 1600 em pé, escolhido
-   pela proporção da tela (em 16:10 ou 4:3 ele fica centralizado, com faixas grafite). Se o aparelho informar a
+   pela proporção da tela. Em 16:10, 4:3 ou num tablet em pé (3:4) o palco ganha altura e ocupa a tela toda, com
+   o mesmo tamanho de texto (DESIGN.md, "Palco lógico"). Se o aparelho informar a
    orientação errada, acrescente `?orientacao=retrato` (ou `=paisagem`) ao endereço.
 5. Abra uma vez com `?diag` para conferir a escala e a orientação.
 

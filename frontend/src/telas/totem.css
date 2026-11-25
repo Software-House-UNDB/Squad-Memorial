@@ -41,6 +41,11 @@
 
 /* ---------- área principal ---------- */
 .tt-main { flex: 1; min-height: 0; position: relative; padding: 28px 52px 0; }
+/* Palco deitado mais alto que 16:9 (16:10, 4:3; ver quiosque/Palco.tsx): as telas das abas crescem até 100 px
+   (--cresce, usado em salas.css) e o resto da sobra vira respiro em cima e embaixo da área principal, no próprio
+   papel, para a composição não esticar. Em 16:9 os dois são zero. */
+.palco--paisagem { --cresce: min(var(--sobra, 0px), 100px); }
+.palco--paisagem .tt-main { margin-block: calc((var(--sobra, 0px) - var(--cresce)) / 2); }
 .tt-eyb { font-size: var(--t-micro); letter-spacing: .24em; font-weight: 700; color: var(--dourado-texto); text-transform: uppercase; }
 .tt-h1 { font-family: var(--serif); font-weight: 700; font-size: 58px; line-height: 1.02; margin-top: 6px; color: var(--grafite); }
 .tt-sub { font-size: var(--t-texto); color: var(--suave-2); margin-top: 4px; }

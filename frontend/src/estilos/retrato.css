@@ -1,4 +1,6 @@
-/* Totem em pé: palco de 900 × 1600 px CSS (quiosque/Palco.tsx põe .palco--retrato).
+/* Totem em pé: palco de 900 × 1600 px CSS (quiosque/Palco.tsx põe .palco--retrato). Em telas 3:4 o palco
+   fica mais baixo (até 900 × 1200) e --sobra fica negativa: as fotos que levam a sobra encolhem até um piso,
+   para o texto e os atalhos caberem; em 9:16 (--sobra 0) as medidas são as de sempre.
    Mesmos tokens, textos e alvos de toque do palco deitado (mínimos do DESIGN.md: texto 18 px,
    secundário 16 px, rótulos 14 px, toque 56 px); aqui só muda a composição. As regras deitadas
    ficam nos arquivos de cada tela e estas vêm por cima delas. */
@@ -14,6 +16,10 @@
 /* área principal em coluna: abas no topo, título, e a tela da aba ocupa o resto */
 .palco--retrato .tt-main { display: flex; flex-direction: column; padding: 22px 36px 0; }
 .palco--retrato .tt-main > * { flex: none; }
+/* Mais alto que 9:16 (celular): as telas crescem até 160 px e o resto vira respiro em cima e embaixo, no papel,
+   como no palco deitado (telas/totem.css). Mais baixo (tablet 3:4): --cresce fica negativa e não há respiro. */
+.palco--retrato { --cresce: min(var(--sobra, 0px), 160px); }
+.palco--retrato .tt-main { margin-block: calc((var(--sobra, 0px) - var(--cresce)) / 2); }
 
 .palco--retrato .tt-abas {
   position: static; order: -1; align-self: stretch; justify-content: space-between;
@@ -33,7 +39,7 @@
 
 /* ================================================================ Apresentação */
 .palco--retrato .tt-apres { flex-direction: column; gap: 30px; }
-.palco--retrato .tt-apres__foto { width: auto; height: auto; flex: 1 1 0; min-height: 420px; } /* a foto fica com a sobra */
+.palco--retrato .tt-apres__foto { width: auto; height: auto; flex: 1 1 0; min-height: clamp(240px, calc(420px + var(--sobra, 0px)), 420px); } /* a foto fica com a sobra */
 .palco--retrato .tt-apres__txt { flex: none; padding-top: 0; }
 .palco--retrato .tt-apres__atalhos { margin-top: 12px; }
 .palco--retrato .tt-apres__tit { font-size: 42px; }
@@ -48,7 +54,7 @@
 .palco--retrato .tt-dec__tit { display: none; }
 
 .palco--retrato .tt-painel { flex-direction: column; gap: 26px; padding: 22px 22px 96px; }
-.palco--retrato .tt-painel__foto { width: auto; height: auto; flex: 1 1 0; min-height: 360px; } /* a foto fica com a sobra */
+.palco--retrato .tt-painel__foto { width: auto; height: auto; flex: 1 1 0; min-height: clamp(220px, calc(360px + var(--sobra, 0px)), 360px); } /* a foto fica com a sobra */
 .palco--retrato .tt-painel__txt { flex: none; }
 .palco--retrato .tt-painel__tit { font-size: 36px; margin-top: 8px; }
 .palco--retrato .tt-painel__ano-grande { font-size: 70px; }
@@ -67,7 +73,7 @@
   scroll-snap-type: y proximity; margin-inline: 0; padding-inline: 0; padding-right: 8px;
 }
 .palco--retrato .tt-marcos--rola .tt-mc { width: auto; }
-.palco--retrato .tt-mc__foto { height: 290px; }
+.palco--retrato .tt-mc__foto { height: max(200px, calc(290px + var(--cresce, 0px) / 2)); }
 .palco--retrato .tt-mc.is-aberto .tt-mc__foto { height: 150px; }
 
 /* ================================================================ Fotos */
@@ -100,6 +106,11 @@
 .palco--retrato .tt-sel { flex: 1; width: auto; }
 .palco--retrato .tt-chips { flex-wrap: wrap; row-gap: 10px; }
 .palco--retrato .tt-pessoas { grid-template-columns: repeat(2, 1fr); }
+/* palco mais baixo (tablet 3:4): a página de resultados rola dentro da lista em vez de passar do rodapé */
+.palco--retrato .tt-pessoas {
+  flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y;
+  padding-bottom: 8px; margin-bottom: -8px; /* espaço para a sombra dos cartões da última linha */
+}
 .palco--retrato .tt-rs { flex-wrap: wrap; }
 
 /* teclado: dez teclas de 74 px numa linha de 900 px */

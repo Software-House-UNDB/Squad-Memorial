@@ -52,6 +52,13 @@ export const quiosque = {
   palcoRetrato: { largura: 900, altura: 1600 },
 
   /**
+   * Quanto o palco pode crescer na altura para acompanhar a proporção da tela, mantendo a largura de
+   * referência (e com ela o tamanho do texto e dos alvos): deitado até 4:3 (1600 × 1200), em pé de 3:4
+   * (900 × 1200) até a proporção de um celular (900 × 2000). Fora disso sobram faixas, como antes.
+   */
+  alturaPalco: { paisagem: { min: 900, max: 1200 }, retrato: { min: 1200, max: 2000 } },
+
+  /**
    * Orientação do palco: ?orientacao=retrato ou ?orientacao=paisagem fixa uma delas (útil quando o
    * aparelho informa a tela girada); sem o parâmetro, segue a proporção da tela.
    */

@@ -281,19 +281,64 @@ td:nth-child(1), td:nth-child(2), td:nth-child(3) { white-space: nowrap; overflo
   tr + tr { border-top: 1px solid var(--linha); }
   tr { padding: 0.5rem 0; }
   td, td:nth-child(n) {
-    display: grid; grid-template-columns: 6.5rem 1fr; gap: 0.5rem; padding: 0.2rem 0.875rem; border: 0;
+    display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 0.5rem; padding: 0.2rem 0.875rem; border: 0;
     white-space: normal; overflow-wrap: anywhere;
   }
   td::before { content: attr(data-rotulo); color: var(--suave); font-size: 0.8125rem; }
+  td > .chip { justify-self: start; } /* o selo Sim/Não não estica na largura da célula */
   /* Uma coluna em grid, não em flex: em flex-direction: column o Chrome mede a altura da grade de ícones
      como se ela tivesse 2 colunas (9 linhas) e desenha com 3, deixando ~200 px vazios abaixo dela. */
   .linha-form { display: grid; grid-template-columns: minmax(0, 1fr); }
   .campo-form { flex: none; max-width: none; }
   .selecao__botoes { margin-left: 0; width: 100%; }
-  .selecao__botoes .botao { flex: 1 1 100%; justify-content: center; }
+  /* os botões dividem as linhas (dois por linha, o mais longo sozinho) em vez de um por linha */
+  .selecao__botoes .botao { flex: 1 1 auto; justify-content: center; text-align: center; }
+  /* a barra só acompanha a rolagem quando há algo marcado: sem seleção ela não cobre a lista */
+  form:not(:has(input[name="selecionados"]:checked)) > .selecao { position: static; }
   .fotos { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
   .resumo > div { border-left: 0; padding: 0; }
   .resumo { grid-template-columns: 1fr 1fr; }
+
+  /* Registro com marcar e/ou imagem: os dois e o nome na primeira linha, os outros campos embaixo com o rótulo. */
+  tr:has(> .celula-img, > td[data-rotulo="Selecionar"]) { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: center; }
+  tr:has(> .celula-img, > td[data-rotulo="Selecionar"]) > td { grid-column: 1 / -1; }
+  tr:has(> .celula-img, > td[data-rotulo="Selecionar"]) > td[data-rotulo="Selecionar"] { grid-column: 1; display: block; padding-right: 0.25rem; }
+  tr:has(> .celula-img, > td[data-rotulo="Selecionar"]) > td.celula-img { grid-column: 2; display: block; width: auto; padding-right: 0; }
+  tr:has(> .celula-img, > td[data-rotulo="Selecionar"]) > :is(.celula-img, td[data-rotulo="Selecionar"]) + td:not(.celula-img) { grid-column: 3; display: block; padding-block: 0.375rem; font-weight: 600; }
+  tr:has(> .celula-img, > td[data-rotulo="Selecionar"]) > :is(td[data-rotulo="Selecionar"], .celula-img, :is(.celula-img, td[data-rotulo="Selecionar"]) + td:not(.celula-img))::before { content: none; }
+
+  /* Cartão sem imagem (só o ícone): capa baixa, a mesma altura da capa das salas, em vez de 16:9 na largura toda. */
+  .cartao__capa:not(.cartao__capa--sala):not(:has(img)) { aspect-ratio: auto; height: 5.5rem; }
+
+  /* Filtros e barra de salvar: os campos e os botões dividem a linha por igual. */
+  .filtros .campo { flex: 1 1 9.5rem; }
+  .filtros .campo--busca { flex-basis: 100%; }
+  .barra-salvar .botao { flex: 1 1 auto; justify-content: center; }
+}
+
+/* Tablet (761 a 1024 px): tabelas com muitas colunas (ex-alunos, décadas) não cabem e escondiam metade
+   das colunas numa rolagem lateral. Viram registros em duas colunas, com a mesma leitura rótulo e valor
+   do celular (acima); tabelas curtas (registro, apresentações) continuam tabela. */
+@media (min-width: 761px) and (max-width: 1024px) {
+  .tabela:has(th:nth-child(8)) { overflow: visible; background: none; border: 0; }
+  .tabela:has(th:nth-child(8)) thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .tabela:has(th:nth-child(8)) :is(table, td) { display: block; }
+  .tabela:has(th:nth-child(8)) tbody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .tabela:has(th:nth-child(8)) tr {
+    display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-content: start; align-items: center;
+    padding: 0.5rem 0; background: var(--cartao); border: 1px solid var(--linha); border-radius: 8px;
+  }
+  .tabela:has(th:nth-child(8)) tbody tr:hover { background: var(--cartao); }
+  .tabela:has(th:nth-child(8)) td {
+    grid-column: 1 / -1; display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 0.5rem;
+    padding: 0.2rem 0.875rem; border: 0; white-space: normal; overflow-wrap: anywhere;
+  }
+  .tabela:has(th:nth-child(8)) td::before { content: attr(data-rotulo); color: var(--suave); font-size: 0.8125rem; }
+  .tabela:has(th:nth-child(8)) td > .chip { justify-self: start; }
+  .tabela:has(th:nth-child(8)) td[data-rotulo="Selecionar"] { grid-column: 1; display: block; padding-right: 0.25rem; }
+  .tabela:has(th:nth-child(8)) .celula-img { grid-column: 2; display: block; width: auto; padding-right: 0; }
+  .tabela:has(th:nth-child(8)) :is(.celula-img, td[data-rotulo="Selecionar"]) + td:not(.celula-img) { grid-column: 3; display: block; padding-block: 0.375rem; font-weight: 600; }
+  .tabela:has(th:nth-child(8)) :is(td[data-rotulo="Selecionar"], .celula-img, :is(.celula-img, td[data-rotulo="Selecionar"]) + td:not(.celula-img))::before { content: none; }
 }
 
 /* Aviso por e-mail, na tela de aprovações */

@@ -58,6 +58,9 @@ button { font: inherit; cursor: pointer; }
 /* "Ano em que estudou" quebra em duas linhas; sem isto Ano e Turma ficam desalinhados.
    3em = duas linhas com line-height 1.5 (com 2.6em ainda sobravam uns 5 px). */
 .ck-dois .ck-campo > label { min-height: 3em; display: flex; align-items: flex-end; }
+/* Coluna larga (tablet, desktop): o rótulo cabe numa linha e a reserva de duas deixava um vão acima dos campos. */
+.ck-dois .ck-campo { container-type: inline-size; }
+@container (min-width: 216px) { .ck-dois .ck-campo > label { min-height: 0; } }
 .ck-ajuda { font-size: 14px; color: var(--suave); min-height: 0; }
 .ck-ajuda:empty { display: none; }
 .ck-erro { font-size: 15px; font-weight: 600; color: var(--erro); }
@@ -185,4 +188,9 @@ button { font: inherit; cursor: pointer; }
 .ck-ok__percurso .num { display: inline-block; min-width: 2em; font-weight: 700; color: var(--dourado-texto); }
 
 @media (prefers-reduced-motion: reduce) { .ck-ok__selo, .ck-folha__corpo { animation: none; } }
-@media (min-width: 700px) { .ck-form h1 { font-size: 40px; } }
+@media (min-width: 700px) {
+  .ck-form h1 { font-size: 40px; }
+  /* a folha "Mais redes" fica na largura da coluna do formulário, em vez da tela toda */
+  .ck-folha { justify-content: center; }
+  .ck-folha__corpo { max-width: 520px; }
+}
