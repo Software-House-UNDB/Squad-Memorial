@@ -459,6 +459,25 @@ As pastas são criadas e recebem o dono certo sozinhas (serviço `permissoes`, a
   docker compose -f docker-compose.prod.yml --profile certbot up -d certbot   # renovação automática
   ```
 
+### Acesso de fora da rede da escola
+
+O sistema inteiro responde para a rede da escola (e para a VPN). Para quem vem de fora, só o **check-in**
+(`/check-in/`, o QR Code) e o **agendamento** (`/agendamento/`) respondem:
+
+| De fora da rede | Resposta |
+|---|---|
+| `/check-in/`, `/agendamento/`, arquivos do build (`/assets/`), ícones, `/api/memorial/checkin/` e `/api/memorial/agendamento/` | normal |
+| `/`, `/sala/N`, `/administracao/`, `/admin/` | redireciona para `/check-in/` |
+| API dos totens, fotos e vídeos (`/media/`), `/static/` e o resto | 403 |
+
+A rede da escola vem de `REDE_INTERNA` no `.env` (faixas separadas por espaço; o padrão são as redes privadas
+`10.0.0.0/8 172.16.0.0/12 192.168.0.0/16`). Peça à TI as faixas da escola e da VPN e recrie o nginx
+(`docker compose -f docker-compose.prod.yml up -d --force-recreate nginx`). `REDE_INTERNA=todas` desliga a restrição.
+
+O nginx decide pelo IP de origem, então o NAT da TI precisa **manter o IP do visitante** (encaminhamento de
+porta/DNAT). Se o firewall trocar a origem pelo próprio IP interno, todo acesso de fora parece interno: teste
+pelo celular no 4G que `https://<domínio>/sala/1` leva ao check-in.
+
 ### Observações
 
 - O nginx só responde ao nome de `SERVER_NAME`; quem acessar por outro nome (ou pelo IP, se o nome for outro) é
