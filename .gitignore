@@ -16,3 +16,6 @@ nginx/certs/*.key
 # dados e backups da produção (docker-compose.prod.yml)
 /dados/
 /backups/
+
+# site do agendamento (outro repositório, clonado/montado no servidor)
+/agendamento/

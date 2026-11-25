@@ -10,3 +10,4 @@ dados
 backups
 .env.*
 !.env*.example
+agendamento
