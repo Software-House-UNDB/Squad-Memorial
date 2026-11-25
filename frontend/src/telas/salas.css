@@ -1,4 +1,4 @@
-/* Telas dos espaços (palco 1600 × 900): Apresentação, Linha do tempo, Marcos, Fotos e Vídeos. Mínimos: texto 18 px, secundário 16 px,
+/* Telas dos espaços (palco 1600 × 900): Apresentação, Linha do tempo, Fotos e Vídeos. Mínimos: texto 18 px, secundário 16 px,
    rótulos em caixa-alta 14 px, alvos de toque 56 px (DESIGN.md). */
 
 .tt-titulo { max-width: 960px; }
@@ -89,40 +89,6 @@
 .tt-painel__foto, .tt-painel__txt { position: relative; z-index: 1; }
 .tt-painel__setas { position: absolute; right: 24px; bottom: 22px; display: flex; gap: 12px; z-index: 4; } /* acima do texto e do ano, senão não recebem o toque */
 
-/* ---------- Marcos ---------- */
-.tt-marcos { margin-top: 20px; height: calc(556px + var(--cresce, 0px)); display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
-.tt-marcos--rola {
-  display: flex; overflow-x: auto; overflow-y: hidden; touch-action: pan-x; overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: var(--dourado) var(--linha);
-  margin-inline: -52px; padding-inline: 52px;
-}
-.tt-marcos--rola .tt-mc { flex: none; width: 357px; scroll-snap-align: start; }
-.tt-mc {
-  display: flex; flex-direction: column; min-height: 0; overflow: hidden; text-align: left;
-  transition: background var(--dur) var(--curva), border-color var(--dur) var(--curva), transform var(--dur) var(--curva);
-}
-.tt-mc:active { transform: scale(.985); }
-.tt-mc__foto { position: relative; display: block; flex: none; height: calc(214px + var(--cresce, 0px)); padding: 10px 10px 0; transition: height var(--dur) var(--curva); }
-.tt-mc__foto .m-epoca { height: 100%; padding: 6px; box-shadow: none; }
-.tt-mc__ano {
-  position: absolute; left: 20px; bottom: 10px; padding: 2px 14px; border-radius: var(--raio-pilula);
-  background: var(--rc); color: var(--branco); font-size: 24px; font-weight: 700; line-height: 1.2;
-}
-.tt-mc__corpo { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; padding: 16px 20px 16px; }
-.tt-mc__icone {
-  width: 36px; height: 36px; border-radius: 50%; flex: none; display: grid; place-items: center;
-  background: var(--dourado-fundo); color: var(--dourado-texto);
-}
-.tt-mc__titulo { font-size: 27px; font-weight: 700; line-height: 1.08; color: var(--grafite); }
-.tt-mc__curto { font-size: var(--t-texto); line-height: 1.4; color: var(--suave); }
-.tt-mc__longo { font-size: var(--t-texto); line-height: 1.42; }
-.tt-mc__dica { margin-top: auto; font-size: var(--t-apoio); font-weight: 600; color: var(--rc); }
-.tt-mc.is-aberto { background: var(--rc); border-color: var(--rc); }
-.tt-mc.is-aberto .tt-mc__ano { background: var(--branco); color: var(--rc); }
-.tt-mc.is-aberto .tt-mc__icone { background: rgb(255 255 255 / .2); color: var(--branco); }
-.tt-mc.is-aberto .tt-mc__titulo, .tt-mc.is-aberto .tt-mc__longo, .tt-mc.is-aberto .tt-mc__dica { color: var(--branco); }
-.tt-mc.is-aberto .tt-mc__curto { display: none; }
-
 /* ---------- Fotos ---------- */
 .tt-fotos { display: flex; gap: 28px; margin-top: 22px; height: calc(552px + var(--cresce, 0px)); }
 .tt-per { width: 272px; flex: none; display: flex; flex-direction: column; padding: 16px 10px 12px 12px; min-height: 0; }
@@ -181,3 +147,24 @@
 .tt-vitem__txt b { font-size: 22px; font-weight: 700; line-height: 1.15; color: var(--grafite); }
 .tt-vitem__txt span { font-size: var(--t-apoio); color: var(--suave-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tt-vlista__vazia { font-size: var(--t-apoio); color: var(--suave-2); }
+
+/* ---------- Vídeos em construção (config/recursos.ts · VIDEOS_EM_CONSTRUCAO) ---------- */
+.tt-embreve {
+  position: relative; margin-top: 22px; height: calc(552px + var(--cresce, 0px));
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center;
+  border-radius: 18px; border: 1px solid color-mix(in srgb, var(--rc) 22%, transparent);
+  background: linear-gradient(135deg, var(--cartao) 40%, color-mix(in srgb, var(--rc) 8%, var(--cartao)));
+  box-shadow: 0 14px 30px rgb(35 33 29 / .08);
+}
+.tt-embreve::before { /* a moldura tracejada */
+  content: ''; position: absolute; inset: 14px; border-radius: 12px; pointer-events: none;
+  border: 2px dashed color-mix(in srgb, var(--rc) 28%, transparent);
+}
+.tt-embreve__icone {
+  width: 120px; height: 120px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 6px; color: var(--rc);
+  background: color-mix(in srgb, var(--rc) 10%, var(--cartao)); border: 2px solid color-mix(in srgb, var(--rc) 35%, transparent);
+}
+.tt-embreve__rot { font-size: var(--t-micro); letter-spacing: .24em; font-weight: 700; color: var(--rc); }
+.tt-embreve__tit { font-size: 48px; font-weight: 700; line-height: 1.05; color: var(--grafite); margin: 0; }
+.tt-embreve__fio { width: 72px; height: 4px; border-radius: 2px; background: var(--rc); }
+.tt-embreve p { font-size: 24px; line-height: 1.45; color: var(--grafite-2); max-width: 26em; margin: 0; }

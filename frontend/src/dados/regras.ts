@@ -183,7 +183,7 @@ export function apresentacaoDaSala(dados: Pick<RespostaSala, 'apresentacao' | 's
   };
 }
 
-/** Os quatro marcos da aba Marcos, em ordem de ano. */
+/** Os marcos do espaço, em ordem de ano (hoje só os ícones deles servem de moldura para fotos sem imagem). */
 export const marcosOrdenados = (marcos: Marco[]): Marco[] => [...marcos].sort((a, b) => a.ano - b.ano);
 
 // ---------------------------------------------------------------- formatos

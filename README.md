@@ -5,12 +5,12 @@ celular** do visitante. Quem faz o check-in na entrada pode ser encontrado pelos
 
 | Sala | Nome | Título no totem | O totem mostra |
 |---|---|---|---|
-| 01 | Fundação | Nossas Origens | Apresentação, Linha do tempo (7 pontos, um marco por ano), Marcos (4 cartões), Fotos (períodos de 5 anos) e Vídeos |
+| 01 | Fundação | Nossas Origens | Apresentação, Linha do tempo (7 pontos, um marco por ano), Fotos (períodos de 5 anos) e Vídeos (por ora, aviso "em produção") |
 | 02 | Diretores | Liderança e Legado | idem |
 | 03 | Professores | Mestres de Gerações | idem |
 | 04 | Artes | Palco e Ateliê | idem |
 | 05 | Esportes | Campeões | idem |
-| 06 | Alunos | Memórias vivas | as mesmas 5 abas **e** a aba **Colegas**: busca de ex-alunos por nome, ano ou década, e o perfil de cada pessoa |
+| 06 | Alunos | Memórias vivas | as mesmas 4 abas **e** a aba **Colegas**: busca de ex-alunos por nome, ano ou década, e o perfil de cada pessoa |
 
 Nome e título se editam no painel (Salas); os de fábrica vêm da migração `0017_titulos_das_salas`.
 
@@ -229,8 +229,11 @@ Os dados da Sala 06 (aba Colegas) são de pessoas reais:
 
 ## Frontend
 
-- **Cada espaço tem 5 abas**: Apresentação, Linha do tempo, Marcos, Fotos e Vídeos. A **Sala 06** tem
-  ainda a aba **Colegas** (busca e perfil). Marcos: tocar num cartão abre o texto explicativo.
+- **Cada espaço tem 4 abas**: Apresentação, Linha do tempo, Fotos e Vídeos. A **Sala 06** tem ainda a
+  aba **Colegas** (busca e perfil). A aba Marcos saiu da tela (a Linha do tempo já mostra os marcos); o
+  cadastro de Marcos no painel e na API continua, sem aparecer no totem.
+- **Vídeos em construção**: enquanto `VIDEOS_EM_CONSTRUCAO = true` em `frontend/src/config/recursos.ts`, a
+  aba Vídeos mostra o aviso "Vídeos em produção". Com `false`, a aba volta ao destaque, lista e player.
 - As abas de conteúdo funcionam offline com a última cópia (`localStorage` + service worker). A aba
   **Colegas precisa do servidor**: sem rede, mostra o último resultado com um aviso no rodapé. Na busca,
   a lista se atualiza a cada ~10 s para novos check-ins aparecerem sozinhos.

@@ -173,20 +173,20 @@ colega (60 px). Não existe hover: todo elemento tocável tem `:active` (escala,
   de altura, divisor, selo redondo com o número de dois dígitos ("06") na cor do espaço e anel dourado,
   "SALA 06" + nome em serif, e à direita "PERCURSO", seis pontos e "Sala 06 de 06". **Os pontos são
   indicadores, não botões**: cada totem conhece só a própria sala.
-- **Abas em pílula** sobre a areia: Apresentação, Linha do tempo, Marcos, Fotos e Vídeos (+ **Colegas** na
+- **Abas em pílula** sobre a areia: Apresentação, Linha do tempo, Fotos e Vídeos (+ **Colegas** na
   Sala 06). A ativa é preenchida com a cor do espaço, com texto branco. A barra tem `z-index` acima do
   conteúdo da aba Colegas (sem isso, o título da busca capturava o toque). Com o teclado virtual aberto
   e dentro do perfil de um aluno, as abas ficam ocultas.
 - **Foto de época**: a imagem com tom sépia, moldura branca e sombra interna; sem imagem, a moldura
   provisória (degradê quente com o ícone). Usada na Apresentação, nas décadas e nos marcos.
 - **Apresentação**: foto à esquerda (600 px) com legenda, texto à direita (título 44 px, parágrafos de
-  18 px) e três atalhos de 56 px para Linha do tempo, Marcos e Fotos.
+  18 px) e dois atalhos de 56 px para Linha do tempo e Fotos.
 - **Linha do tempo**: sete décadas lado a lado sobre um fio dourado (ponto, "Anos 60", "1958 a 1969",
   título). A década escolhida mostra um painel branco com borda superior na cor do espaço: foto, "DÉCADA
   n DE 7", resumo, três acontecimentos com o ano em pílula e setas anterior/próxima.
-- **Marcos**: quatro cartões (foto de 214 px com o ano em pílula, ícone, título, frase curta). O toque
-  abre o texto explicativo e o cartão ganha a cor do espaço com texto branco; só um abre por vez. Acima
-  de 4 marcos, rolagem lateral com encaixe.
+- **Vídeos em construção**: cartão no espaço da aba, com moldura tracejada na cor do espaço, ícone de
+  câmera em círculo, "EM BREVE", título "Vídeos em produção" (48 px, serif) e frase curta. A chave
+  `VIDEOS_EM_CONSTRUCAO` (`config/recursos.ts`) o liga e desliga.
 - **Polaroide**: moldura branca, rotação de ±0,6°, legenda "**ano** *legenda*". Sem imagem, uma moldura
   provisória (degradê quente com o ícone da sala).
 - **Overlays**: grafite a 95%, botão Fechar em pílula dourada no canto, legenda "ANO · FOTO i DE n".

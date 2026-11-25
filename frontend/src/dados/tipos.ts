@@ -6,8 +6,8 @@
 import type { RedeId } from './redes';
 
 /**
- * 'conteudo': sala com as 5 abas (Apresentação, Linha do tempo, Marcos, Fotos, Vídeos).
- * 'fechamento': a Sala 06 (Alunos): as mesmas 5 abas mais a aba Colegas (busca de ex-alunos).
+ * 'conteudo': sala com as 4 abas (Apresentação, Linha do tempo, Fotos, Vídeos).
+ * 'fechamento': a Sala 06 (Alunos): as mesmas 4 abas mais a aba Colegas (busca de ex-alunos).
  */
 export type TipoSala = 'conteudo' | 'fechamento';
 

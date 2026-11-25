@@ -41,7 +41,7 @@ percurso e, no fim, encontra o próprio nome e os colegas da mesma turma.
 
 ## Capabilities and Constraints
 
-- **Telas do totem**: Apresentação, Linha do tempo, Marcos, Fotos e Vídeos (todas as salas); Colegas, com
+- **Telas do totem**: Apresentação, Linha do tempo, Fotos e Vídeos (todas as salas; Vídeos mostra "em produção" por ora); Colegas, com
   Busca e Perfil (Sala 06); foto ampliada, player, QR do check-in, aviso de inatividade e escolha de sala.
 - **Check-in**: nome completo, ano, turma, e-mail, Instagram e Facebook opcionais, até 3 fotos
   opcionais e autorização obrigatória. Mesmo e-mail + mesmo ano atualiza o cadastro.
