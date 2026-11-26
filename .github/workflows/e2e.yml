@@ -18,7 +18,8 @@ concurrency:
 jobs:
   playwright:
     name: Playwright
-    runs-on: ubuntu-latest
+    # fixo: o Playwright só instala o Chromium nas versões do Ubuntu que já suporta (ubuntu-latest = 26.04 ainda não)
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       DJANGO_DEBUG: "1"
