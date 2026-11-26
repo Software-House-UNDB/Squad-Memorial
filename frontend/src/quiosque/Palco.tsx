@@ -13,8 +13,6 @@ import { quiosque, type Orientacao } from '../config/quiosque';
 import './palco.css';
 import '../estilos/retrato.css';
 
-const Escala = createContext(1);
-export const useEscala = () => useContext(Escala);
 const OrientacaoCtx = createContext<Orientacao>('paisagem');
 /** 'retrato' com o totem em pé. Para JS que dependa da composição; o layout em si fica no CSS. */
 export const useOrientacao = () => useContext(OrientacaoCtx);
@@ -63,21 +61,19 @@ export function Palco({ children }: { children: ReactNode }) {
 
   return (
     <OrientacaoCtx.Provider value={orientacao}>
-      <Escala.Provider value={escala}>
-        <div className="moldura-palco">
-          <div
-            className={`palco palco--${orientacao}`}
-            data-orientacao={orientacao}
-            style={{
-              width: largura, height: altura, transform: `translate(-50%, -50%) scale(${escala})`,
-              '--sobra': `${sobra}px`,
-            } as CSSProperties}
-          >
-            {children}
-          </div>
+      <div className="moldura-palco">
+        <div
+          className={`palco palco--${orientacao}`}
+          data-orientacao={orientacao}
+          style={{
+            width: largura, height: altura, transform: `translate(-50%, -50%) scale(${escala})`,
+            '--sobra': `${sobra}px`,
+          } as CSSProperties}
+        >
+          {children}
         </div>
-        {quiosque.diagnostico && <Diagnostico escala={escala} palco={`${largura} × ${altura} (${orientacao})`} />}
-      </Escala.Provider>
+      </div>
+      {quiosque.diagnostico && <Diagnostico escala={escala} palco={`${largura} × ${altura} (${orientacao})`} />}
     </OrientacaoCtx.Provider>
   );
 }

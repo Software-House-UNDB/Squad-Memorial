@@ -17,9 +17,11 @@ import './estilos/tokens.css';
 import './estilos/base.css';
 
 import { App } from './App';
+import { iniciarSentry } from './config/observabilidade';
 import { instalarGuardas } from './quiosque/guardas';
 
 instalarGuardas();
+void iniciarSentry('totem');
 
 createRoot(document.getElementById('raiz')!).render(
   <StrictMode>

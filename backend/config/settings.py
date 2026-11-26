@@ -151,7 +151,7 @@ CORS_ALLOWED_METHODS = ["GET", "POST", "OPTIONS"]
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
-        "LOCATION": os.environ.get("DJANGO_CACHE_DIR", "/tmp/memorial-cache"),
+        "LOCATION": os.environ.get("DJANGO_CACHE_DIR", "/tmp/memorial-cache"),  # noqa: S108 (só desenvolvimento; a imagem usa /app/cache)
     }
 }
 
@@ -179,3 +179,9 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": "INFO"},
 }
+
+# Sentry (erros e desempenho). Desligado sem SENTRY_DSN; nunca nos testes. Ver config/observabilidade.py.
+if not _TESTANDO:
+    from .observabilidade import iniciar_sentry
+
+    iniciar_sentry()

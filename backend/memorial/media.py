@@ -41,7 +41,7 @@ def validar_imagem_enviada(arquivo):
             largura, altura = img.size
             img.verify()
     except (UnidentifiedImageError, OSError, SyntaxError, Image.DecompressionBombError):
-        raise ImagemInvalida("Não conseguimos abrir uma das fotos. Envie em JPG, PNG ou WEBP.")
+        raise ImagemInvalida("Não conseguimos abrir uma das fotos. Envie em JPG, PNG ou WEBP.") from None
     finally:
         arquivo.seek(0)
     if formato not in FORMATOS_ACEITOS:

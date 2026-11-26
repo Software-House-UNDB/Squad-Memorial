@@ -95,6 +95,11 @@ services:
     build:
       context: .
       dockerfile: nginx/Dockerfile.prod
+      args:
+        # Sentry do totem e do check-in (embutido no build do frontend; vazio = desligado)
+        VITE_SENTRY_DSN: ${SENTRY_DSN_FRONTEND:-}
+        VITE_SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-producao}
+        VITE_SENTRY_RELEASE: ${SENTRY_RELEASE:-}
     image: memorial-nginx:prod
     restart: unless-stopped
     environment:

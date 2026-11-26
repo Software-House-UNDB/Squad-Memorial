@@ -31,7 +31,7 @@ export function instalarGuardas() {
   window.addEventListener('unhandledrejection', (e) => registrarErro(String(e.reason)));
 }
 
-export function registrarErro(mensagem: string) {
+function registrarErro(mensagem: string) {
   try {
     const chave = 'memorial:erros';
     const lista: { t: string; m: string }[] = JSON.parse(localStorage.getItem(chave) || '[]');

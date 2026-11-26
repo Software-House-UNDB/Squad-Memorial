@@ -6,27 +6,10 @@ import { quiosque } from '../config/quiosque';
 import { fonteDemo } from './demo';
 import { ErroHttp } from './erro';
 import { empacotar, normalizarRede } from './redes';
-import {
-  type AlunoPerfil, type ConfigCheckin, type DadosCheckin, type ErrosCheckin, type FiltroAlunos, type PaginaAlunos,
-  type RespostaSala,
+import type {
+  AlunoPerfil, ConfigCheckin, DadosCheckin, ErrosCheckin, FiltroAlunos, Fonte, PaginaAlunos, ResultadoCheckin,
+  RespostaSala,
 } from './tipos';
-
-export type ResultadoCheckin = { ok: true } | { ok: false; erros: ErrosCheckin };
-
-export interface Fonte {
-  sala(numero: number): Promise<RespostaSala>;
-  versao(numero: number): Promise<string>;
-  alunos(filtro: FiltroAlunos): Promise<PaginaAlunos>;
-  aluno(id: number | string): Promise<AlunoPerfil>;
-  configCheckin(): Promise<ConfigCheckin>;
-  /**
-   * Etapa 1 do check-in: confere os dados e manda o código ao e-mail. Nada é gravado ainda.
-   * Se o e-mail já tem cadastro, a pessoa recebe no lugar um aviso; a resposta é a mesma.
-   */
-  pedirCodigo(dados: DadosCheckin): Promise<ResultadoCheckin>;
-  /** Etapa 2: com o código do e-mail, grava o check-in (com as fotos). */
-  checkin(dados: DadosCheckin, codigo: string): Promise<ResultadoCheckin>;
-}
 
 async function buscar<T>(caminho: string, limiteMs = 10_000): Promise<T> {
   const ctrl = new AbortController();

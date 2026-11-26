@@ -1,0 +1,27 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  // Só lint: o código segue o estilo atual, sem reformatar tudo (formatter e organizeImports desligados).
+  "files": {
+    "include": ["src/**", "testes/**", "vite.config.ts"],
+    "ignore": ["src/dados/exemplo.json"]
+  },
+  "formatter": { "enabled": false },
+  "organizeImports": { "enabled": false },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "a11y": {
+        // trocar <div role="dialog"> por <dialog> muda o comportamento dos overlays do totem (camada superior, Esc)
+        "useSemanticElements": "off",
+        // o fundo dos overlays e a barra do vídeo são de toque; no teclado valem o Esc e os botões
+        "useKeyWithClickEvents": "off",
+        "useFocusableInteractive": "off"
+      },
+      // getElementById('raiz')! existe sempre (index.html)
+      "style": { "noNonNullAssertion": "off" },
+      // listas fixas (parágrafos, trechos realçados), que nunca se reordenam
+      "suspicious": { "noArrayIndexKey": "off" }
+    }
+  }
+}

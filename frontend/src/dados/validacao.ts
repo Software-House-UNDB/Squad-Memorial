@@ -3,7 +3,7 @@
  * (backend/memorial/serializers.py) com as mesmas mensagens.
  */
 import { normalizarRede, redePorId, usuarioValido } from './redes';
-import { type DadosCheckin, type ErrosCheckin } from './tipos';
+import type { DadosCheckin, ErrosCheckin } from './tipos';
 
 export const MENSAGENS = {
   nome: 'Escreva nome e sobrenome.',
@@ -18,7 +18,7 @@ export const MENSAGENS = {
 } as const;
 
 export const MAX_FOTOS = 3;
-export const TAMANHO_MAXIMO_FOTO = 10 * 1024 * 1024;
+const TAMANHO_MAXIMO_FOTO = 10 * 1024 * 1024;
 
 export function validarCheckin(d: DadosCheckin, anoInicial: number, anoAtual: number): ErrosCheckin {
   const erros: ErrosCheckin = {};

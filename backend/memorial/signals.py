@@ -11,7 +11,16 @@ from django.dispatch import receiver
 
 from .media import capturar_quadro, ler_metadados_video
 from .models import (
-    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Registro, Sala, Video,
+    Acontecimento,
+    Aluno,
+    Apresentacao,
+    ConfiguracaoMemorial,
+    Decada,
+    Foto,
+    FotoAluno,
+    Registro,
+    Sala,
+    Video,
 )
 from .registro import SISTEMA, desligado, registrar, texto_de_busca
 

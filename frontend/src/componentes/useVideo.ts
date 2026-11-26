@@ -15,6 +15,7 @@ export function useVideo(chave: string | undefined, duracaoConhecida?: number) {
   const [erro, setErro] = useState(false);
 
   // novo vídeo: zera o estado
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `chave` é o gatilho (outro vídeo), não é lida dentro
   useEffect(() => {
     setTocando(false);
     setTempo(0);

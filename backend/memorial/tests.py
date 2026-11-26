@@ -10,11 +10,10 @@ import shutil
 import tempfile
 from datetime import timedelta
 from io import BytesIO, StringIO
-
+from pathlib import Path
 from unittest import mock
 
-from pathlib import Path
-
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.models import LogEntry
 from django.contrib.admin.utils import flatten_fieldsets
@@ -27,17 +26,25 @@ from django.test import Client, TestCase, override_settings
 from django.utils import timezone
 from PIL import Image
 
-from .registro import registrar
-
 from .administracao import _celula
-from .templatetags.painel import estatico
 from .models import (
-    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, ConfirmacaoEmail, Decada, Foto, FotoAluno, Icone, Registro, Sala, Video,
-    chave_turma, normalizar,
+    Acontecimento,
+    Aluno,
+    Apresentacao,
+    ConfiguracaoMemorial,
+    ConfirmacaoEmail,
+    Decada,
+    Foto,
+    FotoAluno,
+    Icone,
+    Registro,
+    Sala,
+    chave_turma,
+    normalizar,
 )
+from .registro import registrar
 from .secoes import SECOES
-
-from django.conf import settings
+from .templatetags.painel import estatico
 
 MEDIA = tempfile.mkdtemp(prefix="memorial-testes-")
 CACHE = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
@@ -932,7 +939,9 @@ class GestaoTests(Base):
         self.assertTrue(LogEntry.objects.filter(object_id=m.pk).exists())  # histórico do admin do Django
 
     def test_erro_nao_salva_e_mostra_a_mensagem(self):
-        r = self.client.post(f"{self.BASE}/decadas/novo/", {"sala": self.sala.pk, "rotulo": "", "periodo": "", "titulo": "", "icone": "home", "ordem": 0, **_mgmt("acontecimentos")})
+        r = self.client.post(f"{self.BASE}/decadas/novo/", {
+            "sala": self.sala.pk, "rotulo": "", "periodo": "", "titulo": "", "icone": "home", "ordem": 0, **_mgmt("acontecimentos"),
+        })
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, "Nada foi salvo")
         self.assertEqual(Decada.objects.count(), 0)
@@ -1056,6 +1065,50 @@ class UtilTests(TestCase):
         self.assertEqual(normalizar("  João  PEDRO  "), "joao pedro")
         self.assertEqual({chave_turma(t) for t in ("3º A", "3o a", "3ª A", "3 A", "3A")}, {"3a"})
         self.assertNotEqual(chave_turma("3º A"), chave_turma("3º B"))
+
+
+class ObservabilidadeTests(TestCase):
+    """O Sentry nunca recebe dados pessoais (LGPD): ver config/observabilidade.py."""
+
+    def test_evento_sai_sem_corpo_query_cookies_cabecalhos_nem_usuario(self):
+        from config.observabilidade import _limpar
+
+        evento = {
+            "request": {
+                "url": "https://memorial.test/api/memorial/alunos/?q=maria+souza",
+                "query_string": "q=maria+souza",
+                "data": {"email": EMAIL, "nome": "Maria Clara Souza"},
+                "cookies": {"sessionid": "segredo"},
+                "headers": {"User-Agent": "Chrome", "Cookie": "sessionid=segredo", "X-Forwarded-For": "200.1.2.3"},
+                "env": {"REMOTE_ADDR": "200.1.2.3"},
+            },
+            "user": {"email": EMAIL, "ip_address": "200.1.2.3"},
+        }
+        evento["exception"] = {"values": [{"type": "SMTPRecipientsRefused", "value": f"{{'{EMAIL}': (550, b'no')}}"}]}
+        evento = _limpar(evento)
+        limpo = json.dumps(evento)
+        for proibido in (EMAIL, "Maria", "maria", "segredo", "200.1.2.3"):
+            self.assertNotIn(proibido, limpo)
+        self.assertIn("[e-mail]", evento["exception"]["values"][0]["value"])
+        self.assertEqual(evento["request"]["url"], "https://memorial.test/api/memorial/alunos/")
+        self.assertEqual(evento["request"]["headers"], {"User-Agent": "Chrome"})
+
+    def test_transacao_sai_sem_query_nos_spans(self):
+        from config.observabilidade import _limpar
+
+        transacao = {
+            "transaction": "/api/memorial/alunos/",
+            "spans": [{"op": "http.client", "description": "GET https://memorial.test/api/memorial/alunos/?q=maria+souza"}],
+        }
+        limpo = json.dumps(_limpar(transacao))
+        self.assertNotIn("maria", limpo)
+        self.assertIn("GET https://memorial.test/api/memorial/alunos/", limpo)
+
+    @mock.patch.dict(os.environ, {"SENTRY_DSN": ""})
+    def test_sem_dsn_nao_liga(self):
+        from config.observabilidade import iniciar_sentry
+
+        self.assertFalse(iniciar_sentry())
 
 
 # ---------------------------------------------------------------- redes sociais (até 3 por pessoa)
@@ -1194,7 +1247,9 @@ class RedesTests(Base):
         self.assertEqual([(x.rede, x.usuario) for x in a.redes.all()], [("instagram", "ana.v"), ("x", "ana_s"), ("github", "ana-silva")])
         self.assertEqual((a.instagram, a.facebook), ("ana.v", "x/ana_s"))
         # uma quarta rede é recusada
-        dados.update({**_mgmt("redes", total=4, iniciais=3), "redes-3-aluno": a.pk, "redes-3-rede": "kwai", "redes-3-usuario": "ana", "redes-3-ordem": 3})
+        dados.update({
+            **_mgmt("redes", total=4, iniciais=3), "redes-3-aluno": a.pk, "redes-3-rede": "kwai", "redes-3-usuario": "ana", "redes-3-ordem": 3,
+        })
         for i, x in enumerate(a.redes.all()):
             dados[f"redes-{i}-id"] = x.pk
         self.assertEqual(self.client.post(url, dados).status_code, 200)

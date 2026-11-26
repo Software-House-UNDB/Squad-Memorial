@@ -24,6 +24,7 @@ export function Fotos({ periodos, periodo, pagina, icone, aoPeriodo, aoPagina, a
   const lista = useRef<HTMLDivElement>(null);
 
   // mantém o período escolhido à vista na lista que rola
+  // biome-ignore lint/correctness/useExhaustiveDependencies: o período é o gatilho; a posição vem do DOM
   useEffect(() => {
     lista.current?.querySelector<HTMLElement>('.is-ativo')?.scrollIntoView({ block: 'nearest' });
   }, [periodo?.inicio]);

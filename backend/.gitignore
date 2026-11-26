@@ -1,0 +1,4 @@
+
+# cobertura do backend (coverage run)
+.coverage
+coverage.xml

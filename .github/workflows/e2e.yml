@@ -1,0 +1,81 @@
+# Ponta a ponta (Playwright): o sistema inteiro com o conteúdo de exemplo, em 1600 × 900 e 1920 × 1080:
+# as 6 salas, fotos, inatividade, Voltar do Android, busca, perfil e o check-in pelo celular com o código do e-mail.
+name: E2E
+
+on:
+  push:
+    branches: [main, feats]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright:
+    name: Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DJANGO_DEBUG: "1"
+      # o código de confirmação do check-in sai no log do Django, de onde o teste o lê
+      EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Dependências
+        run: |
+          pip install -r backend/requirements.txt
+          cd frontend
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Banco com o conteúdo de exemplo
+        working-directory: backend
+        run: |
+          python manage.py migrate --noinput
+          python manage.py carregar_exemplo
+      - name: Subir backend e frontend
+        run: |
+          (cd backend && nohup python manage.py runserver --noreload 127.0.0.1:8000 > "$RUNNER_TEMP/django.log" 2>&1 &)
+          (cd frontend && VITE_BACKEND=http://127.0.0.1:8000 nohup npx vite --port 5173 --strictPort > "$RUNNER_TEMP/vite.log" 2>&1 &)
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:5173/api/memorial/checkin/ > /dev/null && exit 0
+            sleep 1
+          done
+          echo "backend ou frontend não subiram"; cat "$RUNNER_TEMP/django.log" "$RUNNER_TEMP/vite.log"; exit 1
+      - name: Testes ponta a ponta
+        working-directory: frontend
+        env:
+          URL: http://127.0.0.1:5173/
+          EMAILS_CMD: cat ${{ runner.temp }}/django.log
+        run: npm run test:e2e
+      - name: Capturas de tela
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-capturas
+          path: frontend/.impeccable/review/e2e/
+          retention-days: 14
+      - name: Logs (só quando falha; dados de teste)
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-logs
+          path: |
+            ${{ runner.temp }}/django.log
+            ${{ runner.temp }}/vite.log
+          retention-days: 7

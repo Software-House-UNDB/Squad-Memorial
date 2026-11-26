@@ -333,6 +333,48 @@ admin quando quiser. O código de confirmação é lido dos e-mails que o backen
 No check-in ele confere a validação do nome, o código errado e o certo, escolhe o TikTok (rede guardada com prefixo) e confirma que o perfil aparece
 na Sala 06 sem recarregar, com a turma e `tiktok.com/@…`; também confere que a API nunca devolve e-mail. As capturas vão para `frontend/.impeccable/review/e2e/`.
 
+### Qualidade de código
+
+```bash
+# backend (pip install -r requirements-dev.txt)
+cd backend
+ruff check .                              # estilo, bugs e segurança (regras do bandit); config em pyproject.toml
+lint-imports                              # contratos de arquitetura (abaixo)
+coverage run manage.py test memorial && coverage report
+
+# frontend
+cd frontend
+npm run lint                              # Biome (só lint; a formatação não é imposta)
+npm run lint:arquitetura                  # dependency-cruiser: contratos em .dependency-cruiser.cjs
+npm run lint:mortos                       # Knip: arquivos, exports e dependências sem uso
+npm run test:coverage                     # Vitest com cobertura (coverage/lcov.info)
+npm run test:mutacao                      # Stryker nas regras de src/dados e src/config (~1 min; relatório em reports/mutation/)
+```
+
+**Contratos de arquitetura.** No backend (`[tool.importlinter]` em `backend/pyproject.toml`): os modelos não importam a
+camada web; a API pública (views, serializers, confirmação do check-in) não importa o painel da equipe; `media.py` não
+depende de modelos nem de views; e o app `memorial` não depende de `config`. No frontend: `dados/` não conhece telas nem
+componentes; `componentes/` não importa telas; o check-in (celular) não importa nada do quiosque nem das telas do totem, e
+o totem não importa o check-in; sem imports circulares e sem arquivo órfão.
+
+**Título do PR.** Segue o padrão Conventional Commits, porque vira a mensagem do squash merge: `tipo(escopo): descrição`,
+ex. `feat(check-in): confirma o e-mail com código`. Tipos: feat, fix, docs, style, refactor, perf, test, build, ci,
+chore, revert. Regras em `frontend/commitlint.config.mjs`; os commits do dia a dia ficam livres.
+
+### Integração contínua (GitHub Actions)
+
+| Workflow | Quando | O que faz |
+|---|---|---|
+| `backend.yml` | push em main/feats e todo PR | Ruff, import-linter, `makemigrations --check`, testes no PostgreSQL 16 com cobertura → Codecov (flag `backend`) |
+| `frontend.yml` | push em main/feats e todo PR | TypeScript, Biome, dependency-cruiser, Knip, Vitest com cobertura → Codecov (flag `frontend`), build |
+| `e2e.yml` | push em main/feats e todo PR | Playwright com o conteúdo de exemplo (backend + Vite, código do check-in lido do log); capturas como artefato |
+| `commitlint.yml` | PR aberto ou editado | Título do PR no padrão |
+| `mutacao.yml` | segunda 6h e manual | Stryker; relatório HTML como artefato; falha abaixo de 50% |
+
+Para configurar no GitHub:
+- **Secret `CODECOV_TOKEN`** (Settings → Secrets and variables → Actions): o token do repositório em codecov.io. Sem ele, o envio da cobertura falha sem reprovar a CI. O `codecov.yml` só informa por enquanto: suba para `informational: false` quando quiser exigir cobertura mínima.
+- **Proteção da branch** (Settings → Branches, em `main` e `feats`): marque como obrigatórios os jobs `Lint e arquitetura`, `Testes (PostgreSQL)`, `Lint, arquitetura e código morto`, `Testes unitários e build`, `Playwright` e `Commitlint`.
+
 ## Recomendações para os totens
 
 **Vídeos**: padronize antes de subir.
@@ -566,6 +608,20 @@ A rede da escola vem de `REDE_INTERNA` no `.env` (faixas separadas por espaço; 
 O nginx decide pelo IP de origem, então o NAT da TI precisa **manter o IP do visitante** (encaminhamento de
 porta/DNAT). Se o firewall trocar a origem pelo próprio IP interno, todo acesso de fora parece interno: teste
 pelo celular no 4G que `https://<domínio>/sala/1` leva ao check-in.
+
+### Sentry (erros e desempenho)
+
+Desligado enquanto o DSN estiver vazio. Crie dois projetos no Sentry, um **Django** e um **React**, e preencha no `.env`:
+`SENTRY_DSN` (backend) e `SENTRY_DSN_FRONTEND` (totem e check-in). O DSN do frontend vai embutido no build, então
+depois de mudá-lo rode `docker compose -f docker-compose.prod.yml build nginx`. `SENTRY_RELEASE` (ex.: `$(git rev-parse --short HEAD)`)
+marca a versão; `SENTRY_TRACES_SAMPLE_RATE` (padrão 0.1) é a fração das requisições medidas em desempenho. No navegador
+a taxa vem de `VITE_SENTRY_TRACES_SAMPLE_RATE` (padrão 0.05); cada evento leva a tag `app` (`totem` ou `checkin`).
+
+**LGPD:** nenhum dado pessoal sai do servidor nem do aparelho. Não vão para o Sentry o corpo das requisições (check-in),
+cookies, cabeçalhos (só user-agent, tipo e tamanho), IP, usuário, a query string das URLs (a busca da Sala 06 leva nomes;
+também nos spans de desempenho), os logs do console nem o que é digitado; e-mails em qualquer texto viram `[e-mail]`.
+Filtros em `backend/config/observabilidade.py` e `frontend/src/config/observabilidade.ts`, com testes nos dois.
+Se o servidor bloquear saída para a internet, libere o host de ingestão do Sentry (`*.ingest.sentry.io`, porta 443).
 
 ### Observações
 

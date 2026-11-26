@@ -448,7 +448,7 @@ class RedeSocial(Timestamped):
         try:
             self.rede, self.usuario = redes.validar(self.rede, self.usuario)
         except redes.RedeInvalida as exc:
-            raise ValidationError({"usuario": str(exc)})
+            raise ValidationError({"usuario": str(exc)}) from exc
 
 
 class FotoAluno(Timestamped):

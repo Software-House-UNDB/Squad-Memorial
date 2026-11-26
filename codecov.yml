@@ -1,0 +1,25 @@
+# Codecov: cobertura do backend e do frontend em separado (flags). Por enquanto só informa, não reprova:
+# suba para `informational: false` quando a equipe quiser exigir cobertura mínima nos PRs.
+codecov:
+  require_ci_to_pass: false
+
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+
+flags:
+  backend:
+    paths: [backend/]
+    carryforward: true
+  frontend:
+    paths: [frontend/]
+    carryforward: true
+
+comment:
+  layout: "diff, flags, files"
+  require_changes: true

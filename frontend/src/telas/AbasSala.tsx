@@ -11,7 +11,7 @@ const ABAS: { id: Aba; rotulo: string; icone: string }[] = [
 ];
 const ABA_COLEGAS = { id: 'colegas' as Aba, rotulo: 'Colegas', icone: 'users' };
 
-export const temColegas = (sala: Sala) => sala.tipo === 'fechamento';
+const temColegas = (sala: Sala) => sala.tipo === 'fechamento';
 
 /** Uma aba que a sala não tem (por exemplo "colegas" numa sala de conteúdo) volta para a Apresentação. */
 export const abaValida = (sala: Sala, aba: Aba): Aba => (aba === 'colegas' && !temColegas(sala) ? 'apresentacao' : aba);
