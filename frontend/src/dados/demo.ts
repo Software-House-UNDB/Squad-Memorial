@@ -58,6 +58,8 @@ const ANO_INICIAL = 1958;
 const POR_PAGINA = 12;
 const HORAS_NOVO = 24;
 const CHAVE_CHECKINS = 'memorial:demo:checkins';
+/** O código de confirmação do modo demonstração (não há e-mail de verdade). */
+export const CODIGO_DEMO = '123456';
 const REFERENCIA = Date.UTC(2026, 9, 27); // data do protótipo: os check-ins de exemplo mantêm a distância de "hoje"
 const VIDEO_EXEMPLO = `${import.meta.env.BASE_URL}demo/exemplo.webm`;
 
@@ -222,13 +224,26 @@ export const fonteDemo: Fonte = {
     anoInicial: ANO_INICIAL, anoAtual: anoAtual(), termoTexto: TERMO_DEMO, termoVersao: '1.0', emailContato: '',
   }),
 
-  async checkin(d: DadosCheckin) {
+  // Sem servidor, não há e-mail: o código é sempre CODIGO_DEMO, e a tela de confirmação o mostra.
+  async pedirCodigo(d: DadosCheckin) {
+    const erros = validarCheckin(d, ANO_INICIAL, anoAtual());
+    if (Object.keys(erros).length) return { ok: false as const, erros };
+    return { ok: true as const };
+  },
+
+  async checkin(d: DadosCheckin, codigo: string) {
     const erros = validarCheckin(d, ANO_INICIAL, anoAtual());
     if (Object.keys(erros).length) return { ok: false as const, erros };
     if (d.site.trim()) return { ok: true as const };
+    if (codigo.replace(/\D/g, '') !== CODIGO_DEMO) {
+      return { ok: false as const, erros: { codigo: 'Código incorreto. Confira o e-mail e tente de novo.' } };
+    }
     const email = d.email.trim().toLowerCase();
     const ano = Number(d.ano);
-    const lista = checkinsLocais().filter((a) => !(a.email === email && a.ano === ano));
+    if (checkinsLocais().some((a) => a.email === email)) {
+      return { ok: false as const, erros: { geral: 'Este e-mail já tem check-in no Memorial. Para alterar seus dados, fale com a equipe na recepção.' } };
+    }
+    const lista = checkinsLocais();
     // Mesmo empacotamento do envio ao servidor: a rede vai nos campos de sempre.
     const { rede, usuario } = normalizarRede(d.rede, d.usuario);
     lista.unshift({

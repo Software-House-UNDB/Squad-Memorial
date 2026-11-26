@@ -191,4 +191,5 @@ export interface DadosCheckin {
   site: string;
 }
 
-export type ErrosCheckin = Partial<Record<keyof DadosCheckin | 'geral', string>>;
+/** `codigo`: o código de confirmação que chega no e-mail (segunda etapa do check-in). */
+export type ErrosCheckin = Partial<Record<keyof DadosCheckin | 'geral' | 'codigo', string>>;

@@ -5,6 +5,7 @@
 
 import json
 import os
+import re
 import shutil
 import tempfile
 from datetime import timedelta
@@ -31,7 +32,7 @@ from .registro import registrar
 from .administracao import _celula
 from .templatetags.painel import estatico
 from .models import (
-    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Icone, Registro, Sala, Video,
+    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, ConfirmacaoEmail, Decada, Foto, FotoAluno, Icone, Registro, Sala, Video,
     chave_turma, normalizar,
 )
 from .secoes import SECOES
@@ -65,7 +66,40 @@ def aluno(nome, ano=1998, turma="3º A", **kw):
     return Aluno.objects.create(nome=nome, ano=ano, turma=turma, **dados)
 
 
-@override_settings(MEDIA_ROOT=MEDIA, CACHES=CACHE, REST_FRAMEWORK=limites("1000/min"))
+def codigo_enviado(email, desde=0):
+    """O código do último e-mail de confirmação enviado a `email` desde a posição `desde` de mail.outbox."""
+    for m in reversed(mail.outbox[desde:]):
+        if m.to == [email] and "seu código de check-in" in m.subject:
+            return re.search(r"\b(\d{6})\b", m.subject).group(1)
+    return None
+
+
+def fazer_checkin(client, dados):
+    """As duas etapas do check-in: pede o código, lê no e-mail e confirma. Devolve a última resposta.
+
+    Fotos vão só na segunda etapa, como no celular. Sem código no e-mail (dados inválidos, e-mail já
+    cadastrado, campo isca), devolve a resposta da primeira etapa.
+    """
+    sem_fotos = {k: v for k, v in dados.items() if k != "fotos"}
+    antes = len(mail.outbox)
+    r = client.post("/api/memorial/checkin/", sem_fotos)
+    if r.status_code != 202:
+        return r
+    codigo = codigo_enviado(str(dados["email"]).strip().lower(), antes)
+    if codigo is None:
+        return r
+    return client.post("/api/memorial/checkin/", {**dados, "codigo": codigo})
+
+
+def avisos_a_equipe():
+    """Os e-mails que não são o código do visitante."""
+    return [m for m in mail.outbox if m.to != [EMAIL]]
+
+
+SEM_ESPERA = {"CHECKIN_CODIGO_INTERVALO": 0, "CHECKIN_CODIGO_POR_HORA": 1000}
+
+
+@override_settings(MEDIA_ROOT=MEDIA, CACHES=CACHE, REST_FRAMEWORK=limites("1000/min"), **SEM_ESPERA)
 class Base(TestCase):
     @classmethod
     def tearDownClass(cls):
@@ -84,7 +118,7 @@ class Base(TestCase):
         base = {"nome": "Maria Clara Souza", "ano": "1998", "turma": "3º A", "email": EMAIL,
                 "instagram": "", "facebook": "", "consentimento": "true", "site": ""}
         base.update(dados)
-        return self.client.post("/api/memorial/checkin/", base)
+        return fazer_checkin(self.client, base)
 
 
 class BuscaTests(Base):
@@ -189,20 +223,116 @@ class CheckinTests(Base):
         self.assertEqual(a.consentimento_versao, ConfiguracaoMemorial.atual().termo_versao)
         self.assertEqual(self.get("/api/memorial/alunos/", q="maria clara").json()["total"], 1)
 
-    def test_mesmo_email_e_ano_atualiza(self):
+    def test_um_checkin_por_email_e_o_segundo_recebe_aviso(self):
         self.checkin()
-        r = self.checkin(nome="Maria Clara Souza Lima", turma="3º B", email=EMAIL.upper())
-        self.assertEqual(r.status_code, 201)
+        mail.outbox.clear()
+        # outro ano, nome e maiúsculas: o mesmo e-mail não faz um segundo check-in
+        r = self.checkin(nome="Maria Clara Souza Lima", ano="1999", turma="3º B", email=EMAIL.upper())
+        self.assertEqual(r.status_code, 202)  # a mesma resposta de um e-mail novo: a página não revela nada
+        self.assertEqual(r.json(), {"ok": True, "codigo": "enviado"})
         self.assertEqual(Aluno.objects.count(), 1)
-        self.assertEqual(Aluno.objects.get().nome, "Maria Clara Souza Lima")
-        self.checkin(ano="1999")
-        self.assertEqual(Aluno.objects.count(), 2)
+        self.assertEqual(Aluno.objects.get().nome, "Maria Clara Souza")
+        [aviso] = mail.outbox
+        self.assertEqual(aviso.to, [EMAIL])
+        self.assertIn("já fez check-in", aviso.subject)
+        self.assertIn("recepção", aviso.body)
+        self.assertIsNone(re.search(r"\b\d{6}\b", aviso.subject + aviso.body))  # sem código
 
     def test_perfil_oculto_continua_oculto(self):
         self.checkin()
         Aluno.objects.update(status=Aluno.Status.OCULTO)
         self.checkin()
         self.assertEqual(Aluno.objects.get().status, Aluno.Status.OCULTO)
+
+    def test_nada_e_gravado_antes_do_codigo(self):
+        r = self.client.post("/api/memorial/checkin/", {
+            "nome": "Maria Clara Souza", "ano": "1998", "turma": "3º A", "email": EMAIL, "consentimento": "true",
+        })
+        self.assertEqual(r.status_code, 202)
+        self.assertEqual(Aluno.objects.count(), 0)
+        [m] = mail.outbox
+        self.assertEqual(m.to, [EMAIL])
+        codigo = codigo_enviado(EMAIL)
+        self.assertIn(codigo, m.body)
+        self.assertNotIn(codigo, ConfirmacaoEmail.objects.get().codigo_hash)  # só o hash fica no banco
+
+    def test_codigo_errado_expirado_usado_e_de_outro_email(self):
+        base = {"nome": "Maria Clara Souza", "ano": "1998", "turma": "3º A", "email": EMAIL, "consentimento": "true"}
+        post = lambda **d: self.client.post("/api/memorial/checkin/", {**base, **d})  # noqa: E731
+        post()
+        codigo = codigo_enviado(EMAIL)
+        errado = f"{(int(codigo) + 1) % 1_000_000:06d}"
+        r = post(codigo=errado)
+        self.assertEqual((r.status_code, r.json()["erros"]["codigo"]), (400, "Código incorreto. Confira o e-mail e tente de novo."))
+        self.assertEqual(post(codigo="12").json()["erros"]["codigo"], "Digite o código de 6 números que enviamos para o seu e-mail.")
+        # o código vale só para o e-mail que o recebeu
+        self.assertEqual(post(email="outra@exemplo.com", codigo=codigo).status_code, 400)
+        # vencido
+        ConfirmacaoEmail.objects.update(expira_em=timezone.now())
+        self.assertIn("não vale mais", post(codigo=codigo).json()["erros"]["codigo"])
+        self.assertEqual(Aluno.objects.count(), 0)
+        # um novo código; depois de usado, não vale de novo
+        post()
+        codigo = codigo_enviado(EMAIL)
+        self.assertEqual(post(codigo=f" {codigo[:3]} {codigo[3:]} ").status_code, 201)  # espaços não atrapalham
+        self.assertEqual(post(codigo=codigo).status_code, 400)
+        self.assertEqual(Aluno.objects.count(), 1)
+
+    @override_settings(CHECKIN_CODIGO_TENTATIVAS=3)
+    def test_tentativas_esgotadas_bloqueiam_o_codigo(self):
+        base = {"nome": "Maria Clara Souza", "ano": "1998", "turma": "3º A", "email": EMAIL, "consentimento": "true"}
+        self.client.post("/api/memorial/checkin/", base)
+        codigo = codigo_enviado(EMAIL)
+        errado = f"{(int(codigo) + 1) % 1_000_000:06d}"
+        respostas = [self.client.post("/api/memorial/checkin/", {**base, "codigo": errado}).json()["erros"]["codigo"] for _ in range(3)]
+        self.assertIn("Muitas tentativas", respostas[-1])
+        r = self.client.post("/api/memorial/checkin/", {**base, "codigo": codigo})  # nem o certo vale mais
+        self.assertIn("Muitas tentativas", r.json()["erros"]["codigo"])
+        self.assertEqual(Aluno.objects.count(), 0)
+
+    def test_pedir_outro_codigo_invalida_o_anterior(self):
+        base = {"nome": "Maria Clara Souza", "ano": "1998", "turma": "3º A", "email": EMAIL, "consentimento": "true"}
+        self.client.post("/api/memorial/checkin/", base)
+        primeiro = codigo_enviado(EMAIL)
+        self.client.post("/api/memorial/checkin/", base)
+        segundo = codigo_enviado(EMAIL)
+        if primeiro != segundo:
+            self.assertEqual(self.client.post("/api/memorial/checkin/", {**base, "codigo": primeiro}).status_code, 400)
+        self.assertEqual(self.client.post("/api/memorial/checkin/", {**base, "codigo": segundo}).status_code, 201)
+
+    @override_settings(CHECKIN_CODIGO_INTERVALO=60, CHECKIN_CODIGO_POR_HORA=2)
+    def test_reenvio_espera_e_tem_limite_por_hora(self):
+        base = {"nome": "Maria Clara Souza", "ano": "1998", "turma": "3º A", "email": EMAIL, "consentimento": "true"}
+        self.assertEqual(self.client.post("/api/memorial/checkin/", base).status_code, 202)
+        r = self.client.post("/api/memorial/checkin/", base)
+        self.assertEqual(r.status_code, 429)
+        self.assertIn("Já enviamos um código", r.json()["erros"]["geral"])
+        ConfirmacaoEmail.objects.update(criado_em=timezone.now() - timedelta(minutes=5))
+        self.assertEqual(self.client.post("/api/memorial/checkin/", base).status_code, 202)
+        ConfirmacaoEmail.objects.update(criado_em=timezone.now() - timedelta(minutes=5))
+        self.assertEqual(self.client.post("/api/memorial/checkin/", base).status_code, 429)  # 2 por hora
+        self.assertEqual(len(mail.outbox), 2)
+
+    def test_foto_invalida_nao_gasta_o_codigo(self):
+        base = {"nome": "Maria Clara Souza", "ano": "1998", "turma": "3º A", "email": EMAIL, "consentimento": "true"}
+        self.client.post("/api/memorial/checkin/", base)
+        codigo = codigo_enviado(EMAIL)
+        falso = SimpleUploadedFile("foto.jpg", b"isto nao e uma imagem", content_type="image/jpeg")
+        self.assertEqual(self.client.post("/api/memorial/checkin/", {**base, "codigo": codigo, "fotos": [falso]}).status_code, 400)
+        self.assertEqual(self.client.post("/api/memorial/checkin/", {**base, "codigo": codigo, "fotos": [png()]}).status_code, 201)
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend", EMAIL_HOST="")
+    def test_sem_envio_de_email_nao_ha_checkin(self):
+        r = self.checkin()
+        self.assertEqual(r.status_code, 503)
+        self.assertIn("recepção", r.json()["erros"]["geral"])
+        self.assertEqual(Aluno.objects.count(), 0)
+
+    def test_falha_ao_enviar_o_codigo(self):
+        with mock.patch("memorial.confirmacao.EmailMessage.send", side_effect=OSError("smtp fora")):
+            r = self.checkin()
+        self.assertEqual(r.status_code, 503)
+        self.assertEqual(Aluno.objects.count(), 0)
 
     def test_aprovar_perfis_deixa_pendente(self):
         c = ConfiguracaoMemorial.atual()
@@ -231,8 +361,9 @@ class CheckinTests(Base):
 
     def test_campo_isca_finge_sucesso_e_nao_grava(self):
         r = self.checkin(site="http://spam.example")
-        self.assertEqual(r.status_code, 201)
+        self.assertEqual(r.status_code, 202)
         self.assertEqual(Aluno.objects.count(), 0)
+        self.assertEqual(mail.outbox, [])  # nem o código é enviado
 
     def test_fotos_reencodadas_sem_exif_e_pendentes(self):
         r = self.checkin(fotos=[png((3000, 2000), "JPEG", exif=True), png()])
@@ -263,8 +394,9 @@ class CheckinTests(Base):
         self.assertEqual(Aluno.objects.count(), 0)
         self.assertEqual(FotoAluno.objects.count(), 0)
 
-    @override_settings(REST_FRAMEWORK=limites("5/min", "30/hour"))
+    @override_settings(REST_FRAMEWORK=limites("10/min", "60/hour"))
     def test_limite_de_frequencia(self):
+        # cada check-in são dois envios: com 10/min passam 5 check-ins
         for i in range(5):
             self.assertEqual(self.checkin(email=f"p{i}@exemplo.com").status_code, 201)
         r = self.checkin(email="p6@exemplo.com")
@@ -464,16 +596,13 @@ class RegistroTests(Base):
 
     def checkin(self, **extra):
         dados = {"nome": "Maria Conceição", "ano": "1998", "turma": "3º A", "email": EMAIL, "consentimento": "true", **extra}
-        return self.client.post("/api/memorial/checkin/", dados)
+        return fazer_checkin(self.client, dados)
 
-    def test_checkin_novo_atualizado_e_foto(self):
-        self.assertEqual(self.checkin().status_code, 201)
+    def test_checkin_novo_e_foto(self):
         self.assertEqual(self.checkin(fotos=png()).status_code, 201)
+        self.assertEqual(self.checkin().status_code, 202)  # o mesmo e-mail de novo: não grava nem registra nada
         tipos = list(Registro.objects.order_by("id").values_list("tipo", "direcao", "autor"))
-        self.assertEqual(tipos, [
-            ("checkin_novo", "entrada", "Visitante"), ("checkin_atualizado", "entrada", "Visitante"),
-            ("foto_enviada", "entrada", "Visitante"),
-        ])
+        self.assertEqual(tipos, [("checkin_novo", "entrada", "Visitante"), ("foto_enviada", "entrada", "Visitante")])
 
     def test_nunca_guarda_email(self):
         self.checkin()
@@ -681,14 +810,14 @@ class AprovacaoTests(Base):
 
     def test_sem_email_configurado_nao_envia(self):
         self.checkin_foto()
-        self.assertEqual(mail.outbox, [])
+        self.assertEqual(avisos_a_equipe(), [])
 
     @override_settings(EMAIL_HOST="smtp.escola.test")
     def test_email_com_a_foto_para_quem_aprova(self):
         User.objects.create_user("comum", email="comum@escola.test", password="senha-longa-1", is_staff=True)
         self.checkin_foto(2)
-        self.assertEqual(sorted(m.to[0] for m in mail.outbox), ["adm@escola.test", "chefe@escola.test"])
-        m = mail.outbox[0]
+        self.assertEqual(sorted(m.to[0] for m in avisos_a_equipe()), ["adm@escola.test", "chefe@escola.test"])
+        m = avisos_a_equipe()[0]
         self.assertEqual(len(m.attachments), 2)
         self.assertEqual(m.attachments[0][2], "image/jpeg")
         self.assertIn("Maria Clara Souza", m.subject)
@@ -699,7 +828,7 @@ class AprovacaoTests(Base):
     @override_settings(EMAIL_HOST="smtp.escola.test")
     def test_checkin_sem_foto_e_sem_aprovacao_nao_avisa(self):
         self.checkin()
-        self.assertEqual(mail.outbox, [])
+        self.assertEqual(avisos_a_equipe(), [])
 
     @override_settings(EMAIL_HOST="smtp.escola.test")
     def test_falha_no_email_nao_derruba_o_checkin(self):
@@ -996,12 +1125,11 @@ class RedesTests(Base):
         self.assertIn("facebook", self.checkin(facebook="telegram/abc").json()["erros"])
         self.assertFalse(Aluno.objects.exists())
 
-    def test_refazer_checkin_troca_as_redes(self):
+    def test_refazer_checkin_nao_troca_as_redes(self):
         self.checkin(instagram="maria", facebook="tiktok/maria")
         self.checkin(facebook="")
         a = Aluno.objects.get()
-        self.assertFalse(a.redes.exists())
-        self.assertEqual((a.instagram, a.facebook), ("", ""))
+        self.assertEqual(sorted(a.redes.values_list("rede", flat=True)), ["instagram", "tiktok"])
 
     def test_cadastro_antigo_sem_rede_cadastrada_le_os_campos(self):
         a = aluno("Ana Antiga Silva", instagram="ana.v", facebook="outra/site.com/ana")

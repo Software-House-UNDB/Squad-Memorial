@@ -1,12 +1,16 @@
 /**
  * Check-in do visitante, no próprio celular: nome, ano, turma, e-mail, uma rede social (opcional),
  * até 3 fotos (opcionais) e a autorização obrigatória. Quem faz check-in aparece na Sala 06 (Alunos).
+ *
+ * Duas etapas: o formulário manda um código ao e-mail (nada é gravado ainda) e o check-in só é gravado
+ * com o código digitado. Um check-in por e-mail: quem já tem cadastro recebe um aviso no lugar do código.
  */
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import assinatura from '../assets/memorial/assinatura.png';
 import { Icone } from '../componentes/Icone';
 import { quiosque } from '../config/quiosque';
-import { fonte } from '../dados/fonte';
+import { CODIGO_DEMO } from '../dados/demo';
+import { fonte, type ResultadoCheckin } from '../dados/fonte';
 import { AS_PRINCIPAIS, MAIS_REDES, normalizarRede, redePorId, type RedeId } from '../dados/redes';
 import { dois, SALAS_PADRAO } from '../dados/salas';
 import { type ConfigCheckin, type DadosCheckin, type ErrosCheckin } from '../dados/tipos';
@@ -86,6 +90,8 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
   const campoRede = useRef<HTMLInputElement>(null);
   const botaoMais = useRef<HTMLButtonElement>(null);
   const [folha, setFolha] = useState(false);
+  /** Depois do envio do formulário: a tela do código. Os dados continuam aqui, para a segunda etapa. */
+  const [confirmando, setConfirmando] = useState(false);
   const idRede = useId();
   const rede = d.rede ? redePorId(d.rede) : null;
 
@@ -140,16 +146,32 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
     }
     setEnviando(true);
     setErros({});
-    const r = await fonte.checkin(dados);
+    const r = await fonte.pedirCodigo(dados);
     setEnviando(false);
     if (r.ok) {
-      aoConcluir(d.nome.trim().split(/\s+/)[0]);
+      setConfirmando(true);
       window.scrollTo({ top: 0 });
     } else {
       setErros(r.erros);
       focarPrimeiroErro(r.erros);
     }
   };
+
+  const confirmar = async (codigo: string): Promise<ResultadoCheckin> => {
+    const r = await fonte.checkin(d, codigo);
+    if (r.ok) {
+      aoConcluir(d.nome.trim().split(/\s+/)[0]);
+      window.scrollTo({ top: 0 });
+    }
+    return r;
+  };
+
+  if (confirmando) {
+    return (
+      <Confirmacao email={d.email.trim()} aoConfirmar={confirmar} aoReenviar={() => fonte.pedirCodigo(d)}
+        aoCorrigir={() => { setConfirmando(false); window.scrollTo({ top: 0 }); }} />
+    );
+  }
 
   const adicionarFotos = async (lista: FileList | null) => {
     if (!lista?.length) return;
@@ -293,6 +315,108 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
       <button type="submit" className="ck-enviar" disabled={enviando || preparando || termo !== 'ok'}>
         {enviando ? 'Enviando…' : preparando ? 'Preparando fotos…' : 'Fazer check-in'}
       </button>
+    </form>
+  );
+}
+
+const ESPERA_REENVIO = 60; // segundos, como o servidor (CHECKIN_CODIGO_INTERVALO)
+
+interface PropsConfirmacao {
+  email: string;
+  aoConfirmar: (codigo: string) => Promise<ResultadoCheckin>;
+  aoReenviar: () => Promise<ResultadoCheckin>;
+  aoCorrigir: () => void;
+}
+
+/** Segunda etapa: o código de 6 números que chegou no e-mail. */
+function Confirmacao({ email, aoConfirmar, aoReenviar, aoCorrigir }: PropsConfirmacao) {
+  const [codigo, setCodigo] = useState('');
+  const [erros, setErros] = useState<{ codigo?: string; geral?: string }>({});
+  const [aviso, setAviso] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  const [espera, setEspera] = useState(ESPERA_REENVIO);
+  const titulo = useRef<HTMLHeadingElement>(null);
+  const campo = useRef<HTMLInputElement>(null);
+
+  useEffect(() => titulo.current?.focus(), []);
+  useEffect(() => {
+    if (espera <= 0) return;
+    const t = window.setTimeout(() => setEspera((s) => s - 1), 1000);
+    return () => window.clearTimeout(t);
+  }, [espera]);
+
+  const confirmar = async (ev: FormEvent) => {
+    ev.preventDefault();
+    if (enviando) return;
+    if (codigo.replace(/\D/g, '').length !== 6) {
+      setErros({ codigo: 'Digite o código de 6 números que enviamos para o seu e-mail.' });
+      campo.current?.focus();
+      return;
+    }
+    setEnviando(true);
+    setErros({});
+    setAviso('');
+    const r = await aoConfirmar(codigo);
+    setEnviando(false);
+    if (!r.ok) {
+      // Um erro de outro campo (as fotos, por exemplo) aparece aqui: o formulário está em "Corrigir os dados".
+      const { codigo: erroCodigo, geral, ...outros } = r.erros;
+      setErros({ codigo: erroCodigo, geral: geral ?? Object.values(outros).find(Boolean) });
+      if (erroCodigo) campo.current?.focus();
+    }
+  };
+
+  const reenviar = async () => {
+    setErros({});
+    setAviso('');
+    const r = await aoReenviar();
+    if (r.ok) {
+      setCodigo('');
+      setEspera(ESPERA_REENVIO);
+      setAviso('Enviamos um código novo. O anterior não vale mais.');
+    } else {
+      setErros({ geral: r.erros.geral ?? Object.values(r.erros).find(Boolean) });
+    }
+  };
+
+  return (
+    <form className="ck-form ck-conf" onSubmit={confirmar} noValidate>
+      <h1 className="serif" ref={titulo} tabIndex={-1}>Confirme seu e-mail</h1>
+      <p className="ck-dica">
+        Enviamos um código de 6 números para <b className="ck-conf__email">{email}</b>. Digite-o abaixo para concluir o
+        <span className="sem-quebra"> check-in</span>.
+      </p>
+      {quiosque.demo && (
+        <p className="ck-demo" role="note"><b>Modo demonstração:</b> nenhum e-mail é enviado. O código é {CODIGO_DEMO}.</p>
+      )}
+
+      <Campo rotulo="Código de confirmação" erro={erros.codigo} ajuda="Não chegou? Confira a caixa de spam.">
+        {(id, desc) => (
+          <input ref={campo} id={id} name="codigo" className="ck-conf__codigo" aria-describedby={desc} aria-invalid={!!erros.codigo}
+            inputMode="numeric" autoComplete="one-time-code" enterKeyHint="done" placeholder="000000" maxLength={7}
+            value={codigo} onChange={(e) => {
+              setCodigo(e.target.value.replace(/[^\d ]/g, ''));
+              if (erros.codigo) setErros((x) => ({ ...x, codigo: undefined }));
+            }} />
+        )}
+      </Campo>
+
+      {aviso && <p className="ck-conf__aviso" role="status">{aviso}</p>}
+      {erros.geral && <p className="ck-erro ck-erro--geral" role="alert">{erros.geral}</p>}
+
+      <button type="submit" className="ck-enviar" disabled={enviando}>
+        {enviando ? 'Confirmando…' : 'Confirmar check-in'}
+      </button>
+      <div className="ck-conf__acoes">
+        <button type="button" className="ck-termo__tentar" disabled={espera > 0 || enviando} onClick={() => void reenviar()}>
+          {espera > 0 ? `Enviar outro código (${espera} s)` : 'Enviar outro código'}
+        </button>
+        <button type="button" className="ck-termo__tentar" disabled={enviando} onClick={aoCorrigir}>Corrigir os dados</button>
+      </div>
+      <p className="ck-conf__nota">
+        Cada e-mail faz um <span className="sem-quebra">check-in</span> só. Se você já fez o seu, vai receber um aviso no
+        lugar do código. Para alterar seus dados, fale com a equipe na recepção.
+      </p>
     </form>
   );
 }
