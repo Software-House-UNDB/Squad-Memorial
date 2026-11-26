@@ -6,7 +6,6 @@ import type { Aba } from './estado';
 const ABAS: { id: Aba; rotulo: string; icone: string }[] = [
   { id: 'apresentacao', rotulo: 'Apresentação', icone: 'book' },
   { id: 'linha', rotulo: 'Linha do tempo', icone: 'clock' },
-  { id: 'marcos', rotulo: 'Marcos', icone: 'star' },
   { id: 'fotos', rotulo: 'Fotos', icone: 'image' },
   { id: 'videos', rotulo: 'Vídeos', icone: 'video' },
 ];

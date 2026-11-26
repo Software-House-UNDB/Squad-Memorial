@@ -50,7 +50,6 @@ async function aquecerCache(r: RespostaSala) {
   const urls = new Set<string>();
   for (const f of r.fotos) if (f.miniatura) urls.add(f.miniatura);
   for (const v of r.videos) if (v.capa) urls.add(v.capa);
-  for (const m of r.marcos) if (m.foto) urls.add(m.foto);
   for (const d of r.decadas ?? []) if (d.foto) urls.add(d.foto);
   if (r.apresentacao?.foto) urls.add(r.apresentacao.foto);
   const fila = [...urls];

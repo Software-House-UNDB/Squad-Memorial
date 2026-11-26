@@ -45,13 +45,6 @@ def montar_sala(s):
     }
 
 
-def montar_marco(m):
-    return {
-        "id": m.pk, "ano": m.ano, "titulo": m.titulo, "descricao": m.descricao,
-        "icone": m.icone, "destaque": m.destaque, "foto": _url(m.foto), "texto": m.texto,
-    }
-
-
 def montar_apresentacao(a):
     return {"titulo": a.titulo, "texto": a.paragrafos, "foto": _url(a.foto), "legenda": a.legenda, "icone": a.icone}
 

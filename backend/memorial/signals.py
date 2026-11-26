@@ -11,7 +11,7 @@ from django.dispatch import receiver
 
 from .media import capturar_quadro, ler_metadados_video
 from .models import (
-    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Marco, Registro, Sala, Video,
+    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Registro, Sala, Video,
 )
 from .registro import SISTEMA, desligado, registrar, texto_de_busca
 
@@ -53,7 +53,7 @@ def _epoca_apagar(sender, instance, **kwargs):
     _apagar(instance.foto)
 
 
-for _modelo in (Apresentacao, Decada, Marco):
+for _modelo in (Apresentacao, Decada):
     pre_save.connect(_epoca_limpar_antiga, sender=_modelo)
     post_delete.connect(_epoca_apagar, sender=_modelo)
 
@@ -139,7 +139,7 @@ def _cadastro_removido(sender, instance, **kwargs):
     registrar(Registro.Tipo.CADASTRO_REMOVIDO, f"{_rotulo(instance)}: {instance}")
 
 
-for _modelo in (Sala, Apresentacao, Decada, Acontecimento, Marco, Foto, Video, ConfiguracaoMemorial, get_user_model()):
+for _modelo in (Sala, Apresentacao, Decada, Acontecimento, Foto, Video, ConfiguracaoMemorial, get_user_model()):
     post_save.connect(_cadastro_salvo, sender=_modelo, dispatch_uid=f"registro_salvo_{_modelo.__name__}")
     post_delete.connect(_cadastro_removido, sender=_modelo, dispatch_uid=f"registro_removido_{_modelo.__name__}")
 

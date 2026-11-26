@@ -2,7 +2,7 @@
 .m-img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 3px; }
 .m-img--moldura { display: grid; place-items: center; color: rgb(255 255 255 / .82); }
 
-/* ---------- foto de época (apresentação, décadas, marcos) ---------- */
+/* ---------- foto de época (apresentação, décadas) ---------- */
 .m-epoca { position: relative; width: 100%; height: 100%; padding: 12px; background: var(--branco); box-shadow: 0 10px 26px rgb(35 33 29 / .14); }
 .m-epoca .m-img { border-radius: 2px; }
 .m-epoca img.m-img { filter: sepia(.4) contrast(.96) saturate(.85); }

@@ -923,36 +923,6 @@
      "r": "1966",
      "p": "Curso Ginasial"
     }
-   ],
-   "marcos": [
-    [
-     "door",
-     1958,
-     "O convite",
-     "Trinta famílias aceitam o convite da Profa. Maria Izabel.",
-     "A escola começa como jardim de infância, com uma única turma e muitas expectativas."
-    ],
-    [
-     "home",
-     1967,
-     "A sede própria",
-     "A escola ganha um prédio próprio.",
-     "Salas maiores, pátio coberto e espaço para receber novas séries a cada ano."
-    ],
-    [
-     "cap",
-     1982,
-     "O primeiro 2º grau",
-     "Forma-se a primeira turma do 2º grau.",
-     "A partir daqui, a escola acompanha o aluno do jardim de infância ao fim do ensino médio."
-    ],
-    [
-     "star",
-     2026,
-     "O Memorial",
-     "A história da escola ganha um espaço próprio.",
-     "Seis salas reúnem fotos, objetos e depoimentos de quase setenta anos."
-    ]
    ]
   },
   "2": {
@@ -1020,36 +990,6 @@
      "r": "1993",
      "p": "Renascença"
     }
-   ],
-   "marcos": [
-    [
-     "users",
-     1958,
-     "A primeira diretora",
-     "A fundadora dirige a escola desde o primeiro dia.",
-     "A Profa. Maria Izabel cuida da rotina, do uniforme e do acolhimento de cada família."
-    ],
-    [
-     "book",
-     1963,
-     "O primeiro regimento",
-     "As regras da escola ganham forma escrita.",
-     "O regimento organiza horários, avaliações e o papel de cada professor."
-    ],
-    [
-     "board",
-     2002,
-     "O conselho",
-     "A gestão ganha um conselho de administração.",
-     "As decisões estratégicas passam a ser tomadas em conjunto pelo conselho."
-    ],
-    [
-     "heart",
-     2012,
-     "A terceira geração",
-     "A família Rodrigues segue à frente da escola.",
-     "Educadoras da terceira geração mantêm vivo o projeto da fundadora."
-    ]
    ]
   },
   "3": {
@@ -1117,36 +1057,6 @@
      "r": "2025",
      "p": "Tia Silvia"
     }
-   ],
-   "marcos": [
-    [
-     "users",
-     1958,
-     "As primeiras professoras",
-     "Normalistas assumem as primeiras turmas.",
-     "Elas ensinam leitura, escrita e caligrafia com a cartilha e muito carinho."
-    ],
-    [
-     "cap",
-     1964,
-     "A escola normal",
-     "A escola passa a formar as próprias professoras.",
-     "Ex-alunas voltam à escola, agora do outro lado da mesa."
-    ],
-    [
-     "flask",
-     1985,
-     "Aulas de laboratório",
-     "A prática chega às aulas de ciências.",
-     "Professores levam os alunos às bancadas para observar e experimentar."
-    ],
-    [
-     "heart",
-     2023,
-     "Memória viva",
-     "Depoimentos de professores entram no acervo.",
-     "Professores de várias gerações gravam suas lembranças para o Memorial."
-    ]
    ]
   },
   "4": {
@@ -1214,36 +1124,6 @@
      "r": "2003",
      "p": "Prêmio Darcy Ribeiro"
     }
-   ],
-   "marcos": [
-    [
-     "music",
-     1959,
-     "O primeiro coral",
-     "As vozes dos alunos se reúnem pela primeira vez.",
-     "O coral se apresenta na festa de fim de ano e vira tradição."
-    ],
-    [
-     "mask",
-     1967,
-     "O grupo de teatro",
-     "Os alunos sobem ao palco do auditório.",
-     "A primeira peça é montada, ensaiada e figurinada pelos próprios alunos."
-    ],
-    [
-     "music",
-     1975,
-     "O festival de música",
-     "Bandas de alunos tocam composições próprias.",
-     "O festival lota o auditório e revela talentos que seguem na música."
-    ],
-    [
-     "image",
-     2024,
-     "A galeria permanente",
-     "Obras de alunos ganham espaço fixo.",
-     "Pinturas, gravuras e esculturas ficam expostas no corredor principal."
-    ]
    ]
   },
   "5": {
@@ -1311,36 +1191,6 @@
      "r": "2001 a 2007",
      "p": "17 títulos"
     }
-   ],
-   "marcos": [
-    [
-     "trophy",
-     1962,
-     "Os jogos internos",
-     "Todas as turmas competem pela primeira vez.",
-     "O interclasses nasce no pátio e vira tradição que dura até hoje."
-    ],
-    [
-     "medal",
-     1970,
-     "O vôlei regional",
-     "A equipe feminina traz o primeiro troféu.",
-     "É a primeira conquista da escola fora de casa, comemorada por toda a comunidade."
-    ],
-    [
-     "trophy",
-     1988,
-     "A taça estadual",
-     "O futsal vence a final estadual.",
-     "A taça de 1988 é até hoje uma das mais lembradas pelos ex-alunos."
-    ],
-    [
-     "medal",
-     2025,
-     "Os jogos escolares",
-     "A delegação mais premiada da história.",
-     "Medalhas em várias modalidades, do atletismo à natação."
-    ]
    ]
   },
   "6": {
@@ -1408,36 +1258,6 @@
      "r": "2025",
      "p": "Selo IB"
     }
-   ],
-   "marcos": [
-    [
-     "users",
-     1958,
-     "A primeira turma",
-     "O jardim de infância recebe os primeiros alunos.",
-     "Trinta crianças inauguram a escola, muitas delas avós de alunos de hoje."
-    ],
-    [
-     "book",
-     1975,
-     "O jornal dos alunos",
-     "Os alunos lançam o próprio jornal.",
-     "Notícias, poesias e entrevistas escritas e impressas pelos alunos."
-    ],
-    [
-     "cap",
-     1982,
-     "A primeira formatura",
-     "Forma-se a primeira turma do 2º grau.",
-     "A cerimônia reúne famílias, professores e a fundadora da escola."
-    ],
-    [
-     "heart",
-     2024,
-     "O encontro de ex-alunos",
-     "Gerações se reencontram na escola.",
-     "Ex-alunos de várias décadas voltam para rever colegas e professores."
-    ]
    ]
   }
  },

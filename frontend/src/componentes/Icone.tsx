@@ -57,12 +57,6 @@ const P: Record<string, ReactNode> = {
 
 export type NomeIcone = keyof typeof P;
 
-/** Ícones que o admin pode escolher para um marco (mesma lista do backend: Marco.Icone). */
-export const ICONES_MARCO = [
-  'board', 'cap', 'book', 'flask', 'laptop', 'users', 'apple', 'trophy',
-  'medal', 'star', 'music', 'palette', 'mask', 'heart', 'image', 'door',
-] as const;
-
 interface Props {
   nome: string;
   tamanho?: number;

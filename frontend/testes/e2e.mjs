@@ -88,7 +88,7 @@ for (const [w, h] of TELAS) {
       confere((await p.locator('.tt-cab__n').innerText()) === `Sala 0${n} de 06`, 'percurso errado');
       confere((await p.locator('.tt-cab__sala b').innerText()) === NOMES[n - 1], 'nome da sala errado');
       confere((await p.getByRole('tab', { name: /Apresentação/ }).getAttribute('aria-selected')) === 'true', 'deveria abrir na Apresentação');
-      confere((await p.getByRole('tab').count()) === (n === 6 ? 6 : 5), n === 6 ? 'Sala 06 tem 6 abas' : 'esperadas 5 abas');
+      confere((await p.getByRole('tab').count()) === (n === 6 ? 5 : 4), n === 6 ? 'Sala 06 tem 5 abas' : 'esperadas 4 abas');
       await foto(`sala${n}`);
     });
   }
@@ -99,7 +99,7 @@ for (const [w, h] of TELAS) {
     confere((await p.locator('.tt-cab__n').innerText()) === 'Sala 06 de 06', 'não lembrou a sala');
   });
 
-  // ---------------------------------------------------------------- linha do tempo e marcos
+  // ---------------------------------------------------------------- linha do tempo
   await verificar('linha do tempo: 7 marcos, troca por toque e pelas setas', async () => {
     await abrir(p, 'sala=1');
     await p.getByRole('tab', { name: /Linha do tempo/ }).click();
@@ -113,17 +113,11 @@ for (const [w, h] of TELAS) {
     await foto('linha-do-tempo');
   });
 
-  await verificar('marcos: 4 cartões, o texto abre e fecha no toque', async () => {
-    await p.getByRole('tab', { name: /Marcos/ }).click();
-    confere((await p.locator('.tt-mc').count()) === 4, '4 marcos esperados');
-    confere((await p.locator('.tt-mc__longo').count()) === 0, 'nenhum cartão abre sozinho');
-    await p.locator('.tt-mc').nth(1).click();
-    confere((await p.locator('.tt-mc.is-aberto .tt-mc__longo').count()) === 1, 'texto não abriu');
-    await foto('marcos');
-    await p.locator('.tt-mc').nth(2).click();
-    confere((await p.locator('.tt-mc.is-aberto').count()) === 1, 'só um cartão aberto por vez');
-    await p.locator('.tt-mc.is-aberto').click();
-    confere((await p.locator('.tt-mc.is-aberto').count()) === 0, 'segundo toque deveria fechar');
+  await verificar('a aba Marcos não existe mais (linha do tempo e atalhos)', async () => {
+    await abrir(p, 'sala=1');
+    confere((await p.getByRole('tab', { name: /Marcos/ }).count()) === 0, 'aba Marcos ainda aparece');
+    confere((await p.locator('.tt-atalho', { hasText: 'Marcos' }).count()) === 0, 'atalho Marcos ainda aparece');
+    confere((await p.locator('.tt-atalho').count()) === 2, 'esperados 2 atalhos (Linha do tempo e Fotos)');
   });
 
   // ---------------------------------------------------------------- fotos
@@ -151,7 +145,17 @@ for (const [w, h] of TELAS) {
   });
 
   // ---------------------------------------------------------------- vídeo e inatividade
-  await verificar('vídeo toca no overlay e não dispara o aviso de inatividade', async () => {
+  await verificar('aba Vídeos mostra o aviso "em produção"', async () => {
+    await abrir(p, 'sala=2');
+    await p.getByRole('tab', { name: /Vídeos/ }).click();
+    await p.locator('.tt-embreve').waitFor();
+    confere((await p.locator('.tt-embreve__tit').innerText()) === 'Vídeos em produção', 'título do aviso');
+    confere((await p.locator('.tt-destaque').count()) === 0, 'o player não deveria aparecer');
+    await foto('videos-em-producao');
+  });
+
+  // Com VIDEOS_EM_CONSTRUCAO = false (config/recursos.ts), rode com VIDEOS_PRONTOS=1 para testar o player.
+  if (process.env.VIDEOS_PRONTOS === '1') await verificar('vídeo toca no overlay e não dispara o aviso de inatividade', async () => {
     await abrir(p, 'sala=2&aviso=3&contagem=3');
     await p.getByRole('tab', { name: /Vídeos/ }).click();
     await p.locator('.tt-destaque').click();
@@ -164,8 +168,12 @@ for (const [w, h] of TELAS) {
     await p.locator('.t-aviso').waitFor({ timeout: 6000 });
   });
 
+  // Não depende do teste do vídeo (que só roda com VIDEOS_PRONTOS=1): abre a sala com aviso curto.
   await verificar('inatividade volta ao início da sala', async () => {
-    await p.locator('.t-aviso').waitFor({ state: 'detached', timeout: 6000 });
+    await abrir(p, 'sala=2&aviso=3&contagem=3');
+    await p.getByRole('tab', { name: /Linha do tempo/ }).click();
+    await p.locator('.t-aviso').waitFor({ timeout: 8000 });
+    await p.locator('.t-aviso').waitFor({ state: 'detached', timeout: 8000 });
     confere(await p.getByRole('tab', { name: /Apresentação/ }).getAttribute('aria-selected') === 'true', 'não voltou para a Apresentação');
     confere((await p.locator('.m-ov').count()) === 0, 'overlay continuou aberto');
   });

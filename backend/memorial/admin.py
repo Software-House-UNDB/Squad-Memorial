@@ -9,7 +9,7 @@ from django.utils.html import format_html
 
 from . import redes as redes_sociais
 from .models import (
-    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Marco, RedeSocial, Registro, Sala,
+    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, RedeSocial, Registro, Sala,
     Video,
 )
 from .registro import alterar_em_lote
@@ -118,13 +118,6 @@ class DecadaInline(admin.TabularInline):
     show_change_link = True
 
 
-class MarcoInline(admin.StackedInline):
-    model = Marco
-    extra = 0
-    fields = [("ano", "titulo", "icone"), "descricao", "texto", "foto", ("destaque", "ordem", "publicado", "demonstrativo")]
-    show_change_link = True
-
-
 class VideoForm(forms.ModelForm):
     class Meta:
         model = Video
@@ -143,7 +136,7 @@ class VideoInline(admin.StackedInline):
 @admin.register(Sala)
 class SalaAdmin(admin.ModelAdmin):
     form = SalaForm
-    list_display = ["numero", "nome", "cor_amostra", "tipo", "qtd_marcos", "qtd_fotos", "qtd_videos", "ativa"]
+    list_display = ["numero", "nome", "cor_amostra", "tipo", "qtd_fotos", "qtd_videos", "ativa"]
     list_display_links = ["numero", "nome"]
     readonly_fields = ["endereco_totem"]
     fieldsets = [
@@ -151,7 +144,7 @@ class SalaAdmin(admin.ModelAdmin):
         ("Fotos", {"fields": ["enviar_fotos", "ano_das_fotos"]}),
     ]
 
-    inlines = [ApresentacaoInline, DecadaInline, MarcoInline, VideoInline]
+    inlines = [ApresentacaoInline, DecadaInline, VideoInline]
 
     def has_add_permission(self, request):
         return Sala.objects.count() < 6
@@ -168,10 +161,6 @@ class SalaAdmin(admin.ModelAdmin):
         if not obj or not obj.pk:
             return "—"
         return format_html("<code>/sala/{}</code> (abra este endereço no navegador quiosque do totem)", obj.numero)
-
-    @admin.display(description="marcos")
-    def qtd_marcos(self, obj):
-        return obj.marco_set.count()
 
     @admin.display(description="fotos")
     def qtd_fotos(self, obj):
@@ -231,21 +220,6 @@ class DecadaAdmin(ConteudoAdmin):
     @admin.display(description="acontecimentos")
     def qtd_acontecimentos(self, obj):
         return len(obj.acontecimentos.all())
-
-    @admin.display(description="prévia")
-    def preview(self, obj):
-        return _thumb(obj.foto, 200)
-
-
-@admin.register(Marco)
-class MarcoAdmin(ConteudoAdmin):
-    list_display = ["ano", "titulo", "sala", "icone", "destaque", "demonstrativo", "publicado"]
-    list_display_links = ["ano", "titulo"]
-    list_filter = ["sala", "destaque", "demonstrativo", "publicado"]
-    list_editable = ["publicado"]
-    search_fields = ["titulo", "descricao"]
-    readonly_fields = ["preview"]
-    fields = ["sala", "ano", "titulo", "descricao", "texto", "icone", "foto", "preview", "destaque", "ordem", "publicado", "demonstrativo"]
 
     @admin.display(description="prévia")
     def preview(self, obj):

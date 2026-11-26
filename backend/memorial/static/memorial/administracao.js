@@ -26,7 +26,7 @@
     atualizar();
   });
 
-  // ---- adicionar mais um item (década, marco, vídeo...) sem sair do formulário
+  // ---- adicionar mais um item (década, acontecimento, vídeo...) sem sair do formulário
   document.querySelectorAll('[data-inline]').forEach(function (grupo) {
     var botao = grupo.querySelector('[data-adicionar]');
     if (!botao) return;
