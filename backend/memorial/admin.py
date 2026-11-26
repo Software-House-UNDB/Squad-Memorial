@@ -9,7 +9,16 @@ from django.utils.html import format_html
 
 from . import redes as redes_sociais
 from .models import (
-    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, RedeSocial, Registro, Sala,
+    Acontecimento,
+    Aluno,
+    Apresentacao,
+    ConfiguracaoMemorial,
+    Decada,
+    Foto,
+    FotoAluno,
+    RedeSocial,
+    Registro,
+    Sala,
     Video,
 )
 from .registro import alterar_em_lote

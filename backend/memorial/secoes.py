@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from django.contrib import admin
 
-from .models import Apresentacao, Aluno, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Sala, Video
+from .models import Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Sala, Video
 
 
 @dataclass(frozen=True)

@@ -22,11 +22,30 @@ from rest_framework.throttling import SimpleRateThrottle
 from . import confirmacao
 from .media import ImagemInvalida, validar_imagem_enviada
 from .models import (
-    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Sala, Video, normalizar,
+    Acontecimento,
+    Aluno,
+    Apresentacao,
+    ConfiguracaoMemorial,
+    Decada,
+    Foto,
+    FotoAluno,
+    Sala,
+    Video,
+    normalizar,
 )
 from .serializers import (
-    CheckinSerializer, JaCadastrado, montar_aluno_perfil, montar_aluno_resumo, montar_apresentacao, montar_config,
-    montar_config_checkin, montar_decada, montar_foto, montar_sala, montar_video, registrar_checkin,
+    CheckinSerializer,
+    JaCadastrado,
+    montar_aluno_perfil,
+    montar_aluno_resumo,
+    montar_apresentacao,
+    montar_config,
+    montar_config_checkin,
+    montar_decada,
+    montar_foto,
+    montar_sala,
+    montar_video,
+    registrar_checkin,
 )
 
 POR_PAGINA = 12
@@ -61,7 +80,7 @@ def calcular_versao(sala):
         partes.append(f"{modelo.__name__}:{agg['n']}:{agg['m']}")
     if sala.tipo == Sala.Tipo.FECHAMENTO:
         partes.append(f"demo:{Aluno.objects.filter(demonstrativo=True).count()}")
-    return hashlib.sha1("|".join(partes).encode()).hexdigest()[:16]
+    return hashlib.sha1("|".join(partes).encode(), usedforsecurity=False).hexdigest()[:16]
 
 
 @api_view(["GET"])

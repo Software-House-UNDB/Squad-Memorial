@@ -95,8 +95,6 @@ export const quiosque = {
   salaNaUrl: salaDoCaminho(typeof location !== 'undefined' ? location.pathname : '') ?? parametros.get('sala'),
 };
 
-export type ConfigQuiosque = typeof quiosque;
-
 /** Aplica os tempos cadastrados no admin, exceto os que a URL sobrescreve. */
 export function aplicarConfigServidor(c: { segundosInatividade: number; segundosContagem: number; segundosLightbox: number }) {
   const i = quiosque.inatividade;

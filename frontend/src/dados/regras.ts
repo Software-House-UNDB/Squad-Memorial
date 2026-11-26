@@ -4,14 +4,14 @@
  */
 import type { Apresentacao, Foto, RespostaSala } from './tipos';
 
-const MARCAS = /[̀-ͯ]/g;
+const MARCAS = /\p{Mn}/gu; // acentos soltos depois do normalize('NFD'), como o backend (categoria Mn)
 
 /** Minúsculo, sem acento e com espaços simples. */
 export function normalizar(texto: string): string {
   return texto.normalize('NFD').replace(MARCAS, '').replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
-export const palavras = (q: string) => normalizar(q).split(' ').filter(Boolean);
+const palavras = (q: string) => normalizar(q).split(' ').filter(Boolean);
 
 /** Cada palavra digitada precisa estar contida no nome ("joao sil" → João Pedro da Silva Sales). */
 export function corresponde(nome: string, q: string): boolean {

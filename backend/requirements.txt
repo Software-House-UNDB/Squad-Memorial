@@ -5,3 +5,4 @@ psycopg[binary]>=3.2
 Pillow>=10.4
 gunicorn>=27,<28
 qrcode>=8.0
+sentry-sdk[django]>=2.18,<3

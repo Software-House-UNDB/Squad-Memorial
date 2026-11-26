@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["src/checkin/main.tsx"],
+  "project": ["src/**/*.{ts,tsx}", "testes/**/*.mjs"],
+  "ignoreDependencies": ["@commitlint/cli"]
+}

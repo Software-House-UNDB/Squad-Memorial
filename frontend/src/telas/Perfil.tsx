@@ -11,7 +11,7 @@ import { Imagem } from '../componentes/Imagem';
 import type { EstadoAluno } from '../dados/alunos';
 import { lerRedes, redePorId } from '../dados/redes';
 import { dataCurta, nomeCurto } from '../dados/regras';
-import { type AlunoResumo, type FotoAluno } from '../dados/tipos';
+import type { AlunoResumo, FotoAluno } from '../dados/tipos';
 import type { AbaPerfil } from './estado';
 
 /** Miniaturas na Visão geral (6 colunas) e na aba Fotos (até 2 linhas de 6). */

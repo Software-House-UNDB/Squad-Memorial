@@ -342,6 +342,6 @@ await verificar('nenhuma requisição a outro domínio (CDN)', async () => confe
 
 console.log(`\n${ok} verificações ok, ${falhas.length} falha(s).`);
 if (falhas.length) {
-  falhas.forEach((f) => console.log(`  - ${f}`));
+  for (const f of falhas) console.log(`  - ${f}`);
   process.exit(1);
 }

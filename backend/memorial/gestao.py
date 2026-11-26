@@ -5,9 +5,9 @@ ações, permissões e regras de salvar. Um campo novo no admin aparece aqui sem
 """
 
 from django import forms
+from django.contrib import messages
 from django.contrib.admin.utils import display_for_field, flatten_fieldsets, label_for_field, lookup_field
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.paginator import Paginator
 from django.db import models, transaction

@@ -12,14 +12,13 @@ import { ErroHttp } from './erro';
 import exemplo from './exemplo.json';
 import { corresponde, normalizar } from './regras';
 import { SALAS_PADRAO } from './salas';
-import {
-  type AlunoPerfil, type AlunoResumo, type ConfigCheckin, type ConfigMemorial, type DadosCheckin, type Decada, type FiltroAlunos,
-  type Foto, type PaginaAlunos, type RespostaSala, type Video,
+import type {
+  AlunoPerfil, AlunoResumo, ConfigCheckin, ConfigMemorial, DadosCheckin, Decada, FiltroAlunos,
+  Fonte, Foto, PaginaAlunos, RespostaSala, Video,
 } from './tipos';
 import { empacotar, normalizarRede } from './redes';
 import { TERMO_PADRAO } from './termo';
 import { validarCheckin } from './validacao';
-import type { Fonte } from './fonte';
 
 interface Pessoa {
   name: string;
@@ -63,7 +62,7 @@ export const CODIGO_DEMO = '123456';
 const REFERENCIA = Date.UTC(2026, 9, 27); // data do protótipo: os check-ins de exemplo mantêm a distância de "hoje"
 const VIDEO_EXEMPLO = `${import.meta.env.BASE_URL}demo/exemplo.webm`;
 
-export const TERMO_DEMO = TERMO_PADRAO;
+const TERMO_DEMO = TERMO_PADRAO;
 
 const anoAtual = () => new Date().getFullYear();
 

@@ -22,7 +22,7 @@ export async function reduzirFoto(arquivo: File): Promise<File> {
     bitmap.close();
     const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/jpeg', 0.88));
     if (!blob) return arquivo;
-    return new File([blob], arquivo.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' });
+    return new File([blob], `${arquivo.name.replace(/\.\w+$/, '')}.jpg`, { type: 'image/jpeg' });
   } catch {
     return arquivo;
   }

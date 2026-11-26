@@ -17,7 +17,7 @@ export type RedeId =
   | 'instagram' | 'tiktok' | 'linkedin' | 'facebook' | 'x' | 'youtube' | 'threads'
   | 'kwai' | 'pinterest' | 'snapchat' | 'telegram' | 'twitch' | 'github' | 'behance' | 'outra';
 
-export interface Rede {
+interface Rede {
   id: RedeId;
   rotulo: string;
   /** Nome do ícone em Icone.tsx. */

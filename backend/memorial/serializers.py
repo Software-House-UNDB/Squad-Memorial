@@ -171,7 +171,7 @@ class CheckinSerializer(serializers.Serializer):
         try:
             ano = int(v)
         except (TypeError, ValueError):
-            raise serializers.ValidationError(MSG["ano"])
+            raise serializers.ValidationError(MSG["ano"]) from None
         if not self.config.ano_inicial <= ano <= ano_atual():
             raise serializers.ValidationError(MSG["ano"])
         return ano
@@ -187,7 +187,7 @@ class CheckinSerializer(serializers.Serializer):
         try:
             serializers.EmailField().run_validation(v)
         except serializers.ValidationError:
-            raise serializers.ValidationError(MSG["email"])
+            raise serializers.ValidationError(MSG["email"]) from None
         return v
 
     def validate_instagram(self, v):
@@ -207,7 +207,7 @@ class CheckinSerializer(serializers.Serializer):
             try:
                 redes_sociais.validar(rede, usuario)
             except redes_sociais.RedeInvalida as exc:
-                raise serializers.ValidationError(str(exc))
+                raise serializers.ValidationError(str(exc)) from exc
         return v
 
     def validate_redes(self, v):
@@ -216,7 +216,7 @@ class CheckinSerializer(serializers.Serializer):
         try:
             lista = json.loads(v)
         except ValueError:
-            raise serializers.ValidationError(MSG["redes"])
+            raise serializers.ValidationError(MSG["redes"]) from None
         if not isinstance(lista, list) or not all(isinstance(i, dict) for i in lista):
             raise serializers.ValidationError(MSG["redes"])
         lista = [i for i in lista if str(i.get("usuario") or "").strip()]
@@ -227,7 +227,7 @@ class CheckinSerializer(serializers.Serializer):
             try:
                 par = redes_sociais.validar(str(item.get("rede") or ""), str(item.get("usuario") or ""))
             except redes_sociais.RedeInvalida as exc:
-                raise serializers.ValidationError(str(exc))
+                raise serializers.ValidationError(str(exc)) from exc
             if par not in limpas:
                 limpas.append(par)
         return limpas

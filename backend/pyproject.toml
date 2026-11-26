@@ -1,0 +1,60 @@
+# Ferramentas de qualidade do backend (CI: .github/workflows/backend.yml). Instale com: pip install -r requirements-dev.txt
+
+[tool.ruff]
+target-version = "py312"
+line-length = 150
+extend-exclude = ["memorial/migrations"]
+
+[tool.ruff.lint]
+# E/W/F: pycodestyle e pyflakes · I: ordem dos imports · B: bugbear · UP: sintaxe atual do Python
+# DJ: Django · S: segurança (bandit) · C4: comprehensions · SIM: simplificações
+select = ["E", "W", "F", "I", "B", "UP", "DJ", "S", "C4", "SIM"]
+ignore = [
+    "S603", "S607",  # subprocess: só o ffmpeg/ffprobe, com argumentos montados aqui (nunca shell=True)
+    "UP038",  # isinstance(x, (A, B)) é mais rápido que A | B (a própria regra foi descontinuada no Ruff)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"memorial/tests.py" = ["S", "E741"]  # senhas e dados de teste
+"memorial/admin.py" = ["DJ007"]  # no admin, quem escolhe os campos é o ModelAdmin (fields/fieldsets)
+"memorial/management/commands/carregar_exemplo.py" = ["S311"]  # conteúdo de exemplo, não segredo
+
+[tool.importlinter]
+root_packages = ["memorial", "config"]
+
+[[tool.importlinter.contracts]]
+name = "Os models não dependem da web (API, painel, admin, e-mail)"
+type = "forbidden"
+source_modules = ["memorial.models"]
+forbidden_modules = [
+    "memorial.views", "memorial.serializers", "memorial.urls", "memorial.admin", "memorial.administracao",
+    "memorial.gestao", "memorial.secoes", "memorial.confirmacao", "memorial.notificacoes", "memorial.signals",
+]
+
+[[tool.importlinter.contracts]]
+name = "A API pública (totem e check-in) não depende do painel da equipe"
+type = "forbidden"
+source_modules = ["memorial.views", "memorial.serializers", "memorial.confirmacao"]
+forbidden_modules = ["memorial.admin", "memorial.administracao", "memorial.gestao", "memorial.secoes"]
+
+[[tool.importlinter.contracts]]
+name = "O tratamento de imagem e vídeo não conhece os models"
+type = "forbidden"
+source_modules = ["memorial.media"]
+forbidden_modules = ["memorial.models", "memorial.views", "memorial.serializers"]
+
+[[tool.importlinter.contracts]]
+name = "O app não importa a configuração do projeto (usa django.conf.settings)"
+type = "forbidden"
+source_modules = ["memorial"]
+forbidden_modules = ["config"]
+ignore_imports = ["memorial.tests -> config.observabilidade"]  # o teste do filtro de dados pessoais do Sentry
+
+[tool.coverage.run]
+source = ["memorial", "config"]
+omit = ["*/migrations/*", "memorial/tests.py", "config/wsgi.py"]
+branch = true
+
+[tool.coverage.report]
+skip_empty = true
+show_missing = false

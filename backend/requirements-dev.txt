@@ -1,0 +1,5 @@
+# Ferramentas de qualidade e testes (CI e desenvolvimento). Produção usa só requirements.txt.
+-r requirements.txt
+ruff==0.8.6
+import-linter==2.1
+coverage[toml]==7.6.10

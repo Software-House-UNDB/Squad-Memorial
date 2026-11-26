@@ -102,5 +102,16 @@ export default defineConfig({
     assetsInlineLimit: 0,
     sourcemap: false,
   },
-  test: { environment: 'node', include: ['src/**/*.test.ts'] },
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
+    // Cobertura (npm run test:coverage): lcov para o Codecov e resumo no terminal.
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/**/*.test.ts', 'src/**/*.d.ts'],
+      reporter: ['text-summary', 'lcov'],
+      reportsDirectory: 'coverage',
+    },
+  },
 } as never);
