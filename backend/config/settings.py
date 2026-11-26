@@ -124,6 +124,13 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 # Para testar sem servidor de e-mail: EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend (mostra no log)
 EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
 
+# Confirmação do check-in: o visitante recebe um código de 6 dígitos no e-mail e só depois o check-in é gravado.
+# Sem e-mail configurado (EMAIL_HOST, ou um EMAIL_BACKEND que não seja SMTP), ninguém consegue fazer check-in.
+CHECKIN_CODIGO_MINUTOS = int(os.environ.get("CHECKIN_CODIGO_MINUTOS") or "15")        # validade do código
+CHECKIN_CODIGO_TENTATIVAS = int(os.environ.get("CHECKIN_CODIGO_TENTATIVAS") or "5")   # erros até o código parar de valer
+CHECKIN_CODIGO_INTERVALO = int(os.environ.get("CHECKIN_CODIGO_INTERVALO") or "60")    # segundos entre dois envios ao mesmo e-mail
+CHECKIN_CODIGO_POR_HORA = int(os.environ.get("CHECKIN_CODIGO_POR_HORA") or "5")       # envios ao mesmo e-mail por hora
+
 # Atrás do nginx
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -150,14 +157,15 @@ CACHES = {
 
 REST_FRAMEWORK = {
     # A API dos totens é pública; o conteúdo é editado pelo /admin. O único POST é o check-in,
-    # sem sessão (então sem CSRF), protegido por limite de frequência e campo isca.
+    # sem sessão (então sem CSRF), protegido por limite de frequência, campo isca e código por e-mail.
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_AUTHENTICATION_CLASSES": [],
     "UNAUTHENTICATED_USER": None,
     "DEFAULT_THROTTLE_RATES": {
-        "checkin_minuto": os.environ.get("CHECKIN_LIMITE_MINUTO", "5/min"),
-        "checkin_hora": os.environ.get("CHECKIN_LIMITE_HORA", "30/hour"),
+        # Cada check-in são dois envios (o pedido do código e a confirmação): 10/min = 5 check-ins por minuto.
+        "checkin_minuto": os.environ.get("CHECKIN_LIMITE_MINUTO", "10/min"),
+        "checkin_hora": os.environ.get("CHECKIN_LIMITE_HORA", "60/hour"),
     },
     # Quantos proxies ficam na frente do Django (o IP do visitante é lido do X-Forwarded-For).
     # nginx sozinho = 1. Com o túnel da Cloudflare na frente do nginx = 2.

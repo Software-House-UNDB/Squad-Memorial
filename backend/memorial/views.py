@@ -19,12 +19,13 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.throttling import SimpleRateThrottle
 
+from . import confirmacao
 from .media import ImagemInvalida, validar_imagem_enviada
 from .models import (
     Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Sala, Video, normalizar,
 )
 from .serializers import (
-    CheckinSerializer, montar_aluno_perfil, montar_aluno_resumo, montar_apresentacao, montar_config,
+    CheckinSerializer, JaCadastrado, montar_aluno_perfil, montar_aluno_resumo, montar_apresentacao, montar_config,
     montar_config_checkin, montar_decada, montar_foto, montar_sala, montar_video, registrar_checkin,
 )
 
@@ -184,9 +185,10 @@ class LimiteCheckinHora(_LimiteCheckin):
 @parser_classes([MultiPartParser, FormParser, JSONParser])
 @throttle_classes([LimiteCheckinMinuto, LimiteCheckinHora])
 def checkin(request):
-    """GET: textos do formulário. POST (multipart): cadastra a passagem do visitante.
+    """GET: textos do formulário. POST (multipart): o check-in do visitante, em duas etapas (confirmacao.py).
 
-    A resposta do POST é mínima e não ecoa nenhum dado enviado.
+    Sem `codigo`: confere os dados e manda o código ao e-mail (202). Com `codigo`: grava o check-in (201).
+    As respostas são mínimas e não ecoam nenhum dado enviado.
     """
     config = ConfiguracaoMemorial.atual()
     if request.method == "GET":
@@ -196,11 +198,14 @@ def checkin(request):
     if not entrada.is_valid():
         erros = {campo: str(msgs[0]) for campo, msgs in entrada.errors.items()}
         return Response({"erros": erros}, status=status.HTTP_400_BAD_REQUEST)
+    dados = entrada.validated_data
+    etapa_codigo = not dados["codigo"].strip()
 
-    # Robôs preenchem o campo isca, que é invisível para pessoas: finge que deu certo.
-    if entrada.validated_data["site"].strip():
-        return Response({"ok": True}, status=status.HTTP_201_CREATED)
+    # Robôs preenchem o campo isca, que é invisível para pessoas: finge que deu certo e não manda nada.
+    if dados["site"].strip():
+        return Response({"ok": True}, status=status.HTTP_202_ACCEPTED if etapa_codigo else status.HTTP_201_CREATED)
 
+    # As fotos são conferidas antes do código, para um erro nelas não gastar o código.
     imagens = request.FILES.getlist("fotos")
     if len(imagens) > MAX_FOTOS_CHECKIN:
         return Response({"erros": {"fotos": "Envie no máximo 3 fotos."}}, status=status.HTTP_400_BAD_REQUEST)
@@ -210,5 +215,14 @@ def checkin(request):
     except ImagemInvalida as exc:
         return Response({"erros": {"fotos": str(exc)}}, status=status.HTTP_400_BAD_REQUEST)
 
-    registrar_checkin(entrada.validated_data, imagens, config, request.build_absolute_uri(reverse("administracao")))
+    try:
+        if etapa_codigo:
+            confirmacao.pedir_codigo(dados["email"], dados["nome"], config)
+            return Response({"ok": True, "codigo": "enviado"}, status=status.HTTP_202_ACCEPTED)
+        confirmacao.confirmar_codigo(dados["email"], dados["codigo"])
+        registrar_checkin(dados, imagens, config, request.build_absolute_uri(reverse("administracao")))
+    except confirmacao.Recusado as r:
+        return Response({"erros": {r.campo: r.mensagem}}, status=r.status)
+    except JaCadastrado:
+        return Response({"erros": {"geral": confirmacao.MSG_JA_CADASTRADO}}, status=status.HTTP_409_CONFLICT)
     return Response({"ok": True}, status=status.HTTP_201_CREATED)

@@ -363,7 +363,8 @@ class Aluno(Timestamped):
         ordering = ["nome_busca", "id"]
         verbose_name = "ex-aluno"
         constraints = [
-            models.UniqueConstraint(fields=["email", "ano"], condition=~Q(email=""), name="aluno_email_ano_unico"),
+            # Um check-in por e-mail (cadastros feitos pela equipe podem ficar sem e-mail).
+            models.UniqueConstraint(fields=["email"], condition=~Q(email=""), name="aluno_email_unico"),
         ]
 
     def __str__(self):
@@ -390,6 +391,28 @@ class Aluno(Timestamped):
     # Selo NOVO e topo da lista; "Check-in feito agora" no perfil.
     HORAS_NOVO = 24
     HORAS_RECENTE = 2
+
+
+class ConfirmacaoEmail(models.Model):
+    """Código de 6 dígitos enviado ao e-mail de quem faz check-in (confirmacao.py).
+
+    Guarda só o hash do código. Vale por alguns minutos, para poucas tentativas e uma vez só.
+    """
+
+    email = models.EmailField(db_index=True)
+    codigo_hash = models.CharField(max_length=64)
+    criado_em = models.DateTimeField(default=timezone.now, db_index=True)
+    expira_em = models.DateTimeField()
+    tentativas = models.PositiveSmallIntegerField(default=0)
+    usado_em = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-criado_em", "-id"]
+        verbose_name = "confirmação de e-mail"
+        verbose_name_plural = "confirmações de e-mail"
+
+    def __str__(self):
+        return f"confirmação nº {self.pk}"
 
 
 class RedeSocial(Timestamped):

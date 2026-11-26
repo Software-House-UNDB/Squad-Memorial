@@ -140,7 +140,8 @@ o perfil aparece na Sala 06 logo depois do check-in, e a tela avisa isso. As fot
 - com o painel aberto: número no menu e no título da aba, e uma faixa "Chegou 1 item novo" (consulta a cada 30 s, sem recarregar a tela
   nem perder a seleção);
 - por e-mail, com as fotos em anexo e o link do painel, a cada check-in que deixar algo pendente. Vai para os superusuários e o grupo
-  **Administrativo**, no e-mail de cada usuário. Só funciona com `EMAIL_HOST` configurado no `.env` (ver `.env.example`); sem ele, nada é enviado.
+  **Administrativo**, no e-mail de cada usuário. Usa o mesmo `EMAIL_HOST` do código de confirmação do check-in (ver `.env.example`),
+  que é obrigatório.
   Porta 587 usa `EMAIL_USE_TLS=1`; porta 465 usa `EMAIL_USE_SSL=1`. A tela de aprovações diz quantas pessoas recebem o aviso (e avisa se
   ninguém tem e-mail cadastrado) e tem o botão **Enviar e-mail de teste para mim** (para quem pode alterar a configuração), que mostra o erro
   do servidor de e-mail se o envio falhar. Pelo terminal: `docker compose exec backend python manage.py testar_email [destinatário]`.
@@ -152,7 +153,7 @@ Tudo que entrou e saiu do sistema, com busca, filtros por tipo e data, e exporta
 
 | Direção | O que conta |
 |---|---|
-| Entrada | check-in novo ou atualizado, foto enviada, cadastro criado ou alterado (com quem fez), aprovações, login da equipe, login recusado |
+| Entrada | check-in, foto enviada, cadastro criado ou alterado (com quem fez), aprovações, login da equipe, login recusado |
 | Saída | cadastro removido, ex-aluno removido, exportação de dados, aviso por e-mail, logout da equipe |
 
 **Limites:** o conteúdo de exemplo (`carregar_exemplo`) não entra no registro. Do que aconteceu antes da migração `0012`, só
@@ -173,7 +174,7 @@ salas, e o menu do painel mostra só o que cada usuário pode acessar. Para libe
 | `GET alunos/?q=&ano=&decada=1990-1999&pagina=` | busca no diretório (12 por página), recentes primeiro |
 | `GET alunos/<id>/` | perfil, `redes` (lista), fotos **aprovadas**, até 4 colegas da mesma turma e `totalColegas` |
 | `GET checkin/` | textos do formulário (termo e versão, ano inicial) |
-| `POST checkin/` | multipart: `nome, ano, turma, email, instagram, facebook` (ou `redes`), `consentimento, fotos[]` |
+| `POST checkin/` | multipart: `nome, ano, turma, email, instagram, facebook` (ou `redes`), `consentimento`. **Sem `codigo`**: confere os dados e manda o código ao e-mail (202). **Com `codigo`** (e `fotos[]`): grava o check-in (201). Ver [Confirmação do check-in por e-mail](#confirmação-do-check-in-por-e-mail) |
 
 Formatos em `frontend/src/dados/tipos.ts`. URLs de mídia são relativas (`/media/...`).
 
@@ -190,10 +191,31 @@ O perfil devolve `redes: [{rede, rotulo, usuario}]` (com `link` em "outra", só 
 `instagram` e `facebook` no formato antigo, para totens e celulares com o frontend anterior. Painel e admin mostram o rótulo certo
 de cada rede (ex.: "TikTok: tiktok.com/@maria") e editam as redes do ex-aluno. Detalhes: [`docs/passagem-para-o-backend.md`](docs/passagem-para-o-backend.md).
 
-O check-in tem limite de frequência por IP (`CHECKIN_LIMITE_MINUTO=5/min`, `CHECKIN_LIMITE_HORA=30/hour`;
-atrás do túnel use `DJANGO_NUM_PROXIES=2`), campo isca anti-robô, até 3 fotos de 10 MB (verificadas e
-reencodadas, sem EXIF; o nginx aceita até 30 MB só nessa rota) e resposta mínima. Mesmo e-mail + mesmo
-ano atualiza o cadastro em vez de duplicar. O corpo das requisições não é registrado em log.
+O check-in tem limite de frequência por IP (`CHECKIN_LIMITE_MINUTO=10/min`, `CHECKIN_LIMITE_HORA=60/hour`; cada
+check-in são dois envios, então isso dá 5 por minuto; atrás do túnel use `DJANGO_NUM_PROXIES=2`), campo isca anti-robô,
+até 3 fotos de 10 MB (verificadas e reencodadas, sem EXIF; o nginx aceita até 30 MB só nessa rota), resposta mínima e
+confirmação por e-mail (abaixo). O corpo das requisições não é registrado em log.
+
+### Confirmação do check-in por e-mail
+
+**Um check-in por e-mail**, e só de quem tem acesso a ele (`backend/memorial/confirmacao.py`):
+
+1. A pessoa lê o QR Code no totem (o totem só mostra o QR Code; o formulário é no celular), preenche e toca em
+   **Fazer check-in**. O servidor confere os dados e manda um **código de 6 números** para o e-mail. Nada é gravado ainda.
+2. A pessoa digita o código na mesma página. Só então o check-in é gravado e ela aparece na Sala 06 (as fotos vão nesta etapa).
+
+- **E-mail que já tem cadastro**: no lugar do código, a pessoa recebe um e-mail dizendo que o check-in já foi feito e que,
+  para alterar os dados, deve falar com a recepção. A página responde igual nos dois casos, para não revelar quem já visitou
+  o Memorial. Para alterar ou refazer, a equipe edita ou apaga o cadastro no painel (Ex-alunos).
+- **O código** vale 15 minutos (`CHECKIN_CODIGO_MINUTOS`), uma vez só, para 5 tentativas (`CHECKIN_CODIGO_TENTATIVAS`);
+  pedir outro invalida o anterior. Reenvio depois de 60 s (`CHECKIN_CODIGO_INTERVALO`) e até 5 por hora para o mesmo e-mail
+  (`CHECKIN_CODIGO_POR_HORA`). O banco guarda só o hash do código, e os pedidos somem depois de 1 dia.
+- **E-mail é obrigatório**: sem `EMAIL_HOST` (ou um `EMAIL_BACKEND` que não seja SMTP), o check-in responde "Não conseguimos enviar
+  o código agora… fale com a equipe na recepção". Teste o envio antes de abrir ao público (`manage.py testar_email`) e confira se
+  o código não cai no spam do Gmail e do Outlook.
+- **Desenvolvimento**: com `EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend` (o do `.env.example`) o e-mail, com o
+  código, aparece em `docker compose logs backend`.
+- **Modo demonstração** (Vercel): não há e-mail; o código é `123456`, e a tela avisa.
 
 ## Privacidade (LGPD)
 
@@ -261,7 +283,9 @@ Os dados da Sala 06 (aba Colegas) são de pessoas reais:
     Pinterest, Snapchat, Telegram, Twitch, GitHub, Behance e "Outra rede". A pessoa digita só o usuário (o prefixo do endereço fica fixo) ou cola o link
     inteiro e a rede é reconhecida. Em "Outra rede" vale um endereço curto (`site.com/perfil`, até 94 caracteres, sem `https://`, sem parâmetros);
   - **termo**: aceite com a frase curta e "Ler termo completo" recolhível; sem o termo carregado o envio fica bloqueado (ver Privacidade);
-  - **tela de sucesso**: sem botão de novo check-in (um por celular; a regra de e-mail + ano repetido continua no servidor); mostra a orientação
+  - **confirmação**: depois de "Fazer check-in", a tela pede o código de 6 números enviado ao e-mail, com "Enviar outro código" (após 60 s)
+    e "Corrigir os dados" (volta ao formulário preenchido). Ver [Confirmação do check-in por e-mail](#confirmação-do-check-in-por-e-mail);
+  - **tela de sucesso**: sem botão de novo check-in (um por e-mail, regra do servidor); mostra a orientação
     para começar pela Sala 01 e a lista das 6 salas;
   - **envio**: tempo limite de 60 s com mensagem própria, mensagem clara para o limite de envios (429), aviso "Preparando suas fotos…" ao reduzir as fotos,
     atributos de teclado nos campos (e-mail, link, nome) e Ano e Turma alinhados lado a lado.
@@ -304,7 +328,9 @@ URL=http://localhost:8080/ npm run test:e2e   # em 1600 × 900 e 1920 × 1080 (p
 ```
 
 O e2e faz um check-in de teste por execução ("Teste E2E …", e-mail `@exemplo.invalid`); apague-os no
-admin quando quiser. No check-in ele confere a validação do nome, escolhe o TikTok (rede guardada com prefixo) e confirma que o perfil aparece
+admin quando quiser. O código de confirmação é lido dos e-mails que o backend imprime no log (`EMAIL_BACKEND` do console, como no
+`.env.example`); `EMAILS_CMD` troca o comando que mostra o log (padrão: `docker compose logs --no-log-prefix --since 10m backend`).
+No check-in ele confere a validação do nome, o código errado e o certo, escolhe o TikTok (rede guardada com prefixo) e confirma que o perfil aparece
 na Sala 06 sem recarregar, com a turma e `tiktok.com/@…`; também confere que a API nunca devolve e-mail. As capturas vão para `frontend/.impeccable/review/e2e/`.
 
 ## Recomendações para os totens
@@ -382,6 +408,32 @@ docker compose -f docker-compose.prod.yml up -d --build  # aplica a 0019
 ```
 
 Se algum texto de um marco ainda for útil, copie-o para o ponto da linha do tempo (Décadas) antes de atualizar.
+
+## Atualizando para o check-in com confirmação por e-mail
+
+A migração `0020` passa a aceitar **um cadastro por e-mail** (antes era um por e-mail e ano). Se o banco já tiver o mesmo
+e-mail em mais de um cadastro, ela para sem mudar nada, lista os cadastros e **o backend não sobe**. Por isso, **antes de
+atualizar**, na versão que está rodando:
+
+```bash
+docker compose -f docker-compose.prod.yml exec backend python manage.py shell -c "from django.db.models import Count; from memorial.models import Aluno; print(list(Aluno.objects.exclude(email='').values_list('email').annotate(n=Count('id')).filter(n__gt=1)))"
+```
+
+Se a lista não vier vazia, escolha qual cadastro de cada e-mail fica e apague os outros no painel (Ex-alunos). Depois:
+
+1. Confira o e-mail no `.env` (`EMAIL_HOST` e os demais): **sem ele, ninguém faz check-in**. Teste com
+   `docker compose -f docker-compose.prod.yml exec backend python manage.py testar_email voce@escola.com.br`.
+2. Se o `.env` tiver `CHECKIN_LIMITE_MINUTO=5/min` e `CHECKIN_LIMITE_HORA=30/hour`, troque para `10/min` e `60/hour`
+   (cada check-in agora são dois envios).
+3. Backup e atualização:
+
+```bash
+sudo scripts/backup.sh
+docker compose -f docker-compose.prod.yml up -d --build  # aplica a 0020
+```
+
+Se a `0020` parar mesmo assim (`docker compose -f docker-compose.prod.yml logs backend` mostra os e-mails repetidos), volte
+para a versão anterior, apague os cadastros que sobram no painel e atualize de novo.
 
 ## Produção (`docker-compose.prod.yml`)
 

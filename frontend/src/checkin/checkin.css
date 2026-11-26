@@ -194,3 +194,13 @@ button { font: inherit; cursor: pointer; }
   .ck-folha { justify-content: center; }
   .ck-folha__corpo { max-width: 520px; }
 }
+
+/* ---------- confirmação do e-mail (segunda etapa) ---------- */
+.ck-conf__email { word-break: break-all; color: var(--grafite); }
+.ck-conf__codigo { font-size: 28px; font-weight: 700; letter-spacing: .3em; text-align: center; font-variant-numeric: tabular-nums; }
+.ck-conf__codigo::placeholder { letter-spacing: .3em; }
+.ck-conf__aviso { padding: 12px 14px; border-radius: 10px; background: var(--dourado-fundo); font-size: 15px; }
+.ck-conf__acoes { display: flex; flex-wrap: wrap; gap: 10px; }
+.ck-conf__acoes > button { flex: 1 1 12em; margin-top: 0; }
+.ck-conf__acoes > button:disabled { opacity: .55; }
+.ck-conf__nota { font-size: 14px; color: var(--suave); }
