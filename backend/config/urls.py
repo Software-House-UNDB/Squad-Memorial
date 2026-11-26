@@ -16,6 +16,7 @@ urlpatterns = [
     path("administracao/cadastros/", administracao.decidir_cadastros, name="administracao_cadastros"),
     path("administracao/email-teste/", administracao.email_teste, name="administracao_email_teste"),
     path("administracao/pendencias.json", administracao.pendencias, name="administracao_pendencias"),
+    path("administracao/sessao/", administracao.sessao, name="administracao_sessao"),
     path("administracao/registro/", administracao.registro, name="administracao_registro"),
     path("administracao/exportar.csv", administracao.exportar, name="administracao_exportar"),
     path("administracao/gerir/<slug:secao>/", gestao.lista, name="gestao_lista"),
