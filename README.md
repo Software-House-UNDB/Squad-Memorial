@@ -477,14 +477,20 @@ a página fica em modo demonstração.
 
 ### Acesso de fora da rede da escola
 
-O sistema inteiro responde para a rede da escola (e para a VPN). Para quem vem de fora, só o **check-in**
-(`/check-in/`, o QR Code) e o **agendamento** (`/agendamento/`) respondem:
+O sistema inteiro responde para a rede da escola (e para a VPN). Para quem vem de fora, respondem o **check-in**
+(`/check-in/`, o QR Code), o **agendamento** (`/agendamento/`) e o **painel da equipe** (`/administracao/`, `/admin/`):
 
 | De fora da rede | Resposta |
 |---|---|
 | `/check-in/`, `/agendamento/`, arquivos do build (`/assets/`), ícones, `/api/memorial/checkin/` e `/api/memorial/agendamento/` | normal |
-| `/`, `/sala/N`, `/administracao/`, `/admin/` | redireciona para `/check-in/` |
-| API dos totens, fotos e vídeos (`/media/`), `/static/` e o resto | 403 |
+| `/administracao/`, `/admin/` e `/static/` | normal (as páginas pedem login) |
+| fotos e vídeos (`/media/`) | só com login da equipe; sem login, 403 |
+| `/`, `/sala/N` (totem) | redireciona para `/check-in/` |
+| API dos totens e o resto | 403 |
+
+De fora, o nginx confere cada foto ou vídeo com o Django (`/administracao/sessao/`: 204 para a equipe logada) antes
+de entregar, para o acervo e as fotos enviadas pelos ex-alunos não ficarem públicos. O login aceita até 10 tentativas
+de senha por minuto por IP (com folga de 5); acima disso, responde 429.
 
 A rede da escola vem de `REDE_INTERNA` no `.env` (faixas separadas por espaço; o padrão são as redes privadas
 `10.0.0.0/8 172.16.0.0/12 192.168.0.0/16`). Peça à TI as faixas da escola e da VPN e recrie o nginx

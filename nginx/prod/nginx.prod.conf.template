@@ -19,7 +19,8 @@ map $http_x_forwarded_proto $proto_real {
 
 # ---------------------------------------------------------------- acesso de fora da rede
 # $rede_interna vem de 00-rede-interna.conf (gerado de REDE_INTERNA). De fora da rede, só estas rotas respondem:
-# as páginas de check-in e de agendamento e o que elas usam (arquivos do build, ícones e a API de cada uma).
+# check-in e agendamento (e o que usam: arquivos do build, ícones e a API de cada um) e o painel da equipe
+# (/administracao, /admin e os estáticos do Django; o login do Django protege as páginas).
 map $uri $rota_publica {
     default 0;
     ~^/check-?in(/|$)                     1;
@@ -28,14 +29,25 @@ map $uri $rota_publica {
     /api/memorial/checkin/                1;
     ~^/api/memorial/agendamento(/|$)      1;
     ~^/(favicon-64|apple-touch-icon|icone-192|icone-512|icone-maskable-512)\.png$  1;
+    ~^/administracao(/|\.|$)             1;
+    ~^/admin/                             1;
+    ~^/static/                            1;
 }
-# fora da rede e fora da lista: páginas (totem, painel, admin) levam ao check-in; API, mídia e o resto dão 403
+# fora da rede e fora da lista: fotos e vídeos só para a equipe logada (auth_request, abaixo); totem leva ao
+# check-in; API e o resto dão 403
 map "$rede_interna:$rota_publica:$uri" $acesso_externo {
     default              liberado;
-    ~^0:0:/(api|media|static)/  negado;
-    ~^0:0:/(|sala/.*|administracao.*|admin/.*)$  pagina;
+    ~^0:0:/media/        midia;
+    ~^0:0:/(|sala/.*)$   pagina;
     ~^0:0:               negado;
 }
+
+# Login do painel: tentativas de senha limitadas por IP (só o POST conta; GET não tem chave e não é limitado).
+map $request_method $chave_login {
+    POST    $binary_remote_addr;
+    default "";
+}
+limit_req_zone $chave_login zone=login:10m rate=10r/m;
 
 # Sem servidor de versão no cabeçalho e nas páginas de erro
 server_tokens off;
@@ -99,6 +111,7 @@ server {
     # De fora da rede da escola: só check-in e agendamento (mapas "acesso de fora da rede", acima).
     if ($acesso_externo = pagina) { return 302 /check-in/; }
     if ($acesso_externo = negado) { return 403; }
+    if ($acesso_externo = midia)  { rewrite ^/media/(.*)$ /_midia_equipe/$1 last; }
 
     # Padrão pequeno; cada rota que recebe arquivo abre o seu limite (abaixo).
     client_max_body_size 1m;
@@ -132,6 +145,13 @@ server {
         proxy_read_timeout 60s;
     }
 
+    # Login (também o do painel, que usa este): até 10 tentativas por minuto por IP, com folga de 5.
+    location = /admin/login/ {
+        limit_req zone=login burst=5 nodelay;
+        limit_req_status 429;
+        proxy_pass http://backend;
+    }
+
     # Admin: envio de vídeos grandes.
     location /admin/ {
         client_max_body_size 2G;
@@ -159,6 +179,29 @@ server {
         add_header Access-Control-Allow-Origin "*";
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    # Fotos e vídeos pedidos de fora da rede (o if lá em cima reescreve /media/... para cá): só para quem está
+    # logado no painel. O Django responde em /administracao/sessao/ (204 equipe, 403 os demais).
+    location ^~ /_midia_equipe/ {
+        internal;
+        auth_request /_sessao_equipe;
+        alias /var/www/media/;
+        add_header Cache-Control "private, max-age=3600";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+    location = /_sessao_equipe {
+        internal;
+        proxy_pass http://backend/administracao/sessao/;
+        proxy_pass_request_body off;
+        # um proxy_set_header aqui anula os do servidor: repete os que o Django usa
+        proxy_set_header Content-Length "";
+        proxy_set_header Connection "";
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $proto_real;
     }
 
     # Fotos de ex-alunos: cache curto, para um pedido de remoção chegar logo aos totens.

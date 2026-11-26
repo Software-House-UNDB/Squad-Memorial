@@ -162,6 +162,17 @@ def pendencias(request):
     return JsonResponse(_contagem_pendencias(request.user))
 
 
+@never_cache
+@require_GET
+def sessao(request):
+    """Consultado pelo nginx (auth_request) antes de entregar fotos e vídeos a quem está fora da rede da escola:
+    204 para quem está logado como equipe, 403 para os demais. Sem redirecionar para o login, que o nginx não segue."""
+    usuario = request.user
+    if usuario.is_authenticated and usuario.is_active and usuario.is_staff:
+        return HttpResponse(status=204)
+    return HttpResponse(status=403)
+
+
 # ---------------------------------------------------------------- entradas e saídas
 
 def _data(valor):

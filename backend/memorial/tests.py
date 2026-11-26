@@ -1142,3 +1142,35 @@ class EmailTesteTests(Base):
     def test_comando_testar_email(self):
         call_command("testar_email", stdout=StringIO())
         self.assertEqual([m.to for m in mail.outbox], [["chefe@escola.test"]])
+
+
+class SessaoPainelTests(TestCase):
+    """/administracao/sessao/: o nginx pergunta se pode entregar fotos e vídeos a quem está fora da rede."""
+
+    URL = "/administracao/sessao/"
+
+    def test_sem_login_403_sem_redirecionar(self):
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 403)
+
+    def test_equipe_logada_204(self):
+        from django.contrib.auth.models import User
+        User.objects.create_user("equipe", password="senha-longa-1", is_staff=True)
+        self.client.login(username="equipe", password="senha-longa-1")
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 204)
+        self.assertIn("no-cache", r["Cache-Control"])
+
+    def test_usuario_sem_equipe_403(self):
+        from django.contrib.auth.models import User
+        User.objects.create_user("comum", password="senha-longa-1")
+        self.client.login(username="comum", password="senha-longa-1")
+        self.assertEqual(self.client.get(self.URL).status_code, 403)
+
+    def test_equipe_inativa_403(self):
+        from django.contrib.auth.models import User
+        u = User.objects.create_user("antiga", password="senha-longa-1", is_staff=True)
+        self.client.force_login(u)
+        u.is_active = False
+        u.save()
+        self.assertEqual(self.client.get(self.URL).status_code, 403)
