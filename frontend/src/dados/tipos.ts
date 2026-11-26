@@ -35,21 +35,6 @@ export interface ConfigMemorial {
   urlCheckin: string;
 }
 
-export interface Marco {
-  id: number;
-  ano: number;
-  titulo: string;
-  /** Resumo de uma frase. */
-  descricao: string;
-  icone: string;
-  /** Destaque inicial (um por sala). Na aba Marcos nenhum cartão abre sozinho; o campo é mantido por compatibilidade. */
-  destaque: boolean;
-  /** Foto de época do marco. Ausente ou null = moldura provisória com o ícone. */
-  foto?: string | null;
-  /** Texto explicativo, mostrado quando o visitante toca no cartão. Ausente = só o resumo. */
-  texto?: string;
-}
-
 /** Texto de abertura da sala (aba Apresentação). */
 export interface Apresentacao {
   titulo: string;
@@ -116,10 +101,9 @@ export interface RespostaSala {
   sala: Sala;
   /** Algum item desta sala é conteúdo de exemplo (o frontend não mostra mais o selo no rodapé; o campo segue na API). */
   demonstrativo: boolean;
-  marcos: Marco[];
   fotos: Foto[];
   videos: Video[];
-  /** Novos na versão de 6 espaços. Ausentes na API antiga: o app deriva o que puder (regras.ts). */
+  /** Novos na versão de 6 espaços. Sem `apresentacao`, o app usa o título e o subtítulo da sala; sem `decadas`, a linha do tempo fica vazia. */
   apresentacao?: Apresentacao | null;
   decadas?: Decada[];
 }

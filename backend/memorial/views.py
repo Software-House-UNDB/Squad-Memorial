@@ -21,11 +21,11 @@ from rest_framework.throttling import SimpleRateThrottle
 
 from .media import ImagemInvalida, validar_imagem_enviada
 from .models import (
-    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Marco, Sala, Video, normalizar,
+    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Sala, Video, normalizar,
 )
 from .serializers import (
     CheckinSerializer, montar_aluno_perfil, montar_aluno_resumo, montar_apresentacao, montar_config,
-    montar_config_checkin, montar_decada, montar_foto, montar_marco, montar_sala, montar_video, registrar_checkin,
+    montar_config_checkin, montar_decada, montar_foto, montar_sala, montar_video, registrar_checkin,
 )
 
 POR_PAGINA = 12
@@ -54,7 +54,7 @@ def calcular_versao(sala):
     partes = [f"sala:{sala.pk}:{sala.atualizado_em.isoformat()}", f"config:{config.atualizado_em.isoformat()}"]
     for modelo, filtro in (
         (Apresentacao, {"sala": sala}), (Decada, {"sala": sala}), (Acontecimento, {"decada__sala": sala}),
-        (Marco, {"sala": sala}), (Foto, {"sala": sala}), (Video, {"sala": sala}),
+        (Foto, {"sala": sala}), (Video, {"sala": sala}),
     ):
         agg = modelo.objects.filter(**filtro).aggregate(n=Count("id"), m=Max("atualizado_em"))
         partes.append(f"{modelo.__name__}:{agg['n']}:{agg['m']}")
@@ -67,12 +67,11 @@ def calcular_versao(sala):
 def sala(request, numero):
     """Tudo que o totem da sala precisa, em uma chamada (guardada em cache para funcionar offline)."""
     s = _sala_ativa(numero)
-    marcos = list(Marco.objects.filter(sala=s, publicado=True))
     fotos = list(Foto.objects.filter(sala=s, publicado=True))
     videos = list(Video.objects.filter(sala=s, publicado=True))
     apresentacao = Apresentacao.objects.filter(sala=s, publicado=True).first()
     decadas = list(Decada.objects.filter(sala=s, publicado=True).prefetch_related("acontecimentos"))
-    demonstrativo = any(x.demonstrativo for x in (*marcos, *fotos, *videos, *decadas)) or bool(
+    demonstrativo = any(x.demonstrativo for x in (*fotos, *videos, *decadas)) or bool(
         apresentacao and apresentacao.demonstrativo
     )
     if s.tipo == Sala.Tipo.FECHAMENTO:
@@ -84,7 +83,6 @@ def sala(request, numero):
         "demonstrativo": demonstrativo,
         "apresentacao": montar_apresentacao(apresentacao) if apresentacao else None,
         "decadas": [montar_decada(d) for d in decadas],
-        "marcos": [montar_marco(m) for m in marcos],
         "fotos": [montar_foto(f) for f in fotos],
         "videos": [montar_video(v) for v in videos],
     }, headers={"Cache-Control": "no-cache"})

@@ -25,7 +25,7 @@ instrução. No check-in, cada um usa o próprio celular, em pé, na entrada.
 
 O **Memorial Dom Bosco Maria Izabel Rodrigues** conta a história da escola (fundada em 1958) em seis
 espaços: Fundação, Diretores, Professores, Artes, Esportes e Alunos. Cada espaço tem Apresentação, linha do
-tempo (um marco por ano), marcos, fotos por períodos de 5 anos e vídeos. Na Sala 06 (Alunos), aba Colegas, quem
+tempo (um marco por ano), fotos por períodos de 5 anos e vídeos. Na Sala 06 (Alunos), aba Colegas, quem
 fez check-in na entrada é encontrado pelos colegas, pelo nome, pelo ano ou pela década. Dá certo quando o visitante faz o check-in em menos de um minuto, segue o
 percurso e, no fim, encontra o próprio nome e os colegas da mesma turma.
 
@@ -66,7 +66,7 @@ percurso e, no fim, encontra o próprio nome e os colegas da mesma turma.
 ## Evidence on Hand
 
 - O protótipo aprovado (`docs/referencia/tour-memorial-dom-bosco.html`) define telas e comportamento.
-- O conteúdo de exemplo (`carregar_exemplo`) é fictício: marcos, legendas, vídeos e os 22 ex-alunos.
+- O conteúdo de exemplo (`carregar_exemplo`) é fictício: legendas, vídeos e os 22 ex-alunos.
   Não é fato histórico da escola e aparece com o selo "Conteúdo de exemplo".
 
 ## Product Principles

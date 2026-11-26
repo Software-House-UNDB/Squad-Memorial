@@ -1,7 +1,7 @@
 """Grava os textos das 6 salas: a apresentação e os 7 pontos da linha do tempo de cada uma.
 
 São os textos do PR #11 (feat/textos-das-salas), lidos do mesmo memorial/exemplo/tour.json que o carregar_exemplo usa,
-mas sem fotos, vídeos, marcos nem ex-alunos de exemplo. Entram como conteúdo oficial (não demonstrativo): o
+mas sem fotos, vídeos nem ex-alunos de exemplo. Entram como conteúdo oficial (não demonstrativo): o
 `carregar_exemplo --remover` não os apaga.
 
     docker compose exec backend python manage.py carregar_textos

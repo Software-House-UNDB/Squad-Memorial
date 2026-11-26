@@ -8,7 +8,7 @@ fato histórico da escola: são textos e pessoas fictícios para avaliar as tela
     docker compose exec backend python manage.py carregar_exemplo --limpar   # apaga o conteúdo das salas antes
     docker compose exec backend python manage.py carregar_exemplo --remover  # só remove o que é exemplo
 
-Cria, em cada um dos 6 espaços: a apresentação, 7 pontos na linha do tempo (um marco por ano), 4 marcos, fotos de exemplo em todos os
+Cria, em cada um dos 6 espaços: a apresentação, 7 pontos na linha do tempo (um marco por ano), fotos de exemplo em todos os
 períodos de 5 anos (sem imagem real: o totem mostra uma moldura provisória) e vídeos curtos gerados
 com ffmpeg. Na Sala 06, também 22 ex-alunos, com avatares e fotos aprovadas desenhados aqui mesmo.
 
@@ -33,7 +33,7 @@ from django.utils import timezone
 from PIL import Image, ImageDraw, ImageFilter
 
 from memorial.models import (
-    Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Marco, Sala, Video, ano_atual,
+    Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Sala, Video, ano_atual,
 )
 from memorial.redes import de_campos_antigos, gravar as gravar_redes
 from memorial.registro import sem_registro
@@ -105,7 +105,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--limpar", action="store_true",
-                            help="Apaga TODO o conteúdo das salas (apresentações, décadas, marcos, fotos, vídeos) e os ex-alunos de exemplo antes.")
+                            help="Apaga TODO o conteúdo das salas (apresentações, décadas, fotos, vídeos) e os ex-alunos de exemplo antes.")
         parser.add_argument("--remover", action="store_true",
                             help="Só remove o conteúdo de exemplo, sem carregar de novo.")
 
@@ -114,7 +114,7 @@ class Command(BaseCommand):
             self.executar(*args, **opts)
 
     def executar(self, *args, limpar=False, remover=False, **opts):
-        conteudo = (Apresentacao, Decada, Marco, Foto, Video)
+        conteudo = (Apresentacao, Decada, Foto, Video)
         if remover:
             exemplos = [m.objects.filter(demonstrativo=True) for m in (*conteudo, Aluno)]
             self.stdout.write(f"Removidos: {self.apagar(*exemplos)} itens de exemplo.")
@@ -122,7 +122,7 @@ class Command(BaseCommand):
         if limpar:
             n = self.apagar(*[m.objects.all() for m in conteudo], Aluno.objects.filter(demonstrativo=True))
             self.stdout.write(f"Conteúdo das salas apagado ({n} itens).")
-        elif Marco.objects.filter(demonstrativo=True).exists() or Aluno.objects.filter(demonstrativo=True).exists():
+        elif Foto.objects.filter(demonstrativo=True).exists() or Aluno.objects.filter(demonstrativo=True).exists():
             self.stdout.write("O conteúdo de exemplo já está carregado. Use --limpar para recarregar.")
             return
 
@@ -154,15 +154,12 @@ class Command(BaseCommand):
                 gravar_apresentacao(sala, r, **comum)
             if not Decada.objects.filter(sala=sala).exists():
                 gravar_linha_do_tempo(sala, r, dados, **comum)
-            for i, (icone, ano, titulo, descricao, texto) in enumerate(r["marcos"]):
-                Marco.objects.create(sala=sala, ano=ano, titulo=titulo, descricao=descricao, texto=texto, icone=icone,
-                                     ordem=i, **comum)
             fotos = []
             for indice, (inicio, fim) in enumerate(blocos):
                 for ordem, (ano, legenda) in enumerate(fotos_do_periodo(dados, chave, indice, inicio, fim)):
                     fotos.append(Foto(sala=sala, ano=ano, legenda=legenda, credito=CREDITO, ordem=ordem, **comum))
             Foto.objects.bulk_create(fotos)
-            self.stdout.write(f"Sala {chave}: {len(r['dec'])} pontos na linha do tempo, {len(r['marcos'])} marcos, {len(fotos)} fotos de exemplo.")
+            self.stdout.write(f"Sala {chave}: {len(r['dec'])} pontos na linha do tempo, {len(fotos)} fotos de exemplo.")
 
     def carregar_alunos(self, dados):
         config = ConfiguracaoMemorial.atual()

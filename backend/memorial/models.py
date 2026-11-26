@@ -1,7 +1,7 @@
 """Memorial Dom Bosco Maria Izabel Rodrigues: seis espaços, um totem por espaço.
 
 Todas as salas têm apresentação (Apresentacao), linha do tempo por décadas (Decada, com seus
-Acontecimentos), marcos (Marco), fotos por período (Foto) e vídeos (Video). A Sala 06 (Alunos,
+Acontecimentos), fotos por período (Foto) e vídeos (Video). A Sala 06 (Alunos,
 tipo fechamento) tem também a aba Colegas: os ex-alunos (Aluno) que fizeram check-in pelo celular,
 com as fotos que enviaram (FotoAluno) depois de aprovadas pela equipe.
 
@@ -243,34 +243,6 @@ class Acontecimento(Timestamped):
 
     def __str__(self):
         return f"{self.ano} · {self.texto}"
-
-
-class Marco(ItemComFoto):
-    """Um cartão da aba Marcos (o totem foi desenhado para quatro por sala)."""
-
-    ano = models.PositiveSmallIntegerField(validators=[MinValueValidator(ANO_MINIMO)])
-    titulo = models.CharField("título", max_length=60, help_text="Até ~4 palavras.")
-    descricao = models.CharField("descrição curta", max_length=110, help_text="Uma frase, até ~110 caracteres.")
-    texto = models.TextField("texto explicativo", blank=True, help_text="Abre quando o visitante toca no cartão.")
-    icone = models.CharField("ícone", max_length=10, choices=Icone.choices, default=Icone.STAR)
-    destaque = models.BooleanField(
-        "destaque inicial", default=False,
-        help_text="O marco que aparece em destaque quando o totem volta ao início. Um por sala.",
-    )
-
-    class Meta:
-        ordering = ["sala", "ano", "ordem", "id"]
-        constraints = [
-            models.UniqueConstraint(fields=["sala"], condition=Q(destaque=True), name="um_marco_destaque_por_sala"),
-        ]
-
-    def __str__(self):
-        return f"{self.ano} · {self.titulo}"
-
-    def save(self, *args, **kwargs):
-        if self.destaque:
-            Marco.objects.filter(sala_id=self.sala_id, destaque=True).exclude(pk=self.pk).update(destaque=False)
-        super().save(*args, **kwargs)
 
 
 class Foto(ItemSala):

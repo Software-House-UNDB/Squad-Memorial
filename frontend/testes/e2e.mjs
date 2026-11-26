@@ -168,8 +168,12 @@ for (const [w, h] of TELAS) {
     await p.locator('.t-aviso').waitFor({ timeout: 6000 });
   });
 
+  // Não depende do teste do vídeo (que só roda com VIDEOS_PRONTOS=1): abre a sala com aviso curto.
   await verificar('inatividade volta ao início da sala', async () => {
-    await p.locator('.t-aviso').waitFor({ state: 'detached', timeout: 6000 });
+    await abrir(p, 'sala=2&aviso=3&contagem=3');
+    await p.getByRole('tab', { name: /Linha do tempo/ }).click();
+    await p.locator('.t-aviso').waitFor({ timeout: 8000 });
+    await p.locator('.t-aviso').waitFor({ state: 'detached', timeout: 8000 });
     confere(await p.getByRole('tab', { name: /Apresentação/ }).getAttribute('aria-selected') === 'true', 'não voltou para a Apresentação');
     confere((await p.locator('.m-ov').count()) === 0, 'overlay continuou aberto');
   });

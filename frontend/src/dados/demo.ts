@@ -4,7 +4,7 @@
  * na Sala 06 (Alunos) do mesmo navegador. Nada é enviado.
  *
  * Fonte: exemplo.json, extraído do protótipo "Tour do Memorial · 6 espaços" (fotos, vídeos, períodos,
- * legendas, ex-alunos e, em `R`, a apresentação, as 7 décadas e os 4 marcos de cada espaço).
+ * legendas, ex-alunos e, em `R`, a apresentação e as 7 décadas de cada espaço).
  * Atenção: backend/memorial/exemplo/tour.json tem o mesmo conteúdo; mude os dois juntos.
  * scripts/extrair_exemplo.py sobrescreveria os dois com o protótipo antigo: não rode.
  */
@@ -14,7 +14,7 @@ import { corresponde, normalizar } from './regras';
 import { SALAS_PADRAO } from './salas';
 import {
   type AlunoPerfil, type AlunoResumo, type ConfigCheckin, type ConfigMemorial, type DadosCheckin, type Decada, type FiltroAlunos,
-  type Foto, type Marco, type PaginaAlunos, type RespostaSala, type Video,
+  type Foto, type PaginaAlunos, type RespostaSala, type Video,
 } from './tipos';
 import { empacotar, normalizarRede } from './redes';
 import { TERMO_PADRAO } from './termo';
@@ -39,8 +39,6 @@ interface ExemploSala {
   /** 7 décadas: título, resumo, três acontecimentos ("1958 · Convite às famílias") e ícone. */
   /** r = ano na linha (ex.: "1958"), p = etiqueta curta (ex.: "Pequeno Polegar"); sem eles valem decn/decr. */
   dec: { t: string; d: string; ev: string[]; icn: string; r?: string; p?: string }[];
-  /** 4 marcos: ícone, ano, título, resumo e texto explicativo. */
-  marcos: [string, number, string, string, string][];
 }
 
 interface Exemplo {
@@ -99,10 +97,6 @@ function montarSala(numero: number): RespostaSala {
   const sala = SALAS_PADRAO.find((s) => s.numero === numero) ?? SALAS_PADRAO[0];
   const chave = String(numero);
   const r = DADOS.R[chave];
-  const marcos: Marco[] = r
-    ? r.marcos.map(([icone, ano, titulo, descricao, texto], i) => (
-        { id: numero * 100 + i, ano, titulo, descricao, texto, icone, destaque: false, foto: null }))
-    : [];
   const decadas: Decada[] = r
     ? r.dec.map((d, i) => ({
         id: numero * 100 + i,
@@ -140,7 +134,7 @@ function montarSala(numero: number): RespostaSala {
   const apresentacao = r
     ? { titulo: r.aptitle, texto: r.intro, foto: null, legenda: r.apcap, icone: r.apicon }
     : null;
-  return { versao: 'demo', config: CONFIG, sala, demonstrativo: true, marcos, fotos, videos, apresentacao, decadas };
+  return { versao: 'demo', config: CONFIG, sala, demonstrativo: true, fotos, videos, apresentacao, decadas };
 }
 
 // ---------------------------------------------------------------- ex-alunos

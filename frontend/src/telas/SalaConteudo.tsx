@@ -9,7 +9,7 @@ import { OverlayCheckin } from '../componentes/OverlayCheckin';
 import { OverlayFoto } from '../componentes/OverlayFoto';
 import { OverlayVideo } from '../componentes/OverlayVideo';
 import { useAluno, useAlunos } from '../dados/alunos';
-import { apresentacaoDaSala, decadasDaSala, marcosOrdenados, periodosDasFotos } from '../dados/regras';
+import { apresentacaoDaSala, periodosDasFotos } from '../dados/regras';
 import type { Foto, RespostaSala } from '../dados/tipos';
 import { AbasSala, abaValida } from './AbasSala';
 import { Apresentacao } from './Apresentacao';
@@ -30,14 +30,13 @@ export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: 
   const naBusca = nasColegas && (st.visao === 'busca' || st.perfilId === null);
   const noPerfil = nasColegas && !naBusca;
 
-  const marcos = useMemo(() => marcosOrdenados(dados.marcos), [dados.marcos]);
-  const decadas = useMemo(() => decadasDaSala(dados, new Date().getFullYear()), [dados]);
+  const decadas = useMemo(() => dados.decadas ?? [], [dados.decadas]);
   const apresentacao = apresentacaoDaSala(dados);
-  // a moldura provisória de uma foto sem imagem usa os ícones da própria sala
+  // a moldura provisória de uma foto sem imagem usa os ícones da linha do tempo da própria sala
   const iconeDaFoto = useMemo(() => {
-    const icones = marcos.map((m) => m.icone);
+    const icones = decadas.map((d) => d.icone);
     return (f: Foto) => (icones.length ? icones[Math.abs(f.id) % icones.length] : 'image');
-  }, [marcos]);
+  }, [decadas]);
   const periodos = useMemo(
     () => periodosDasFotos(dados.fotos, config.anoInicial, new Date().getFullYear()),
     [dados.fotos, config.anoInicial],

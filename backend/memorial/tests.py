@@ -31,7 +31,7 @@ from .registro import registrar
 from .administracao import _celula
 from .templatetags.painel import estatico
 from .models import (
-    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Icone, Marco, Registro, Sala, Video,
+    Acontecimento, Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Icone, Registro, Sala, Video,
     chave_turma, normalizar,
 )
 from .secoes import SECOES
@@ -285,8 +285,6 @@ class SalaTests(Base):
         super().setUp()
         self.s1 = Sala.objects.get(numero=1)
         self.s2 = Sala.objects.get(numero=2)
-        Marco.objects.create(sala=self.s1, ano=1958, titulo="A", descricao="a", destaque=True)
-        Marco.objects.create(sala=self.s1, ano=1970, titulo="B", descricao="b", destaque=True)
         Foto.objects.create(sala=self.s1, ano=1960, legenda="Com imagem", imagem=png())
         Foto.objects.create(sala=self.s1, ano=1961, legenda="Rascunho", publicado=False)
 
@@ -294,8 +292,7 @@ class SalaTests(Base):
         r = self.get("/api/memorial/sala/1/").json()
         self.assertEqual(r["sala"]["nome"], "Fundação")
         self.assertEqual(r["config"]["anoInicial"], 1958)
-        self.assertEqual([m["titulo"] for m in r["marcos"]], ["A", "B"])
-        self.assertEqual([m["destaque"] for m in r["marcos"]], [False, True])  # um destaque por sala
+        self.assertNotIn("marcos", r)  # a aba Marcos saiu do sistema
         self.assertEqual(len(r["fotos"]), 1)
         self.assertTrue(r["fotos"][0]["src"].startswith("/media/fotos/exibicao/"))
         self.assertFalse(r["demonstrativo"])
@@ -308,7 +305,7 @@ class SalaTests(Base):
     def test_versao_muda_so_com_a_propria_sala(self):
         v1 = self.get("/api/memorial/versao/", sala=1).json()["versao"]
         v2 = self.get("/api/memorial/versao/", sala=2).json()["versao"]
-        Marco.objects.create(sala=self.s2, ano=1990, titulo="C", descricao="c")
+        Decada.objects.create(sala=self.s2, rotulo="1990", periodo="C", titulo="C")
         self.assertEqual(self.get("/api/memorial/versao/", sala=1).json()["versao"], v1)
         self.assertNotEqual(self.get("/api/memorial/versao/", sala=2).json()["versao"], v2)
         Foto.objects.filter(sala=self.s1).first().delete()
@@ -321,7 +318,6 @@ class ExemploTests(Base):
         real = aluno("Pessoa Real Silva")
         with open("/dev/null", "w") as nada:
             call_command("carregar_exemplo", stdout=nada)
-            self.assertEqual(Marco.objects.count(), 24)  # 4 por espaço
             self.assertEqual(Apresentacao.objects.count(), 6)
             self.assertEqual(Decada.objects.count(), 42)  # 7 pontos na linha do tempo por espaço
             # a linha do tempo nova traz um marco por ponto, sem lista de acontecimentos
@@ -335,8 +331,6 @@ class ExemploTests(Base):
             self.assertEqual(len(r["decadas"][0]["acontecimentos"]), 0)
             # rótulo e etiqueta vêm do próprio ponto ("r" e "p" no tour.json), não da década genérica
             self.assertEqual((r["decadas"][0]["rotulo"], r["decadas"][0]["periodo"]), ("1958", "Pequeno Polegar"))
-            self.assertEqual(len(r["marcos"]), 4)
-            self.assertTrue(r["marcos"][0]["texto"])
             self.assertGreater(len(r["apresentacao"]["texto"]), 0)
             sala6 = self.get("/api/memorial/sala/6/").json()
             self.assertEqual(sala6["sala"]["tipo"], "fechamento")
@@ -344,7 +338,7 @@ class ExemploTests(Base):
             self.assertEqual(self.get("/api/memorial/alunos/", q="joao sil").json()["resultados"][0]["nome"],
                              "João Pedro da Silva Sales")
             call_command("carregar_exemplo", "--remover", stdout=nada)
-        self.assertEqual(Marco.objects.count() + Foto.objects.count() + Decada.objects.count() + Apresentacao.objects.count(), 0)
+        self.assertEqual(Foto.objects.count() + Decada.objects.count() + Apresentacao.objects.count(), 0)
         self.assertEqual(list(Aluno.objects.all()), [real])
 
 
@@ -354,7 +348,7 @@ class TextosTests(Base):
             call_command("carregar_textos", stdout=nada)
             self.assertEqual(Apresentacao.objects.filter(demonstrativo=False).count(), 6)
             self.assertEqual(Decada.objects.filter(demonstrativo=False).count(), 42)
-            self.assertEqual(Marco.objects.count() + Foto.objects.count() + Aluno.objects.count(), 0)
+            self.assertEqual(Foto.objects.count() + Aluno.objects.count(), 0)
             self.assertEqual(Registro.objects.count(), 0)
             r = self.get("/api/memorial/sala/1/").json()
             self.assertEqual(r["apresentacao"]["titulo"], "Onde tudo começou, em 1958")
@@ -371,11 +365,11 @@ class TextosTests(Base):
             call_command("carregar_exemplo", stdout=nada)
             self.assertEqual(Apresentacao.objects.count(), 6)
             self.assertEqual(Decada.objects.count(), 42)
-            self.assertEqual(Marco.objects.count(), 24)
+            self.assertGreater(Foto.objects.filter(demonstrativo=True).count(), 0)
             call_command("carregar_exemplo", "--remover", stdout=nada)
         self.assertEqual(Apresentacao.objects.count(), 6)
         self.assertEqual(Decada.objects.count(), 42)
-        self.assertEqual(Marco.objects.count() + Aluno.objects.count(), 0)
+        self.assertEqual(Foto.objects.count() + Aluno.objects.count(), 0)
 
 
 class SeisEspacosTests(Base):
@@ -395,21 +389,19 @@ class SeisEspacosTests(Base):
             (5, "Esportes", "Campeões", ""), (6, "Alunos", "Memórias vivas", ""),
         ])
 
-    def test_apresentacao_decadas_e_marco_no_contrato(self):
+    def test_apresentacao_e_decadas_no_contrato(self):
         sala = Sala.objects.get(numero=6)
         Apresentacao.objects.create(sala=sala, titulo="Abertura", texto="Um.\n\n  Dois.\n", foto=png(), legenda="L", icone="home")
         d = Decada.objects.create(sala=sala, rotulo="Anos 60", periodo="1958 a 1969", titulo="T", resumo="R", icone="cap", foto=png())
         Acontecimento.objects.create(decada=d, ano=1958, texto="Segundo", ordem=2)
         Acontecimento.objects.create(decada=d, ano=1960, texto="Primeiro", ordem=1)
         Decada.objects.create(sala=sala, rotulo="Oculta", periodo="x", titulo="x", publicado=False)
-        Marco.objects.create(sala=sala, ano=1958, titulo="M", descricao="d", texto="longo", foto=png())
         r = self.get("/api/memorial/sala/6/").json()
         self.assertEqual(r["apresentacao"]["texto"], ["Um.", "Dois."])
         self.assertTrue(r["apresentacao"]["foto"].startswith("/media/fotos/epoca/"))  # /media/fotos/ fica no cache offline
         self.assertEqual(len(r["decadas"]), 1)
         self.assertEqual([e["texto"] for e in r["decadas"][0]["acontecimentos"]], ["Primeiro", "Segundo"])
-        self.assertEqual(r["marcos"][0]["texto"], "longo")
-        self.assertTrue(r["marcos"][0]["foto"].endswith(".jpg"))
+        self.assertTrue(r["decadas"][0]["foto"].endswith(".jpg"))
 
     def test_sala_sem_conteudo_novo_deixa_o_app_derivar(self):
         r = self.get("/api/memorial/sala/2/").json()
@@ -432,19 +424,19 @@ class SeisEspacosTests(Base):
     def test_sala_6_mostra_selo_com_conteudo_de_exemplo(self):
         sala = Sala.objects.get(numero=6)
         self.assertFalse(self.get("/api/memorial/sala/6/").json()["demonstrativo"])
-        Marco.objects.create(sala=sala, ano=1958, titulo="M", descricao="d", demonstrativo=True)
+        Decada.objects.create(sala=sala, rotulo="1958", periodo="P", titulo="M", demonstrativo=True)
         self.assertTrue(self.get("/api/memorial/sala/6/").json()["demonstrativo"])
 
     def test_acao_publicar_muda_a_versao_do_totem(self):
         sala = Sala.objects.get(numero=1)
-        m = Marco.objects.create(sala=sala, ano=1958, titulo="M", descricao="d")
+        m = Decada.objects.create(sala=sala, rotulo="1958", periodo="P", titulo="M")
         v = self.get("/api/memorial/versao/", sala=1).json()["versao"]
         admin_user = User.objects.create_superuser("chefe", password="senha-longa-1")
         self.client.force_login(admin_user)
-        self.client.post("/admin/memorial/marco/", {
+        self.client.post("/admin/memorial/decada/", {
             "action": "despublicar", "_selected_action": [m.pk],
         })
-        self.assertFalse(Marco.objects.get(pk=m.pk).publicado)
+        self.assertFalse(Decada.objects.get(pk=m.pk).publicado)
         self.assertNotEqual(self.get("/api/memorial/versao/", sala=1).json()["versao"], v)
         self.assertTrue(Registro.objects.filter(descricao__startswith="Tirado do totem", autor="chefe").exists())
 
@@ -452,8 +444,9 @@ class SeisEspacosTests(Base):
         self.client.force_login(User.objects.create_superuser("chefe", password="senha-longa-1"))
         sala = Sala.objects.get(numero=6)
         pagina = self.client.get(f"/admin/memorial/sala/{sala.pk}/change/").content.decode()
-        for campo in ("apresentacao_set-0-titulo", "decada_set-TOTAL_FORMS", "marco_set-TOTAL_FORMS", "video_set-TOTAL_FORMS"):
+        for campo in ("apresentacao_set-0-titulo", "decada_set-TOTAL_FORMS", "video_set-TOTAL_FORMS"):
             self.assertIn(campo, pagina)
+        self.assertNotIn("marco_set", pagina)
         d = Decada.objects.create(sala=sala, rotulo="A", periodo="B", titulo="C")
         self.assertIn("acontecimentos-0-texto", self.client.get(f"/admin/memorial/decada/{d.pk}/change/").content.decode())
 
@@ -508,12 +501,13 @@ class RegistroTests(Base):
         self.client.force_login(self.chefe)
         self.assertTrue(Registro.objects.filter(tipo="login", autor="chefe", direcao="entrada").exists())
         sala = Sala.objects.get(numero=1)
-        self.client.post("/admin/memorial/marco/add/", {
-            "sala": sala.pk, "ano": 1960, "titulo": "Novo", "descricao": "d", "icone": "star", "ordem": 0, "publicado": "on",
+        self.client.post("/admin/memorial/decada/add/", {
+            "sala": sala.pk, "rotulo": "1960", "periodo": "P", "titulo": "Novo", "icone": "star", "ordem": 0, "publicado": "on",
+            **_mgmt("acontecimentos"),
         })
         self.assertTrue(Registro.objects.filter(tipo="cadastro_criado", autor="chefe", descricao__contains="Novo").exists())
-        m = Marco.objects.get()
-        self.client.post(f"/admin/memorial/marco/{m.pk}/delete/", {"post": "yes"})
+        m = Decada.objects.get()
+        self.client.post(f"/admin/memorial/decada/{m.pk}/delete/", {"post": "yes"})
         self.assertTrue(Registro.objects.filter(tipo="cadastro_removido", direcao="saida", autor="chefe").exists())
         self.client.post("/admin/logout/")
         self.assertTrue(Registro.objects.filter(tipo="logout", autor="chefe", direcao="saida").exists())
@@ -738,7 +732,7 @@ class GestaoTests(Base):
         s = self.sala
         return {
             "numero": s.numero, "slug": s.slug, "nome": s.nome, "titulo": s.titulo, "subtitulo": s.subtitulo, "cor": s.cor,
-            "tipo": s.tipo, "ativa": "on", **_mgmt("apresentacao_set"), **_mgmt("decada_set"), **_mgmt("marco_set"),
+            "tipo": s.tipo, "ativa": "on", **_mgmt("apresentacao_set"), **_mgmt("decada_set"),
             **_mgmt("video_set"), **extra,
         }
 
@@ -764,7 +758,7 @@ class GestaoTests(Base):
 
     def test_campos_de_imagem_pedem_recorte_no_formato_do_totem(self):
         esperado = {
-            "marcos": ('name="foto"', "16:9"), "decadas": ('name="foto"', "6:5"), "fotos": ('name="imagem"', "16:9"),
+            "decadas": ('name="foto"', "6:5"), "fotos": ('name="imagem"', "16:9"),
             "videos": ('name="capa"', "16:9"), "alunos": ('name="foto"', "1:1"),
         }
         for slug, (campo, proporcao) in esperado.items():
@@ -779,53 +773,54 @@ class GestaoTests(Base):
         for secao in SECOES:
             r = self.client.get(f"{self.BASE}/{secao.slug}/", follow=True)
             self.assertEqual(r.status_code, 200, secao.slug)
-        Marco.objects.create(sala=self.sala, ano=1958, titulo="Primeira", descricao="d", foto=png())
-        self.assertContains(self.client.get(f"{self.BASE}/marcos/"), "Primeira")
+        Decada.objects.create(sala=self.sala, rotulo="1958", periodo="P", titulo="Primeira", foto=png())
+        self.assertContains(self.client.get(f"{self.BASE}/decadas/"), "Primeira")
+        self.assertEqual(self.client.get(f"{self.BASE}/marcos/").status_code, 404)  # a seção Marcos saiu
         self.assertEqual(self.client.get(f"{self.BASE}/nada/").status_code, 404)
 
     def test_busca_filtro_e_acao(self):
-        a = Marco.objects.create(sala=self.sala, ano=1958, titulo="Alfa", descricao="d")
-        Marco.objects.create(sala=Sala.objects.get(numero=2), ano=1960, titulo="Beta", descricao="d")
-        titulos = lambda **f: [l["obj"].titulo for l in self.client.get(f"{self.BASE}/marcos/", f).context["linhas"]]  # noqa: E731
+        a = Decada.objects.create(sala=self.sala, rotulo="1958", periodo="P", titulo="Alfa")
+        Decada.objects.create(sala=Sala.objects.get(numero=2), rotulo="1960", periodo="P", titulo="Beta")
+        titulos = lambda **f: [l["obj"].titulo for l in self.client.get(f"{self.BASE}/decadas/", f).context["linhas"]]  # noqa: E731
         self.assertEqual(titulos(q="alf"), ["Alfa"])
         self.assertEqual(titulos(sala=self.sala.pk), ["Alfa"])
         self.assertEqual(sorted(titulos(sala="lixo", publicado="lixo")), ["Alfa", "Beta"])
         self.assertEqual(titulos(publicado="0"), [])
-        self.client.post(f"{self.BASE}/marcos/", {"acao": "despublicar", "selecionados": [a.pk]})
-        self.assertFalse(Marco.objects.get(pk=a.pk).publicado)
+        self.client.post(f"{self.BASE}/decadas/", {"acao": "despublicar", "selecionados": [a.pk]})
+        self.assertFalse(Decada.objects.get(pk=a.pk).publicado)
         self.assertEqual(sorted(titulos(publicado="1")), ["Beta"])
 
     def test_criar_com_foto_e_registrar_quem_fez(self):
-        r = self.client.post(f"{self.BASE}/marcos/novo/", {
-            "sala": self.sala.pk, "ano": 1970, "titulo": "Novo", "descricao": "d", "texto": "longo", "icone": "home",
-            "foto": png(), "ordem": 0, "publicado": "on",
+        r = self.client.post(f"{self.BASE}/decadas/novo/", {
+            "sala": self.sala.pk, "rotulo": "1970", "periodo": "P", "titulo": "Novo", "resumo": "longo", "icone": "home",
+            "foto": png(), "ordem": 0, "publicado": "on", **_mgmt("acontecimentos"),
         })
-        self.assertRedirects(r, f"{self.BASE}/marcos/")
-        m = Marco.objects.get()
-        self.assertEqual((m.texto, m.icone), ("longo", "home"))
+        self.assertRedirects(r, f"{self.BASE}/decadas/")
+        m = Decada.objects.get()
+        self.assertEqual((m.resumo, m.icone), ("longo", "home"))
         self.assertTrue(m.foto.name.startswith("fotos/epoca/"))
         self.assertTrue(Registro.objects.filter(tipo="cadastro_criado", autor="chefe", descricao__contains="Novo").exists())
         self.assertTrue(LogEntry.objects.filter(object_id=m.pk).exists())  # histórico do admin do Django
 
     def test_erro_nao_salva_e_mostra_a_mensagem(self):
-        r = self.client.post(f"{self.BASE}/marcos/novo/", {"sala": self.sala.pk, "ano": 10, "titulo": "", "descricao": "", "icone": "home", "ordem": 0})
+        r = self.client.post(f"{self.BASE}/decadas/novo/", {"sala": self.sala.pk, "rotulo": "", "periodo": "", "titulo": "", "icone": "home", "ordem": 0, **_mgmt("acontecimentos")})
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, "Nada foi salvo")
-        self.assertEqual(Marco.objects.count(), 0)
+        self.assertEqual(Decada.objects.count(), 0)
 
     def test_sala_salva_com_inlines_e_formularios_vazios(self):
         url = f"{self.BASE}/salas/{self.sala.pk}/"
         self.assertContains(self.client.get(url), 'name="apresentacao_set-0-titulo"')
         dados = self.dados_sala(nome="Fundação Nova", **_mgmt("apresentacao_set", 1), **{
             "apresentacao_set-0-titulo": "Abertura", "apresentacao_set-0-texto": "Um.", "apresentacao_set-0-icone": "image",
-            "apresentacao_set-0-publicado": "on", **_mgmt("marco_set", 1), "marco_set-0-ano": 1958, "marco_set-0-titulo": "M",
-            "marco_set-0-descricao": "d", "marco_set-0-icone": "star", "marco_set-0-ordem": 0, "marco_set-0-publicado": "on",
+            "apresentacao_set-0-publicado": "on", **_mgmt("decada_set", 1), "decada_set-0-rotulo": "1958", "decada_set-0-periodo": "P",
+            "decada_set-0-titulo": "M", "decada_set-0-icone": "star", "decada_set-0-ordem": 0, "decada_set-0-publicado": "on",
         })
         self.assertEqual(self.client.post(url, dados).status_code, 302)
         self.sala.refresh_from_db()
         self.assertEqual(self.sala.nome, "Fundação Nova")
         self.assertEqual(self.sala.apresentacao_set.get().titulo, "Abertura")
-        self.assertEqual(self.sala.marco_set.get().titulo, "M")
+        self.assertEqual(self.sala.decada_set.get().titulo, "M")
 
     def test_sala_envia_varias_fotos_como_no_admin(self):
         url = f"{self.BASE}/salas/{self.sala.pk}/"
@@ -873,26 +868,26 @@ class GestaoTests(Base):
 
     def test_quem_so_ve_nao_altera(self):
         leitor = User.objects.create_user("leitor", password="senha-longa-1", is_staff=True)
-        leitor.user_permissions.add(Permission.objects.get(codename="view_marco"))
-        m = Marco.objects.create(sala=self.sala, ano=1958, titulo="T", descricao="d")
+        leitor.user_permissions.add(Permission.objects.get(codename="view_decada"))
+        m = Decada.objects.create(sala=self.sala, rotulo="1958", periodo="P", titulo="T")
         self.client.force_login(leitor)
-        pagina = self.client.get(f"{self.BASE}/marcos/{m.pk}/")
+        pagina = self.client.get(f"{self.BASE}/decadas/{m.pk}/")
         self.assertContains(pagina, "não alterá-los")
         self.assertNotContains(pagina, ">Salvar<")
-        self.assertEqual(self.client.post(f"{self.BASE}/marcos/{m.pk}/", {"titulo": "Z"}).status_code, 403)
-        self.assertEqual(self.client.post(f"{self.BASE}/marcos/", {"acao": "despublicar", "selecionados": [m.pk]}).status_code, 302)
-        self.assertTrue(Marco.objects.get(pk=m.pk).publicado)
+        self.assertEqual(self.client.post(f"{self.BASE}/decadas/{m.pk}/", {"titulo": "Z"}).status_code, 403)
+        self.assertEqual(self.client.post(f"{self.BASE}/decadas/", {"acao": "despublicar", "selecionados": [m.pk]}).status_code, 302)
+        self.assertTrue(Decada.objects.get(pk=m.pk).publicado)
 
     def test_anonimo_vai_para_o_login_e_post_exige_csrf(self):
         self.client.logout()
         self.assertEqual(self.client.get(f"{self.BASE}/salas/").status_code, 302)
         rigoroso = Client(enforce_csrf_checks=True)
         rigoroso.force_login(self.chefe)
-        self.assertEqual(rigoroso.post(f"{self.BASE}/marcos/apagar/", {"selecionados": [1]}).status_code, 403)
+        self.assertEqual(rigoroso.post(f"{self.BASE}/decadas/apagar/", {"selecionados": [1]}).status_code, 403)
 
     def test_texto_cadastrado_e_escapado(self):
-        Marco.objects.create(sala=self.sala, ano=1958, titulo="<script>x</script>", descricao="d")
-        self.assertNotContains(self.client.get(f"{self.BASE}/marcos/"), "<script>x")
+        Decada.objects.create(sala=self.sala, rotulo="1958", periodo="P", titulo="<script>x</script>")
+        self.assertNotContains(self.client.get(f"{self.BASE}/decadas/"), "<script>x")
 
     def test_todo_icone_do_modelo_tem_desenho_no_painel(self):
         html = (Path(__file__).parent / "templates/memorial/_icones.html").read_text(encoding="utf-8")

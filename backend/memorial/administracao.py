@@ -1,6 +1,6 @@
 """Painel da administração (/administracao/): aprovação de fotos e cadastros, e as entradas e saídas.
 
-Os cadastros (salas, marcos, fotos...) ficam em gestao.py.
+Os cadastros (salas, décadas, fotos...) ficam em gestao.py.
 
 Fora das salas e do service worker do totem. Usa o login do admin do Django: precisa de usuário da
 equipe (is_staff) com as permissões de cada tela (o grupo "Administrativo" já tem todas).
