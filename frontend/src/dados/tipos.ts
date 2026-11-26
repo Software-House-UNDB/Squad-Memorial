@@ -6,8 +6,8 @@
 import type { RedeId } from './redes';
 
 /**
- * 'conteudo': sala com as 5 abas (Apresentação, Linha do tempo, Marcos, Fotos, Vídeos).
- * 'fechamento': a Sala 06 (Alunos): as mesmas 5 abas mais a aba Colegas (busca de ex-alunos).
+ * 'conteudo': sala com as 4 abas (Apresentação, Linha do tempo, Fotos, Vídeos).
+ * 'fechamento': a Sala 06 (Alunos): as mesmas 4 abas mais a aba Colegas (busca de ex-alunos).
  */
 export type TipoSala = 'conteudo' | 'fechamento';
 
@@ -33,21 +33,6 @@ export interface ConfigMemorial {
   videosComSom: boolean;
   /** Endereço que o QR Code do check-in abre. Vazio = <origem do app>/checkin. */
   urlCheckin: string;
-}
-
-export interface Marco {
-  id: number;
-  ano: number;
-  titulo: string;
-  /** Resumo de uma frase. */
-  descricao: string;
-  icone: string;
-  /** Destaque inicial (um por sala). Na aba Marcos nenhum cartão abre sozinho; o campo é mantido por compatibilidade. */
-  destaque: boolean;
-  /** Foto de época do marco. Ausente ou null = moldura provisória com o ícone. */
-  foto?: string | null;
-  /** Texto explicativo, mostrado quando o visitante toca no cartão. Ausente = só o resumo. */
-  texto?: string;
 }
 
 /** Texto de abertura da sala (aba Apresentação). */
@@ -116,10 +101,9 @@ export interface RespostaSala {
   sala: Sala;
   /** Algum item desta sala é conteúdo de exemplo (o frontend não mostra mais o selo no rodapé; o campo segue na API). */
   demonstrativo: boolean;
-  marcos: Marco[];
   fotos: Foto[];
   videos: Video[];
-  /** Novos na versão de 6 espaços. Ausentes na API antiga: o app deriva o que puder (regras.ts). */
+  /** Novos na versão de 6 espaços. Sem `apresentacao`, o app usa o título e o subtítulo da sala; sem `decadas`, a linha do tempo fica vazia. */
   apresentacao?: Apresentacao | null;
   decadas?: Decada[];
 }

@@ -32,7 +32,7 @@ const PARES: [string, string, number][] = [
   ['dourado', 'grafite', 4.5], ['dourado', 'grafite-3', 4.5],
   ['dourado-claro', 'grafite', 4.5], ['dourado-claro', 'grafite-2', 4.5], ['suave-escuro', 'grafite', 4.5],
   ['marfim', 'grafite', 4.5], ['erro', 'marfim', 4.5],
-  // texto sobre a cor do espaço (aba ativa, selo, ano, cartão de marco aberto): sempre branco
+  // texto sobre a cor do espaço (aba ativa, selo, ano): sempre branco
   ['branco', 'sala-1', 4.5], ['branco', 'sala-2', 4.5], ['branco', 'sala-3', 4.5],
   ['branco', 'sala-4', 4.5], ['branco', 'sala-5', 4.5], ['branco', 'sala-6', 4.5],
   // a cor do espaço como texto (período ativo, atalhos, "Toque para ler mais") sobre o cartão branco

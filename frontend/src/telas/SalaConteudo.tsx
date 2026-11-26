@@ -1,24 +1,25 @@
 /**
- * Um espaço do tour: abas Apresentação, Linha do tempo, Marcos, Fotos e Vídeos, com a foto
+ * Um espaço do tour: abas Apresentação, Linha do tempo, Fotos e Vídeos, com a foto
  * ampliada e o player em overlay. A Sala 06 (tipo "fechamento") ganha a aba Colegas, com a busca
  * de ex-alunos e o perfil (check-in feito pelo celular do visitante).
  */
 import { useMemo, type ReactNode } from 'react';
+import { VIDEOS_EM_CONSTRUCAO } from '../config/recursos';
 import { OverlayCheckin } from '../componentes/OverlayCheckin';
 import { OverlayFoto } from '../componentes/OverlayFoto';
 import { OverlayVideo } from '../componentes/OverlayVideo';
 import { useAluno, useAlunos } from '../dados/alunos';
-import { apresentacaoDaSala, decadasDaSala, marcosOrdenados, periodosDasFotos } from '../dados/regras';
+import { apresentacaoDaSala, periodosDasFotos } from '../dados/regras';
 import type { Foto, RespostaSala } from '../dados/tipos';
 import { AbasSala, abaValida } from './AbasSala';
 import { Apresentacao } from './Apresentacao';
 import { Colegas } from './Colegas';
 import { Fotos, FOTOS_POR_PAGINA } from './Fotos';
 import { LinhaDoTempo } from './LinhaDoTempo';
-import { Marcos } from './Marcos';
 import { Moldura, Titulo } from './Moldura';
 import type { Aba, PropsSala } from './estado';
 import { Videos } from './Videos';
+import { VideosEmConstrucao } from './VideosEmConstrucao';
 import { useOrientacao } from '../quiosque/Palco';
 import './sala5.css';
 
@@ -29,14 +30,13 @@ export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: 
   const naBusca = nasColegas && (st.visao === 'busca' || st.perfilId === null);
   const noPerfil = nasColegas && !naBusca;
 
-  const marcos = useMemo(() => marcosOrdenados(dados.marcos), [dados.marcos]);
-  const decadas = useMemo(() => decadasDaSala(dados, new Date().getFullYear()), [dados]);
+  const decadas = useMemo(() => dados.decadas ?? [], [dados.decadas]);
   const apresentacao = apresentacaoDaSala(dados);
-  // a moldura provisória de uma foto sem imagem usa os ícones da própria sala
+  // a moldura provisória de uma foto sem imagem usa os ícones da linha do tempo da própria sala
   const iconeDaFoto = useMemo(() => {
-    const icones = marcos.map((m) => m.icone);
+    const icones = decadas.map((d) => d.icone);
     return (f: Foto) => (icones.length ? icones[Math.abs(f.id) % icones.length] : 'image');
-  }, [marcos]);
+  }, [decadas]);
   const periodos = useMemo(
     () => periodosDasFotos(dados.fotos, config.anoInicial, new Date().getFullYear()),
     [dados.fotos, config.anoInicial],
@@ -58,9 +58,10 @@ export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: 
   const dicas: Record<Aba, ReactNode> = {
     apresentacao: <><b>Toque em uma aba</b> para explorar este espaço</>,
     linha: <><b>Toque em um ano</b> para ver o que aconteceu</>,
-    marcos: <><b>Toque em um marco</b> para ver o texto explicativo</>,
     fotos: <><b>Toque em uma foto</b> para ampliar · escolha o período na lista {retrato ? 'acima' : 'à esquerda'}</>,
-    videos: <><b>Toque em um vídeo</b> para assistir em tela cheia</>,
+    videos: VIDEOS_EM_CONSTRUCAO
+      ? <><b>Os vídeos deste espaço</b> estão sendo preparados</>
+      : <><b>Toque em um vídeo</b> para assistir em tela cheia</>,
     colegas: naBusca
       ? <><b>Busca sem acento e por parte do nome</b> · ex.: “joao sil” encontra João Pedro da Silva Sales</>
       : <>Mostra só o que a pessoa autorizou no check-in · <b>o e-mail nunca aparece</b></>,
@@ -124,7 +125,6 @@ export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: 
       {mostrarAbas && <AbasSala sala={sala} aba={aba} aoEscolher={(a) => mudar({ aba: a, overlay: null, teclado: false })} />}
       {aba === 'apresentacao' && <Apresentacao apresentacao={apresentacao} semente={sala.numero} aoIr={(a) => mudar({ aba: a, overlay: null })} />}
       {aba === 'linha' && <LinhaDoTempo decadas={decadas} indice={st.linha} aoEscolher={(linha) => mudar({ linha })} />}
-      {aba === 'marcos' && <Marcos marcos={marcos} aberto={st.marcoAberto} aoAlternar={(marcoAberto) => mudar({ marcoAberto })} />}
       {aba === 'fotos' && (
         <Fotos
           periodos={periodos}
@@ -136,7 +136,8 @@ export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: 
           aoAbrir={(indice) => mudar({ overlay: { tipo: 'foto', indice } })}
         />
       )}
-      {aba === 'videos' && (
+      {aba === 'videos' && VIDEOS_EM_CONSTRUCAO && <VideosEmConstrucao />}
+      {aba === 'videos' && !VIDEOS_EM_CONSTRUCAO && (
         <Videos videos={videos} destaque={videoDestaque} aoAbrir={(id) => mudar({ videoId: id, overlay: { tipo: 'video', id } })} />
       )}
       {nasColegas && <Colegas estado={st} mudar={mudar} dados={dados} busca={busca} aluno={aluno} />}

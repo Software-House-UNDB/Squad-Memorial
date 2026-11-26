@@ -1,6 +1,6 @@
 /**
  * O totem de um espaço. Cada totem conhece só a própria sala e mostra Apresentação, Linha do tempo,
- * Marcos, Fotos e Vídeos (SalaConteudo); a Sala 06 (Alunos) tem ainda a aba Colegas.
+ * Fotos e Vídeos (SalaConteudo); a Sala 06 (Alunos) tem ainda a aba Colegas.
  * Inatividade, Voltar do Android e troca de conteúdo trabalham sobre o mesmo estado (estado.ts).
  */
 import { useCallback, useEffect, useState, type ReactNode } from 'react';

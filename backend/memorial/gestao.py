@@ -30,7 +30,6 @@ PREVIAS = {"preview", "preview_grande", "avatar"}  # o campo de imagem já mostr
 RECORTES = {
     ("apresentacao", "foto"): (6, 5),   # foto ao lado do texto da apresentação
     ("decada", "foto"): (6, 5),         # painel da década na linha do tempo
-    ("marco", "foto"): (16, 9),         # topo do cartão do marco
     ("foto", "imagem"): (16, 9),        # polaroide da galeria e foto ampliada
     ("sala", "enviar_fotos"): (16, 9),  # várias fotos de uma vez: viram Foto
     ("video", "capa"): (16, 9),

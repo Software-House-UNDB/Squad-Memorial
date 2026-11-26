@@ -3,7 +3,7 @@
  * volta por inatividade, e é nele que o conteúdo novo pode entrar sem atrapalhar ninguém.
  * Guardamos ids (e não posições), para o estado continuar válido quando o conteúdo muda.
  */
-export type Aba = 'apresentacao' | 'linha' | 'marcos' | 'fotos' | 'videos' | 'colegas';
+export type Aba = 'apresentacao' | 'linha' | 'fotos' | 'videos' | 'colegas';
 
 /** Abas do perfil de um ex-aluno (Sala 06 · Colegas). */
 export type AbaPerfil = 'geral' | 'fotos' | 'colegas' | 'sobre';
@@ -20,8 +20,6 @@ export interface EstadoTotem {
   aba: Aba;
   /** Década aberta na Linha do tempo (posição na lista). */
   linha: number;
-  /** Marco aberto na aba Marcos (mostra o texto explicativo); null = todos fechados. */
-  marcoAberto: number | null;
   /** Início do período de fotos; null = primeiro período com fotos. */
   periodo: number | null;
   pagina: number;
@@ -43,7 +41,6 @@ export interface EstadoTotem {
 export const INICIAL: EstadoTotem = {
   aba: 'apresentacao',
   linha: 0,
-  marcoAberto: null,
   periodo: null,
   pagina: 0,
   videoId: null,

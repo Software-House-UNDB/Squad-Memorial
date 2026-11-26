@@ -1,5 +1,5 @@
 /**
- * Foto de época (apresentação, décadas e marcos): a imagem com tom sépia e moldura envelhecida.
+ * Foto de época (apresentação e décadas): a imagem com tom sépia e moldura envelhecida.
  * Sem imagem, mostra a moldura provisória com o ícone, no mesmo tom.
  */
 import { Imagem } from './Imagem';

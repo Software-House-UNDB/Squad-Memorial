@@ -5,12 +5,12 @@ celular** do visitante. Quem faz o check-in na entrada pode ser encontrado pelos
 
 | Sala | Nome | Título no totem | O totem mostra |
 |---|---|---|---|
-| 01 | Fundação | Nossas Origens | Apresentação, Linha do tempo (7 pontos, um marco por ano), Marcos (4 cartões), Fotos (períodos de 5 anos) e Vídeos |
+| 01 | Fundação | Nossas Origens | Apresentação, Linha do tempo (7 pontos, um marco por ano), Fotos (períodos de 5 anos) e Vídeos (por ora, aviso "em produção") |
 | 02 | Diretores | Liderança e Legado | idem |
 | 03 | Professores | Mestres de Gerações | idem |
 | 04 | Artes | Palco e Ateliê | idem |
 | 05 | Esportes | Campeões | idem |
-| 06 | Alunos | Memórias vivas | as mesmas 5 abas **e** a aba **Colegas**: busca de ex-alunos por nome, ano ou década, e o perfil de cada pessoa |
+| 06 | Alunos | Memórias vivas | as mesmas 4 abas **e** a aba **Colegas**: busca de ex-alunos por nome, ano ou década, e o perfil de cada pessoa |
 
 Nome e título se editam no painel (Salas); os de fábrica vêm da migração `0017_titulos_das_salas`.
 
@@ -33,7 +33,7 @@ nginx :8080 ──┬── /, /check-in/ → apps (build do frontend/, embutido
 ```bash
 cp .env.example .env        # troque DJANGO_SECRET_KEY e as senhas
 docker compose up -d --build
-docker compose exec backend python manage.py carregar_exemplo   # opcional: fotos, vídeos, marcos e ex-alunos de exemplo
+docker compose exec backend python manage.py carregar_exemplo   # opcional: fotos, vídeos e ex-alunos de exemplo
 ```
 
 Ao subir, o backend já grava os textos das 6 salas (apresentação e linha do tempo); veja [Textos das salas](#textos-das-salas).
@@ -65,7 +65,7 @@ pelo celular do visitante (rede da escola com Wi-Fi aberto, ou um domínio públ
 
 `carregar_exemplo` carrega o conteúdo do tour (`backend/memorial/exemplo/tour.json`, igual ao
 `frontend/src/dados/exemplo.json` do modo demo; mude os dois juntos e não rode `scripts/extrair_exemplo.py`,
-que ainda lê o protótipo antigo). Em cada espaço: apresentação, 7 pontos na linha do tempo, 4 marcos, fotos de exemplo em todos os
+que ainda lê o protótipo antigo). Em cada espaço: apresentação, 7 pontos na linha do tempo, fotos de exemplo em todos os
 períodos (sem imagem real: o totem mostra uma moldura provisória) e vídeos curtos (precisa de ffmpeg,
 que já vem na imagem) e 22 ex-alunos fictícios. Tudo fica marcado como **demonstrativo**
 (campo `demonstrativo` da API e do banco), mas o totem **não mostra mais** "Conteúdo de exemplo" no rodapé nem o crédito
@@ -76,14 +76,14 @@ nas fotos: o frontend não exibe esse campo.
 > troque no Admin (ou no backend, em `carregar_exemplo.py`) ou rode `carregar_exemplo --remover` e cadastre o conteúdo real.
 
 - `carregar_exemplo --remover` apaga só o conteúdo de exemplo.
-- `carregar_exemplo --limpar` apaga **todo** o conteúdo das salas (marcos, fotos, vídeos) e os
+- `carregar_exemplo --limpar` apaga **todo** o conteúdo das salas (apresentações, décadas, fotos, vídeos) e os
   ex-alunos de exemplo, e carrega de novo. **Ex-alunos reais nunca são apagados por este comando.**
 
 ## Textos das salas
 
 O `entrypoint.sh` roda `carregar_textos` toda vez que o backend sobe. Ele grava a apresentação e os 7 pontos da linha do tempo
-de cada sala (os textos do PR #11, `feat/textos-das-salas`), lidos de `backend/memorial/exemplo/tour.json`, sem fotos, vídeos,
-marcos nem ex-alunos.
+de cada sala (os textos do PR #11, `feat/textos-das-salas`), lidos de `backend/memorial/exemplo/tour.json`, sem fotos, vídeos
+nem ex-alunos.
 
 - Só preenche o que está vazio: a apresentação de uma sala sem apresentação e a linha do tempo de uma sala sem nenhum ponto.
   O que a equipe cadastrou ou editou no painel **nunca é trocado**, e rodar de novo não duplica nada.
@@ -97,10 +97,9 @@ marcos nem ex-alunos.
 
 | Onde | O que fazer |
 |---|---|
-| **Salas** | nome, título, subtítulo e cor de cada sala; apresentação, décadas, marcos e vídeos na própria página (também na Sala 06); **Adicionar fotos** envia várias de uma vez, todas com o ano informado |
+| **Salas** | nome, título, subtítulo e cor de cada sala; apresentação, décadas e vídeos na própria página (também na Sala 06); **Adicionar fotos** envia várias de uma vez, todas com o ano informado |
 | **Apresentações** | título, texto (parágrafos separados por linha em branco), foto de época, legenda e ícone; uma por sala |
 | **Décadas** | os pontos da linha do tempo: **rótulo** (o ano em destaque, ex.: `1958`), **período** (a etiqueta curta, ex.: `Pequeno Polegar`), título, resumo, ícone e foto. **Acontecimentos** são opcionais: a lista só aparece no painel do ponto quando há algum |
-| **Marcos** | ano, título, descrição curta, texto explicativo, foto de época, ícone e **destaque inicial** (um por sala) |
 | **Fotos** | imagem, ano (define o período de 5 anos), legenda (até 140), crédito, texto alternativo |
 | **Vídeos** | arquivo, capa (automática se vazia), tipo, **destaque** (um por sala), legenda WebVTT opcional |
 | **Ex-alunos** | filtros por status e ano; ações **Aprovar** e **Ocultar**; o e-mail só aparece aqui |
@@ -119,9 +118,9 @@ tem um botão para ele). Em desenvolvimento sem Docker: `http://localhost:8080/a
 
 ### Cadastros (`/administracao/gerir/`)
 
-Tudo que se edita no `/admin` também se edita aqui, pela barra lateral: salas, apresentações, décadas, marcos, fotos, vídeos, ex-alunos,
+Tudo que se edita no `/admin` também se edita aqui, pela barra lateral: salas, apresentações, décadas, fotos, vídeos, ex-alunos,
 fotos de ex-alunos e configuração. Tem os mesmos campos, filtros, busca, ações em lote e permissões, em cartões com foto ou ícone, com seletor de cor
-e de ícone. A página de uma sala reúne a apresentação, as décadas, os marcos e os vídeos dela. Apagar sempre mostra antes o que será removido.
+e de ícone. A página de uma sala reúne a apresentação, as décadas e os vídeos dela. Apagar sempre mostra antes o que será removido.
 
 As telas leem as definições de `backend/memorial/admin.py`: um campo novo lá aparece aqui sem outra mudança. Um **modelo** novo precisa entrar em
 `backend/memorial/secoes.py` (um teste avisa se faltar). A única diferença: alterar `publicado` ou `status` direto na lista não existe aqui; use as ações em lote
@@ -169,7 +168,7 @@ salas, e o menu do painel mostra só o que cada usuário pode acessar. Para libe
 
 | Endpoint | Uso |
 |---|---|
-| `GET sala/<n>/` | tudo que o totem da sala precisa: `{versao, config, sala, demonstrativo, marcos, fotos, videos}` e, no tour de 6 espaços, também `apresentacao` e `decadas` (opcionais; ver `docs/mudancas-frontend-tour-6-espacos.md`) |
+| `GET sala/<n>/` | tudo que o totem da sala precisa: `{versao, config, sala, demonstrativo, fotos, videos}` e, no tour de 6 espaços, também `apresentacao` e `decadas` (opcionais; ver `docs/mudancas-frontend-tour-6-espacos.md`) |
 | `GET versao/?sala=<n>` | `{"versao": "…"}`, muda só quando algo daquela sala (ou a configuração) muda |
 | `GET alunos/?q=&ano=&decada=1990-1999&pagina=` | busca no diretório (12 por página), recentes primeiro |
 | `GET alunos/<id>/` | perfil, `redes` (lista), fotos **aprovadas**, até 4 colegas da mesma turma e `totalColegas` |
@@ -229,15 +228,19 @@ Os dados da Sala 06 (aba Colegas) são de pessoas reais:
 
 ## Frontend
 
-- **Cada espaço tem 5 abas**: Apresentação, Linha do tempo, Marcos, Fotos e Vídeos. A **Sala 06** tem
-  ainda a aba **Colegas** (busca e perfil). Marcos: tocar num cartão abre o texto explicativo.
+- **Cada espaço tem 4 abas**: Apresentação, Linha do tempo, Fotos e Vídeos. A **Sala 06** tem ainda a
+  aba **Colegas** (busca e perfil). A aba Marcos saiu do sistema (a Linha do tempo já mostra os marcos de
+  cada época): não está mais no totem, no painel, no `/admin` nem na API. A migração `0019` apaga a
+  tabela e as fotos dos marcos; ver [Atualizando para a versão sem Marcos](#atualizando-para-a-versão-sem-marcos).
+- **Vídeos em construção**: enquanto `VIDEOS_EM_CONSTRUCAO = true` em `frontend/src/config/recursos.ts`, a
+  aba Vídeos mostra o aviso "Vídeos em produção". Com `false`, a aba volta ao destaque, lista e player.
 - As abas de conteúdo funcionam offline com a última cópia (`localStorage` + service worker). A aba
   **Colegas precisa do servidor**: sem rede, mostra o último resultado com um aviso no rodapé. Na busca,
   a lista se atualiza a cada ~10 s para novos check-ins aparecerem sozinhos.
 - **Conteúdo novo** só entra quando o totem volta ao início da sala, ou depois de 30 s sem toque.
   Idem para uma versão nova do app.
 - **Inatividade**: aviso aos 90 s, contagem de 15 s, e o totem volta ao início da sala (aba Apresentação,
-  década e marco fechados, overlays fechados, busca limpa). Vídeo tocando não dispara o aviso.
+  primeira década, overlays fechados, busca limpa). Vídeo tocando não dispara o aviso.
 - **Botão Voltar** do Android fecha o overlay aberto, depois o teclado, depois volta do perfil à busca;
   nunca sai do app.
 - **Busca**: teclado virtual próprio (o do Android cobriria metade da tela).
@@ -368,6 +371,18 @@ docker compose -f docker-compose.prod.yml exec backend python manage.py carregar
 O `--remover` apaga só o que está marcado como **Demonstrativo**, inclusive o que a equipe editou sem desmarcar o campo;
 conteúdo oficial e ex-alunos reais ficam.
 
+## Atualizando para a versão sem Marcos
+
+A migração `0019` **apaga a tabela de Marcos** e as fotos de época deles em `/media/fotos/epoca/` (as fotos das
+apresentações e das décadas ficam). Não há como desfazer sem o backup. Ela roda sozinha quando o backend sobe:
+
+```bash
+sudo scripts/backup.sh                                   # antes de subir a versão nova
+docker compose -f docker-compose.prod.yml up -d --build  # aplica a 0019
+```
+
+Se algum texto de um marco ainda for útil, copie-o para o ponto da linha do tempo (Décadas) antes de atualizar.
+
 ## Produção (`docker-compose.prod.yml`)
 
 O `docker-compose.yml` é o de desenvolvimento (http na 8080, túnel opcional). Em produção use o
@@ -477,14 +492,20 @@ a página fica em modo demonstração.
 
 ### Acesso de fora da rede da escola
 
-O sistema inteiro responde para a rede da escola (e para a VPN). Para quem vem de fora, só o **check-in**
-(`/check-in/`, o QR Code) e o **agendamento** (`/agendamento/`) respondem:
+O sistema inteiro responde para a rede da escola (e para a VPN). Para quem vem de fora, respondem o **check-in**
+(`/check-in/`, o QR Code), o **agendamento** (`/agendamento/`) e o **painel da equipe** (`/administracao/`, `/admin/`):
 
 | De fora da rede | Resposta |
 |---|---|
 | `/check-in/`, `/agendamento/`, arquivos do build (`/assets/`), ícones, `/api/memorial/checkin/` e `/api/memorial/agendamento/` | normal |
-| `/`, `/sala/N`, `/administracao/`, `/admin/` | redireciona para `/check-in/` |
-| API dos totens, fotos e vídeos (`/media/`), `/static/` e o resto | 403 |
+| `/administracao/`, `/admin/` e `/static/` | normal (as páginas pedem login) |
+| fotos e vídeos (`/media/`) | só com login da equipe; sem login, 403 |
+| `/`, `/sala/N` (totem) | redireciona para `/check-in/` |
+| API dos totens e o resto | 403 |
+
+De fora, o nginx confere cada foto ou vídeo com o Django (`/administracao/sessao/`: 204 para a equipe logada) antes
+de entregar, para o acervo e as fotos enviadas pelos ex-alunos não ficarem públicos. O login aceita até 10 tentativas
+de senha por minuto por IP (com folga de 5); acima disso, responde 429.
 
 A rede da escola vem de `REDE_INTERNA` no `.env` (faixas separadas por espaço; o padrão são as redes privadas
 `10.0.0.0/8 172.16.0.0/12 192.168.0.0/16`). Peça à TI as faixas da escola e da VPN e recrie o nginx

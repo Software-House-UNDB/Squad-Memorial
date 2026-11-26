@@ -7,7 +7,6 @@ import type { Aba } from './estado';
 
 const ATALHOS: { aba: Aba; rotulo: string; icone: string }[] = [
   { aba: 'linha', rotulo: 'Linha do tempo', icone: 'clock' },
-  { aba: 'marcos', rotulo: 'Marcos', icone: 'star' },
   { aba: 'fotos', rotulo: 'Fotos', icone: 'image' },
 ];
 

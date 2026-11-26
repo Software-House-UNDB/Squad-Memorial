@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from django.contrib import admin
 
-from .models import Apresentacao, Aluno, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Marco, Sala, Video
+from .models import Apresentacao, Aluno, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Sala, Video
 
 
 @dataclass(frozen=True)
@@ -27,7 +27,6 @@ SECOES = [
     Secao("salas", Sala, "Salas", "sala", "Salas do tour", "home"),
     Secao("apresentacoes", Apresentacao, "Apresentações", "apresentação", "Salas do tour", "book", "foto", "tabela"),
     Secao("decadas", Decada, "Décadas", "década", "Salas do tour", "clock", "foto", "tabela"),
-    Secao("marcos", Marco, "Marcos", "marco", "Salas do tour", "star", "foto"),
     Secao("fotos", Foto, "Fotos", "foto", "Salas do tour", "image", "miniatura"),
     Secao("videos", Video, "Vídeos", "vídeo", "Salas do tour", "video", "capa"),
     Secao("alunos", Aluno, "Ex-alunos", "ex-aluno", "Pessoas", "users", "foto", "tabela"),

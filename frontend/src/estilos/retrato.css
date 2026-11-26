@@ -32,7 +32,7 @@
 .palco--retrato .tt-rod { height: auto; min-height: 46px; padding: 9px 36px; line-height: 1.35; }
 
 /* as telas das abas: altura que sobra, em vez das alturas fixas do palco deitado */
-.palco--retrato :is(.tt-apres, .tt-linha, .tt-marcos, .tt-fotos, .tt-videos) {
+.palco--retrato :is(.tt-apres, .tt-linha, .tt-fotos, .tt-videos) {
   flex: 1; min-height: 0; height: auto; margin-top: 24px; padding-bottom: 28px;
 }
 .palco--retrato .tt-vazio { margin-top: 160px; }
@@ -64,18 +64,6 @@
 .palco--retrato .tt-painel__prog { display: none; } /* no retrato o espaço é da foto; o trilho já mostra o andamento */
 .palco--retrato .tt-painel__ev { padding-right: 0; gap: 12px; }
 
-/* ================================================================ Marcos */
-/* 2 × 2; com mais de quatro, a grade rola para baixo (em vez de para os lados) */
-.palco--retrato .tt-marcos { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 22px; }
-.palco--retrato .tt-marcos.tt-marcos--rola {
-  display: grid; grid-template-rows: none; grid-auto-rows: calc((100% - 22px) / 2);
-  overflow-x: hidden; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain;
-  scroll-snap-type: y proximity; margin-inline: 0; padding-inline: 0; padding-right: 8px;
-}
-.palco--retrato .tt-marcos--rola .tt-mc { width: auto; }
-.palco--retrato .tt-mc__foto { height: max(200px, calc(290px + var(--cresce, 0px) / 2)); }
-.palco--retrato .tt-mc.is-aberto .tt-mc__foto { height: 150px; }
-
 /* ================================================================ Fotos */
 /* os períodos viram uma faixa que rola para os lados, em cima; a grade fica 2 × 4 (8 por página) */
 .palco--retrato .tt-fotos { flex-direction: column; gap: 22px; }
@@ -97,6 +85,8 @@
 .palco--retrato .tt-videos { flex-direction: column; gap: 24px; }
 .palco--retrato .tt-destaque { flex: none; height: 600px; }
 .palco--retrato .tt-vlista { flex: 1; min-height: 0; }
+.palco--retrato .tt-embreve { height: calc(1040px + var(--cresce, 0px)); padding: 40px 30px; }
+.palco--retrato .tt-embreve__tit { font-size: 42px; }
 
 /* ================================================================ Sala 06: busca */
 .palco--retrato .tt-busca { flex: 1; min-height: 0; height: auto; display: flex; flex-direction: column; }
