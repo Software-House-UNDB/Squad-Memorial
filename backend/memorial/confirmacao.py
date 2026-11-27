@@ -18,10 +18,10 @@ import secrets
 from datetime import timedelta
 
 from django.conf import settings
-from django.core.mail import EmailMessage
 from django.db import transaction
 from django.utils import timezone
 
+from .emails import montar
 from .models import Aluno, ConfiguracaoMemorial, ConfirmacaoEmail
 
 log = logging.getLogger(__name__)
@@ -64,9 +64,11 @@ def _rodape(config):
     )
 
 
-def _enviar(assunto, corpo, email):
+def _enviar(assunto, corpo, email, modelo, contexto, config):
+    contexto = {**contexto, "contato": config.email_contato}
     try:
-        enviados = EmailMessage(assunto, corpo, to=[email]).send()
+        resposta = [config.email_contato] if config.email_contato else None  # quem responder fala com a equipe
+        enviados = montar(assunto, [email], modelo, contexto, corpo, reply_to=resposta).send()
     except Exception:  # SMTP fora do ar, senha errada, destinatário recusado...
         log.exception("Código de confirmação do check-in não enviado.")
         enviados = 0
@@ -123,7 +125,7 @@ def pedir_codigo(email, nome, ano, config: ConfiguracaoMemorial):
             f"Olá, {primeiro}.\n\n"
             f"Recebemos um pedido de check-in com este e-mail. {explicacao}, então nada foi alterado.\n\n"
             "Se quiser mudar algum dado do seu cadastro, fale com a equipe na recepção.\n\n" + _rodape(config),
-            email,
+            email, "ja_fez", {"primeiro": primeiro, "explicacao": explicacao}, config,
         )
     else:
         _enviar(
@@ -132,7 +134,7 @@ def pedir_codigo(email, nome, ano, config: ConfiguracaoMemorial):
             f"Seu código de confirmação é: {codigo}\n\n"
             f"Digite-o na página do check-in para concluir. Ele vale por {settings.CHECKIN_CODIGO_MINUTOS} minutos.\n\n"
             + _rodape(config),
-            email,
+            email, "codigo", {"primeiro": primeiro, "codigo": codigo, "minutos": settings.CHECKIN_CODIGO_MINUTOS}, config,
         )
 
 

@@ -1,0 +1,13 @@
+{% extends "memorial/email/base.html" %}
+{% block previa %}Seu código de check-in: {{ codigo }}. Vale por {{ minutos }} minutos.{% endblock %}
+{% block chapeu %}Check-in no Memorial{% endblock %}
+{% block titulo %}Olá, {{ primeiro }}!{% endblock %}
+{% block conteudo %}
+  <tr><td style="padding:14px 28px 0;font:15px/1.6 Arial,sans-serif;color:#3F4447;text-align:center">Seu código para confirmar o check-in:</td></tr>
+  <tr><td style="padding:16px 28px 0;text-align:center">
+    <div style="display:inline-block;background:#F4E9CF;border:1px solid #E7D3A6;border-radius:12px;padding:16px 26px;font:700 38px/1 'Courier New',Courier,monospace;letter-spacing:10px;color:#23211D">{{ codigo }}</div>
+  </td></tr>
+  <tr><td style="padding:14px 28px 0;font:14px/1.6 Arial,sans-serif;color:#5A5F62;text-align:center">Digite-o na página do check-in. Ele vale por <b>{{ minutos }} minutos</b> e só funciona uma vez.</td></tr>
+  <tr><td style="padding:18px 28px 26px;font:13px/1.6 Arial,sans-serif;color:#73787B;text-align:center">Não foi você que pediu? Ignore este e-mail: nada foi gravado.</td></tr>
+{% endblock %}
+{% block rodape %}Memorial Dom Bosco Maria Izabel Rodrigues · Para corrigir ou remover seus dados, fale com a equipe na recepção{% if contato %} ou escreva para <a href="mailto:{{ contato }}" style="color:#8C6514">{{ contato }}</a>{% endif %}.{% endblock %}

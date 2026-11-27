@@ -1,0 +1,9 @@
+{% extends "memorial/email/base.html" %}
+{% block previa %}Os avisos de fotos e cadastros para aprovar vão chegar à equipe.{% endblock %}
+{% block chapeu %}E-mail de teste{% endblock %}
+{% block titulo %}Tudo certo com o envio!{% endblock %}
+{% block conteudo %}
+  <tr><td style="padding:14px 28px 0;font:15px/1.6 Arial,sans-serif;color:#3F4447;text-align:center">Se você recebeu este e-mail, os códigos do check-in chegam aos visitantes e os avisos de fotos e cadastros para aprovar chegam à equipe.</td></tr>
+  <tr><td style="padding:24px 28px 26px;text-align:center"><a href="{{ url_painel }}" style="display:inline-block;background:#C29A45;background-image:linear-gradient(135deg,#D8B463,#B98C33);color:#1F1B12;text-decoration:none;font:700 15px Arial,sans-serif;padding:14px 26px;border-radius:30px">Abrir o painel</a></td></tr>
+{% endblock %}
+{% block rodape %}Memorial Dom Bosco Maria Izabel Rodrigues · Enviado pelo painel da administração.{% endblock %}
