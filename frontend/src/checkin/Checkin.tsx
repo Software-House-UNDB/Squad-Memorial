@@ -413,7 +413,8 @@ function Confirmacao({ email, avisoInicial = '', esperaInicial = ESPERA_REENVIO,
     if (!r.ok) {
       // Um erro de outro campo (as fotos, por exemplo) aparece aqui: o formulário está em "Corrigir os dados".
       const { codigo: erroCodigo, geral, ...outros } = r.erros;
-      setErros({ codigo: erroCodigo, geral: geral ?? Object.values(outros).find(Boolean) });
+      const daFoto = outros.fotos ? `${outros.fotos} Toque em "Corrigir os dados" para trocar ou tirar a foto.` : undefined;
+      setErros({ codigo: erroCodigo, geral: geral ?? daFoto ?? Object.values(outros).find(Boolean) });
       if (erroCodigo) campo.current?.focus();
     }
   };
@@ -499,16 +500,28 @@ function Campo({ rotulo, erro, ajuda, children }: { rotulo: string; erro?: strin
   );
 }
 
+/**
+ * Prévia da foto escolhida. Fotos HEIC (padrão da câmera de iPhones e de muitos Android) o Chrome do celular
+ * não consegue desenhar: no lugar da imagem quebrada aparece um quadro "Foto pronta". O servidor converte.
+ */
 function Miniatura({ arquivo, aoRemover }: { arquivo: File; aoRemover: () => void }) {
   const [url, setUrl] = useState<string | null>(null);
+  const [semPrevia, setSemPrevia] = useState(false);
   useEffect(() => {
     const u = URL.createObjectURL(arquivo);
     setUrl(u);
+    setSemPrevia(false);
     return () => URL.revokeObjectURL(u);
   }, [arquivo]);
   return (
     <div className="ck-fotos__item">
-      {url && <img src={url} alt="" />}
+      {url && !semPrevia && <img src={url} alt="" onError={() => setSemPrevia(true)} />}
+      {semPrevia && (
+        <span className="ck-fotos__pronta">
+          <Icone nome="image" tamanho={26} />
+          Foto pronta
+        </span>
+      )}
       <button type="button" onClick={aoRemover} aria-label={`Remover foto ${arquivo.name}`}>
         <Icone nome="x" tamanho={18} />
       </button>

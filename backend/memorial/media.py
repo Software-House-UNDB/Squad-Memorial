@@ -10,6 +10,11 @@ from pathlib import Path
 
 from django.core.files.base import ContentFile
 from PIL import Image, ImageOps, UnidentifiedImageError
+from pillow_heif import register_heif_opener
+
+# HEIC/HEIF: o formato padrão da câmera de iPhones e de muitos Android. O Chrome do celular não consegue
+# reduzir essas fotos antes do envio (checkin/reduzir.ts), então elas chegam como saíram da câmera.
+register_heif_opener()
 
 log = logging.getLogger(__name__)
 
@@ -17,7 +22,9 @@ log = logging.getLogger(__name__)
 Image.MAX_IMAGE_PIXELS = 60_000_000
 
 # Fotos enviadas pelo celular no check-in
-FORMATOS_ACEITOS = {"JPEG", "PNG", "WEBP"}
+# MPO: JPEG com mais de uma imagem (modo retrato de alguns Samsung). Tudo vira JPEG em gerar_versao_imagem.
+FORMATOS_ACEITOS = {"JPEG", "MPO", "PNG", "WEBP", "HEIF", "AVIF"}
+FORMATOS_TEXTO = "JPG, PNG, WEBP ou HEIC"
 TAMANHO_MAXIMO = 10 * 1024 * 1024  # por foto
 MEGAPIXELS_MAXIMO = 40_000_000
 
@@ -41,11 +48,11 @@ def validar_imagem_enviada(arquivo):
             largura, altura = img.size
             img.verify()
     except (UnidentifiedImageError, OSError, SyntaxError, Image.DecompressionBombError):
-        raise ImagemInvalida("Não conseguimos abrir uma das fotos. Envie em JPG, PNG ou WEBP.") from None
+        raise ImagemInvalida(f"Não conseguimos abrir uma das fotos. Envie em {FORMATOS_TEXTO}.") from None
     finally:
         arquivo.seek(0)
     if formato not in FORMATOS_ACEITOS:
-        raise ImagemInvalida("Envie as fotos em JPG, PNG ou WEBP.")
+        raise ImagemInvalida(f"Envie as fotos em {FORMATOS_TEXTO}.")
     if largura * altura > MEGAPIXELS_MAXIMO:
         raise ImagemInvalida("Uma das fotos é grande demais. Envie em até 40 megapixels.")
 
