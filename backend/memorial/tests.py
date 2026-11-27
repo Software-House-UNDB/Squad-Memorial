@@ -494,6 +494,26 @@ class CheckinTests(Base):
         a = Aluno.objects.get()
         self.assertEqual(self.get(f"/api/memorial/alunos/{a.pk}/").json()["fotos"], [])
 
+    def test_fotos_do_celular_heic_avif_e_mpo_viram_jpeg(self):
+        """HEIC é o padrão da câmera de iPhones e de muitos Android; o Chrome do celular não reduz essas fotos."""
+        for formato, tipo in (("HEIF", "image/heic"), ("AVIF", "image/avif"), ("MPO", "image/jpeg")):
+            with self.subTest(formato=formato):
+                FotoAluno.objects.all().delete()
+                Aluno.objects.all().delete()
+                buf = BytesIO()
+                img = Image.new("RGB", (3024, 4032), (110, 90, 70))
+                if formato == "MPO":
+                    img.save(buf, "MPO", save_all=True, append_images=[Image.new("RGB", (3024, 4032))])
+                else:
+                    img.save(buf, formato, quality=80)
+                arquivo = SimpleUploadedFile(f"IMG_0001.{formato.lower()}", buf.getvalue(), content_type=tipo)
+                r = self.checkin(fotos=[arquivo])
+                self.assertEqual(r.status_code, 201, r.content)
+                foto = FotoAluno.objects.get()
+                self.assertEqual((foto.largura, foto.altura), (1920, 2560))
+                with Image.open(foto.imagem.path) as gravada, Image.open(foto.miniatura.path) as mini:
+                    self.assertEqual((gravada.format, mini.format), ("JPEG", "JPEG"))
+
     def test_upload_invalido_recusado(self):
         falso = SimpleUploadedFile("foto.jpg", b"isto nao e uma imagem", content_type="image/jpeg")
         gif = png(formato="GIF")

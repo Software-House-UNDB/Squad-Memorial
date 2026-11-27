@@ -3,11 +3,13 @@
  * - sem menu de contexto, sem seleção por toque longo, sem arrastar imagens;
  * - sem zoom da página inteira (pinça, ctrl+roda, gesturestart do WebKit);
  * - :active funciona no toque (Chrome Android exige um ouvinte de touchstart);
+ * - arrastar com o mouse rola as listas (molduras de toque que se apresentam como mouse);
  * - registro local de erros (anel de 50) para a manutenção;
  * - tela cheia e trava de orientação no primeiro toque, quando permitido;
  * - recarga diária, só com a sala no estado inicial.
  */
 import { quiosque } from '../config/quiosque';
+import { rolarComMouse } from './arrastar';
 
 let instaladas = false;
 
@@ -26,6 +28,7 @@ export function instalarGuardas() {
   document.addEventListener('touchmove', (e) => {
     if (e.touches.length > 1 && !(e.target as Element)?.closest?.('[data-zoom]')) e.preventDefault();
   }, { passive: false });
+  rolarComMouse();
 
   window.addEventListener('error', (e) => registrarErro(String(e.message)));
   window.addEventListener('unhandledrejection', (e) => registrarErro(String(e.reason)));

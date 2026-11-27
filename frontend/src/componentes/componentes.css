@@ -59,8 +59,8 @@ button.m-pol:active { transform: rotate(0deg) scale(.98) !important; box-shadow:
 .m-ov__leg span { font-size: 32px; font-weight: 700; line-height: 1.15; }
 .m-ov__leg em { font-size: var(--t-apoio); color: var(--suave-escuro); }
 
-.m-ov__foto-area { position: relative; }
-.m-ov__moldura { width: 1040px; height: 600px; padding: 14px; background: var(--branco); border-radius: 6px; touch-action: pan-y; }
+.m-ov__foto-area { position: relative; touch-action: pan-y; /* arrastar para os lados troca a foto */ }
+.m-ov__moldura { width: 1040px; height: 600px; padding: 14px; background: var(--branco); border-radius: 6px; }
 .m-ov__moldura .m-img { object-fit: contain; background: #f4f2ee; }
 .m-ov__nav {
   position: absolute; top: 50%; translate: 0 -50%;
