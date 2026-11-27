@@ -363,8 +363,9 @@ class Aluno(Timestamped):
         ordering = ["nome_busca", "id"]
         verbose_name = "ex-aluno"
         constraints = [
-            # Um check-in por e-mail (cadastros feitos pela equipe podem ficar sem e-mail).
-            models.UniqueConstraint(fields=["email"], condition=~Q(email=""), name="aluno_email_unico"),
+            # Um check-in por e-mail e ano; até CHECKIN_MAX_POR_EMAIL por e-mail (confirmacao.py).
+            # Cadastros feitos pela equipe podem ficar sem e-mail.
+            models.UniqueConstraint(fields=["email", "ano"], condition=~Q(email=""), name="aluno_email_ano_unico"),
         ]
 
     def __str__(self):

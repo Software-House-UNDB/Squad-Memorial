@@ -44,8 +44,8 @@ percurso e, no fim, encontra o próprio nome e os colegas da mesma turma.
 - **Telas do totem**: Apresentação, Linha do tempo, Fotos e Vídeos (todas as salas; Vídeos mostra "em produção" por ora); Colegas, com
   Busca e Perfil (Sala 06); foto ampliada, player, QR do check-in, aviso de inatividade e escolha de sala.
 - **Check-in**: nome completo, ano, turma, e-mail, Instagram e Facebook opcionais, até 3 fotos
-  opcionais e autorização obrigatória, confirmado por um código enviado ao e-mail. Um check-in por e-mail: quem já tem
-  cadastro recebe um aviso no e-mail e altera os dados com a recepção. No totem, só o QR Code.
+  opcionais e autorização obrigatória, confirmado por um código enviado ao e-mail. Até 3 check-ins por e-mail (escola e faculdade do
+  grupo), um por ano: quem já tem o do ano, ou os 3, recebe um aviso no e-mail e altera os dados com a recepção. No totem, só o QR Code.
 - **Privacidade**: e-mail nunca sai do servidor; perfil só com consentimento; fotos só depois de
   aprovadas; remoção completa pelo admin. O termo precisa ser validado pela escola.
 - **Registro de entradas e saídas**: só leitura, sem e-mail nem IP; o nome some quando o ex-aluno é removido.

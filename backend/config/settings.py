@@ -130,6 +130,8 @@ CHECKIN_CODIGO_MINUTOS = int(os.environ.get("CHECKIN_CODIGO_MINUTOS") or "15")  
 CHECKIN_CODIGO_TENTATIVAS = int(os.environ.get("CHECKIN_CODIGO_TENTATIVAS") or "5")   # erros até o código parar de valer
 CHECKIN_CODIGO_INTERVALO = int(os.environ.get("CHECKIN_CODIGO_INTERVALO") or "60")    # segundos entre dois envios ao mesmo e-mail
 CHECKIN_CODIGO_POR_HORA = int(os.environ.get("CHECKIN_CODIGO_POR_HORA") or "5")       # envios ao mesmo e-mail por hora
+# Check-ins com o mesmo e-mail (escola e faculdade do grupo, por exemplo), cada um de um ano diferente.
+CHECKIN_MAX_POR_EMAIL = int(os.environ.get("CHECKIN_MAX_POR_EMAIL") or "3")
 
 # Atrás do nginx
 USE_X_FORWARDED_HOST = True

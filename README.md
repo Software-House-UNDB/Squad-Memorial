@@ -198,14 +198,15 @@ confirmação por e-mail (abaixo). O corpo das requisições não é registrado 
 
 ### Confirmação do check-in por e-mail
 
-**Um check-in por e-mail**, e só de quem tem acesso a ele (`backend/memorial/confirmacao.py`):
+**Até 3 check-ins por e-mail, um por ano**, e só de quem tem acesso a ele (`backend/memorial/confirmacao.py`). A mesma pessoa
+pode ter estudado na escola e na faculdade do grupo; o limite muda em `CHECKIN_MAX_POR_EMAIL`.
 
 1. A pessoa lê o QR Code no totem (o totem só mostra o QR Code; o formulário é no celular), preenche e toca em
    **Fazer check-in**. O servidor confere os dados e manda um **código de 6 números** para o e-mail. Nada é gravado ainda.
 2. A pessoa digita o código na mesma página. Só então o check-in é gravado e ela aparece na Sala 06 (as fotos vão nesta etapa).
 
-- **E-mail que já tem cadastro**: no lugar do código, a pessoa recebe um e-mail dizendo que o check-in já foi feito e que,
-  para alterar os dados, deve falar com a recepção. A página responde igual nos dois casos, para não revelar quem já visitou
+- **E-mail que já tem check-in nesse ano, ou já tem 3**: no lugar do código, a pessoa recebe um e-mail dizendo que o
+  check-in já foi feito e que, para alterar os dados, deve falar com a recepção. A página responde igual nos dois casos, para não revelar quem já visitou
   o Memorial. Para alterar ou refazer, a equipe edita ou apaga o cadastro no painel (Ex-alunos).
 - **O código** vale 15 minutos (`CHECKIN_CODIGO_MINUTOS`), uma vez só, para 5 tentativas (`CHECKIN_CODIGO_TENTATIVAS`);
   pedir outro invalida o anterior. Reenvio depois de 60 s (`CHECKIN_CODIGO_INTERVALO`) e até 5 por hora para o mesmo e-mail
@@ -453,15 +454,13 @@ Se algum texto de um marco ainda for útil, copie-o para o ponto da linha do tem
 
 ## Atualizando para o check-in com confirmação por e-mail
 
-A migração `0020` passa a aceitar **um cadastro por e-mail** (antes era um por e-mail e ano). Se o banco já tiver o mesmo
-e-mail em mais de um cadastro, ela para sem mudar nada, lista os cadastros e **o backend não sobe**. Por isso, **antes de
-atualizar**, na versão que está rodando:
+As migrações `0020` e `0021` criam o código de confirmação e mantêm a regra de antes no banco (um cadastro por e-mail **e
+ano**). Os cadastros que já existem não mudam, nem os de um e-mail com mais de 3: o limite de 3 vale para os check-ins novos.
 
-```bash
-docker compose -f docker-compose.prod.yml exec backend python manage.py shell -c "from django.db.models import Count; from memorial.models import Aluno; print(list(Aluno.objects.exclude(email='').values_list('email').annotate(n=Count('id')).filter(n__gt=1)))"
-```
+> Uma primeira versão da `0020` exigia um cadastro por e-mail e parava ao achar o mesmo e-mail em anos diferentes. Se o
+> backend não subiu por isso, basta atualizar para esta versão: nada foi alterado no banco, e não é preciso apagar ninguém.
 
-Se a lista não vier vazia, escolha qual cadastro de cada e-mail fica e apague os outros no painel (Ex-alunos). Depois:
+Antes de atualizar:
 
 1. Confira o e-mail no `.env` (`EMAIL_HOST` e os demais): **sem ele, ninguém faz check-in**. Teste com
    `docker compose -f docker-compose.prod.yml exec backend python manage.py testar_email voce@escola.com.br`.
@@ -471,11 +470,8 @@ Se a lista não vier vazia, escolha qual cadastro de cada e-mail fica e apague o
 
 ```bash
 sudo scripts/backup.sh
-docker compose -f docker-compose.prod.yml up -d --build  # aplica a 0020
+docker compose -f docker-compose.prod.yml up -d --build  # aplica a 0020 e a 0021
 ```
-
-Se a `0020` parar mesmo assim (`docker compose -f docker-compose.prod.yml logs backend` mostra os e-mails repetidos), volte
-para a versão anterior, apague os cadastros que sobram no painel e atualize de novo.
 
 ## Produção (`docker-compose.prod.yml`)
 
