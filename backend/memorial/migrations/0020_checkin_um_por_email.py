@@ -1,31 +1,13 @@
-"""Um check-in por e-mail (antes era um por e-mail e ano) e o código de confirmação enviado por e-mail.
+"""Código de confirmação do check-in enviado por e-mail.
 
-Se o banco já tiver o mesmo e-mail em mais de um cadastro, a migração para sem mudar nada e lista os
-cadastros (e o backend não sobe): a equipe escolhe qual fica e apaga os outros no painel, na versão anterior.
-Veja o README, "Atualizando para o check-in com confirmação por e-mail".
+A regra do mesmo e-mail continua a de antes (0008): um check-in por e-mail e ano. O limite de check-ins por
+e-mail (CHECKIN_MAX_POR_EMAIL) fica no código, em confirmacao.py, e vale só para os check-ins novos.
+(Uma versão anterior desta migração trocava a regra por "um check-in por e-mail"; a 0021 desfaz isso nos bancos
+que chegaram a aplicá-la.)
 """
 
 import django.utils.timezone
 from django.db import migrations, models
-from django.db.models import Count
-
-
-def conferir_emails_repetidos(apps, schema_editor):
-    Aluno = apps.get_model("memorial", "Aluno")
-    repetidos = (
-        Aluno.objects.exclude(email="").values("email").annotate(n=Count("id")).filter(n__gt=1).values_list("email", flat=True)
-    )
-    if not repetidos:
-        return
-    linhas = []
-    for email in repetidos:
-        cadastros = Aluno.objects.filter(email=email).order_by("checkin_em")
-        linhas.append(f"  {email}: " + "; ".join(f"nº {a.pk} {a.nome} ({a.ano}, {a.turma})" for a in cadastros))
-    raise RuntimeError(
-        "Há e-mails em mais de um cadastro de ex-aluno, e agora cada e-mail pode ter um só. Nada foi alterado.\n"
-        "Volte para a versão anterior, apague no painel (Ex-alunos) os cadastros que sobram e atualize de novo. "
-        "Veja o README, \"Atualizando para o check-in com confirmação por e-mail\":\n" + "\n".join(linhas)
-    )
 
 
 class Migration(migrations.Migration):
@@ -35,7 +17,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(conferir_emails_repetidos, migrations.RunPython.noop),
         migrations.CreateModel(
             name='ConfirmacaoEmail',
             fields=[
@@ -52,13 +33,5 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'confirmações de e-mail',
                 'ordering': ['-criado_em', '-id'],
             },
-        ),
-        migrations.RemoveConstraint(
-            model_name='aluno',
-            name='aluno_email_ano_unico',
-        ),
-        migrations.AddConstraint(
-            model_name='aluno',
-            constraint=models.UniqueConstraint(condition=models.Q(('email', ''), _negated=True), fields=('email',), name='aluno_email_unico'),
         ),
     ]

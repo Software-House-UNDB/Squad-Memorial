@@ -239,8 +239,13 @@ export const fonteDemo: Fonte = {
     }
     const email = d.email.trim().toLowerCase();
     const ano = Number(d.ano);
-    if (checkinsLocais().some((a) => a.email === email)) {
-      return { ok: false as const, erros: { geral: 'Este e-mail já tem check-in no Memorial. Para alterar seus dados, fale com a equipe na recepção.' } };
+    // Mesma regra do servidor: um check-in por e-mail e ano, até 3 por e-mail.
+    const doEmail = checkinsLocais().filter((a) => a.email === email);
+    if (doEmail.some((a) => a.ano === ano)) {
+      return { ok: false as const, erros: { geral: 'Este e-mail já tem check-in para este ano no Memorial. Para alterar seus dados, fale com a equipe na recepção.' } };
+    }
+    if (doEmail.length >= 3) {
+      return { ok: false as const, erros: { geral: 'Este e-mail já chegou ao limite de check-ins no Memorial. Para alterar seus dados, fale com a equipe na recepção.' } };
     }
     const lista = checkinsLocais();
     // Mesmo empacotamento do envio ao servidor: a rede vai nos campos de sempre.
