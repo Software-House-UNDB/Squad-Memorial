@@ -225,9 +225,16 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
     if (!lista?.length) return;
     setPreparando(true);
     try {
-      const novas = await Promise.all([...lista].slice(0, MAX_FOTOS - d.fotos.length).map(reduzirFoto));
+      const lidas = await Promise.allSettled([...lista].slice(0, MAX_FOTOS - d.fotos.length).map(reduzirFoto));
+      const novas = lidas.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
       setD((x) => ({ ...x, fotos: [...x.fotos, ...novas].slice(0, MAX_FOTOS) }));
-      setErros((e) => ({ ...e, fotos: undefined }));
+      const falhou = lidas.length - novas.length;
+      setErros((e) => ({
+        ...e,
+        fotos: falhou
+          ? `${falhou === 1 ? 'Uma foto não pôde ser lida' : `${falhou} fotos não puderam ser lidas`} pelo celular. Escolha de novo ou tire outra.`
+          : undefined,
+      }));
     } finally {
       setPreparando(false);
     }
