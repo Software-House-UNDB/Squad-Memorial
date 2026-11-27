@@ -143,16 +143,33 @@ for (const [w, h] of TELAS) {
   });
 
   // ---------------------------------------------------------------- fotos
-  await verificar('paginação de fotos', async () => {
+  await verificar('grade de fotos rola na vertical', async () => {
     await abrir(p, 'sala=1');
     await p.getByRole('tab', { name: /Fotos/ }).click();
     const cont = p.locator('.tt-galeria__cont');
-    confere((await cont.innerText()).includes('mostrando 1 a 8'), 'primeira página');
-    await p.getByRole('button', { name: 'Próxima página' }).click();
-    confere((await cont.innerText()).includes('mostrando 9 a 11'), `segunda página: ${await cont.innerText()}`);
+    const grade = p.locator('.tt-galeria__grade');
+    // a rolagem é animada: espera o contador chegar (ou desiste em 3 s e a asserção seguinte acusa)
+    const ateMostrar = (texto) =>
+      p.waitForFunction((t) => document.querySelector('.tt-galeria__cont')?.textContent.includes(t), texto, { timeout: 3000 }).catch(() => {});
+    confere((await cont.innerText()).includes('mostrando 1 a 8'), `início: ${await cont.innerText()}`);
+    confere((await p.locator('.tt-galeria__grade .m-pol').count()) === 11, 'a grade deveria ter o período inteiro (11 fotos)');
+    const rola = await grade.evaluate((g) => g.scrollHeight > g.clientHeight + 1);
+    confere(rola, 'a grade não tem o que rolar');
+    // roda do mouse
+    await grade.hover();
+    await p.mouse.wheel(0, 600);
+    await ateMostrar('a 11');
+    confere((await cont.innerText()).includes('a 11'), `depois da roda: ${await cont.innerText()}`);
+    // seta para cima volta ao topo; a de baixo desce de novo
+    await p.getByRole('button', { name: 'Fotos anteriores' }).click();
+    await ateMostrar('mostrando 1 a');
+    confere((await cont.innerText()).includes('mostrando 1 a 8'), `seta para cima: ${await cont.innerText()}`);
+    await p.getByRole('button', { name: 'Mais fotos' }).click();
+    await ateMostrar('a 11');
+    confere((await cont.innerText()).includes('a 11'), `seta para baixo: ${await cont.innerText()}`);
     await p.locator('.tt-per__lista button', { hasText: '1983 – 1987' }).click();
     confere((await p.locator('.tt-galeria__cab h2').innerText()) === '1983 – 1987', 'período não mudou');
-    confere((await cont.innerText()).includes('mostrando 1 a 8'), 'período novo começa na página 1');
+    confere((await grade.evaluate((g) => g.scrollTop)) === 0, 'período novo deveria começar do topo');
   });
 
   await verificar('foto ampliada com setas', async () => {
@@ -163,7 +180,11 @@ for (const [w, h] of TELAS) {
     confere((await leg.innerText()).includes('FOTO 9 DE 12'), await leg.innerText());
     await foto('foto-ampliada');
     await p.getByRole('button', { name: 'Fechar' }).click();
-    confere((await p.locator('.tt-galeria__cont').innerText()).includes('mostrando 9 a 12'), 'grade deveria ir à página da última foto vista');
+    await p
+      .waitForFunction(() => document.querySelector('.tt-galeria__cont')?.textContent.includes('a 12'), null, { timeout: 3000 })
+      .catch(() => {});
+    const cont = await p.locator('.tt-galeria__cont').innerText();
+    confere(cont.includes('a 12'), `a grade deveria mostrar a última foto vista: ${cont}`);
   });
 
   // ---------------------------------------------------------------- vídeo e inatividade

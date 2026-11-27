@@ -109,13 +109,19 @@
 .tt-per__lista button.is-ativo { background: var(--rc); color: var(--branco); }
 .tt-per__lista button.is-ativo small { color: var(--branco); }
 
-.tt-galeria { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .tt-galeria__cab { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
 .tt-galeria__cab h2 { font-size: 38px; font-weight: 700; line-height: 1; color: var(--grafite); }
 .tt-galeria__cont { font-size: var(--t-apoio); color: var(--suave-2); }
 .tt-galeria__setas { margin-left: auto; display: flex; gap: 12px; }
 /* touch-action: arrastar para os lados passa a página (Fotos.tsx) sem o navegador ficar com o gesto */
-.tt-galeria__grade { touch-action: pan-y; flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 22px; padding: 2px 4px 6px; }
+.tt-galeria { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+/* a grade rola na vertical; Fotos.tsx calcula a altura das linhas para caberem --fotos-linhas por tela */
+.tt-galeria__grade {
+  --fotos-colunas: 4; --fotos-linhas: 2;
+  flex: 1; min-height: 0; display: grid; align-content: start;
+  grid-template-columns: repeat(var(--fotos-colunas), minmax(0, 1fr)); grid-auto-rows: 300px;
+  gap: 22px; padding: 4px 14px 8px 6px;
+}
 
 /* ---------- Vídeos ---------- */
 .tt-videos { display: flex; gap: 28px; margin-top: 22px; height: calc(552px + var(--cresce, 0px)); }

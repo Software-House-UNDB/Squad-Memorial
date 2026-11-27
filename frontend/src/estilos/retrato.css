@@ -65,7 +65,7 @@
 .palco--retrato .tt-painel__ev { padding-right: 0; gap: 12px; }
 
 /* ================================================================ Fotos */
-/* os períodos viram uma faixa que rola para os lados, em cima; a grade fica 2 × 4 (8 por página) */
+/* os períodos viram uma faixa que rola para os lados, em cima; a grade fica 2 colunas, 4 linhas por tela */
 .palco--retrato .tt-fotos { flex-direction: column; gap: 22px; }
 .palco--retrato .tt-per { width: auto; padding: 14px 12px 10px; }
 .palco--retrato .tt-per__rot { padding: 0 8px 10px; }
@@ -79,7 +79,7 @@
 .palco--retrato .tt-per__lista button.is-ativo { border-color: var(--rc); background: var(--rc); }
 .palco--retrato .tt-galeria { flex: 1; min-height: 0; }
 .palco--retrato .tt-galeria__cab { flex-wrap: wrap; row-gap: 6px; }
-.palco--retrato .tt-galeria__grade { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(4, 1fr); }
+.palco--retrato .tt-galeria__grade { --fotos-colunas: 2; --fotos-linhas: 4; }
 
 /* ================================================================ Vídeos */
 .palco--retrato .tt-videos { flex-direction: column; gap: 24px; }

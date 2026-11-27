@@ -14,7 +14,7 @@ import type { Foto, RespostaSala } from '../dados/tipos';
 import { AbasSala, abaValida } from './AbasSala';
 import { Apresentacao } from './Apresentacao';
 import { Colegas } from './Colegas';
-import { Fotos, FOTOS_POR_PAGINA } from './Fotos';
+import { Fotos } from './Fotos';
 import { LinhaDoTempo } from './LinhaDoTempo';
 import { Moldura, Titulo } from './Moldura';
 import type { Aba, PropsSala } from './estado';
@@ -77,8 +77,8 @@ export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: 
         indice={indice}
         icone={iconeDaFoto}
         aoMudar={(i) => mudar({ overlay: { tipo: 'foto', indice: i } })}
-        // ao fechar, a grade mostra a página da última foto vista
-        aoFechar={() => mudar({ overlay: null, pagina: Math.floor(indice / FOTOS_POR_PAGINA) })}
+        // ao fechar, a grade rola até a última foto vista
+        aoFechar={() => mudar({ overlay: null, fotoAVista: indice })}
       />
     );
   } else if (ov?.tipo === 'fotoPerfil' && noPerfil && aluno.perfil?.fotos.length) {
@@ -129,10 +129,9 @@ export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: 
         <Fotos
           periodos={periodos}
           periodo={periodo}
-          pagina={st.pagina}
+          fotoAVista={st.fotoAVista}
           icone={iconeDaFoto}
-          aoPeriodo={(inicio) => mudar({ periodo: inicio, pagina: 0 })}
-          aoPagina={(p) => mudar({ pagina: Math.max(0, p) })}
+          aoPeriodo={(inicio) => mudar({ periodo: inicio, fotoAVista: 0 })}
           aoAbrir={(indice) => mudar({ overlay: { tipo: 'foto', indice } })}
         />
       )}
