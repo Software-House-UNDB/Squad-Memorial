@@ -22,7 +22,8 @@ export interface EstadoTotem {
   linha: number;
   /** Início do período de fotos; null = primeiro período com fotos. */
   periodo: number | null;
-  pagina: number;
+  /** Foto (posição no período) que a grade deixa à vista: a última ampliada. */
+  fotoAVista: number;
   /** Vídeo em destaque; null = destaque definido no admin. */
   videoId: number | null;
   overlay: Overlay;
@@ -42,7 +43,7 @@ export const INICIAL: EstadoTotem = {
   aba: 'apresentacao',
   linha: 0,
   periodo: null,
-  pagina: 0,
+  fotoAVista: 0,
   videoId: null,
   overlay: null,
   visao: 'busca',
