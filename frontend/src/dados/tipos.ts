@@ -191,4 +191,24 @@ export interface DadosCheckin {
   site: string;
 }
 
-export type ErrosCheckin = Partial<Record<keyof DadosCheckin | 'geral', string>>;
+/** `codigo`: o código de confirmação que chega no e-mail (segunda etapa do check-in). */
+export type ErrosCheckin = Partial<Record<keyof DadosCheckin | 'geral' | 'codigo', string>>;
+
+// ---------------------------------------------------------------- de onde vêm os dados (dados/fonte.ts)
+
+export type ResultadoCheckin = { ok: true } | { ok: false; erros: ErrosCheckin };
+
+export interface Fonte {
+  sala(numero: number): Promise<RespostaSala>;
+  versao(numero: number): Promise<string>;
+  alunos(filtro: FiltroAlunos): Promise<PaginaAlunos>;
+  aluno(id: number | string): Promise<AlunoPerfil>;
+  configCheckin(): Promise<ConfigCheckin>;
+  /**
+   * Etapa 1 do check-in: confere os dados e manda o código ao e-mail. Nada é gravado ainda.
+   * Se o e-mail já tem cadastro, a pessoa recebe no lugar um aviso; a resposta é a mesma.
+   */
+  pedirCodigo(dados: DadosCheckin): Promise<ResultadoCheckin>;
+  /** Etapa 2: com o código do e-mail, grava o check-in (com as fotos). */
+  checkin(dados: DadosCheckin, codigo: string): Promise<ResultadoCheckin>;
+}

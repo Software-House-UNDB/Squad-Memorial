@@ -5,10 +5,13 @@
  *   URL=http://localhost:8080/ npm run test:e2e
  *
  * Roda em 1600 × 900 e 1920 × 1080. Cada execução faz um check-in de teste ("Teste E2E …",
- * e-mail @exemplo.invalid); apague-os no admin se quiser. CHROME=/caminho/do/chrome usa outro
+ * e-mail @exemplo.invalid); apague-os no admin se quiser. O código de confirmação do check-in é lido dos
+ * e-mails que o backend imprime no log (EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend, o do
+ * .env.example): EMAILS_CMD é o comando que mostra esse log (padrão: docker compose logs backend). CHROME=/caminho/do/chrome usa outro
  * navegador. IGNORAR_CERT=1 aceita certificado autoassinado (teste local do docker-compose.prod.yml).
  * Capturas em .impeccable/review/e2e/.
  */
+import { execSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { chromium } from 'playwright';
 
@@ -22,6 +25,20 @@ let ok = 0;
 const falhas = [];
 const erros = [];
 const externos = new Set();
+
+const EMAILS_CMD = process.env.EMAILS_CMD ?? 'docker compose logs --no-log-prefix --since 10m backend';
+
+/** O último código de confirmação enviado a `email`, lido do log do backend (espera até 15 s). */
+async function codigoDoEmail(email) {
+  const padrao = new RegExp(`To: ${email.replace(/[.+]/g, '\\$&')}[\\s\\S]*?confirmação é: (\\d{6})`, 'g');
+  for (let i = 0; i < 30; i++) {
+    const texto = execSync(EMAILS_CMD, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
+    const achados = [...texto.matchAll(padrao)];
+    if (achados.length) return achados.at(-1)[1];
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  throw new Error(`código de confirmação não encontrado no log (${EMAILS_CMD})`);
+}
 
 function confere(cond, msg) {
   if (!cond) throw new Error(msg);
@@ -47,7 +64,12 @@ const CERT = { ignoreHTTPSErrors: process.env.IGNORAR_CERT === '1' };
 
 async function novaPagina(ctx, rotulo) {
   const p = await ctx.newPage();
-  p.on('console', (m) => m.type() === 'error' && erros.push(`[${rotulo}] ${m.text()}`));
+  p.on('console', (m) => {
+    if (m.type() !== 'error') return;
+    // o 400 do código errado que o teste do check-in digita de propósito
+    if (m.location().url.endsWith('/api/memorial/checkin/') && m.text().includes('status of 400')) return;
+    erros.push(`[${rotulo}] ${m.text()}`);
+  });
   p.on('pageerror', (e) => erros.push(`[${rotulo}] ${e.message}`));
   return p;
 }
@@ -268,12 +290,23 @@ for (const [w, h] of TELAS) {
     await cel.locator('[name=nome]').fill(nome);
     await cel.locator('[name=ano]').selectOption('2007');
     await cel.locator('[name=turma]').fill('2º B');
-    await cel.locator('[name=email]').fill(`e2e-${Date.now()}@exemplo.invalid`);
+    const email = `e2e-${Date.now()}@exemplo.invalid`;
+    await cel.locator('[name=email]').fill(email);
     // uma rede que não é Instagram viaja no campo facebook, com prefixo (tiktok/e2e.teste)
     await cel.getByRole('button', { name: 'TikTok' }).click();
     await cel.locator('[name=rede]').fill('e2e.teste');
     await cel.locator('[name=consentimento]').check();
     await cel.getByRole('button', { name: 'Fazer check-in' }).click();
+    // segunda etapa: nada aparece na Sala 06 antes do código do e-mail
+    await cel.getByRole('heading', { name: 'Confirme seu e-mail' }).waitFor();
+    const codigo = await codigoDoEmail(email);
+    const errado = String((Number(codigo) + 1) % 1_000_000).padStart(6, '0');
+    await cel.locator('[name=codigo]').fill(errado);
+    await cel.getByRole('button', { name: 'Confirmar check-in' }).click();
+    await cel.getByText('Código incorreto. Confira o e-mail e tente de novo.').waitFor();
+    await cel.screenshot({ path: `${CAPTURAS}${w}-checkin-codigo.png` });
+    await cel.locator('[name=codigo]').fill(codigo);
+    await cel.getByRole('button', { name: 'Confirmar check-in' }).click();
     await cel.getByText(/Check-in feito, Teste!/).waitFor();
     await cel.screenshot({ path: `${CAPTURAS}${w}-checkin-celular.png` });
     await cel.context().close();
@@ -309,6 +342,6 @@ await verificar('nenhuma requisição a outro domínio (CDN)', async () => confe
 
 console.log(`\n${ok} verificações ok, ${falhas.length} falha(s).`);
 if (falhas.length) {
-  falhas.forEach((f) => console.log(`  - ${f}`));
+  for (const f of falhas) console.log(`  - ${f}`);
   process.exit(1);
 }

@@ -33,9 +33,18 @@ from django.utils import timezone
 from PIL import Image, ImageDraw, ImageFilter
 
 from memorial.models import (
-    Aluno, Apresentacao, ConfiguracaoMemorial, Decada, Foto, FotoAluno, Sala, Video, ano_atual,
+    Aluno,
+    Apresentacao,
+    ConfiguracaoMemorial,
+    Decada,
+    Foto,
+    FotoAluno,
+    Sala,
+    Video,
+    ano_atual,
 )
-from memorial.redes import de_campos_antigos, gravar as gravar_redes
+from memorial.redes import de_campos_antigos
+from memorial.redes import gravar as gravar_redes
 from memorial.registro import sem_registro
 
 from .carregar_textos import DADOS, gravar_apresentacao, gravar_linha_do_tempo

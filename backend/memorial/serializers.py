@@ -7,7 +7,7 @@ Regra de privacidade: nada aqui lê `email`, IP ou dados de consentimento de um 
 import json
 import re
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -15,6 +15,10 @@ from . import redes as redes_sociais
 from .models import Aluno, ConfiguracaoMemorial, FotoAluno, Registro, ano_atual
 from .notificacoes import avisar_equipe
 from .registro import VISITANTE, registrar, sem_registro
+
+
+class JaCadastrado(Exception):
+    """O e-mail do check-in já tem cadastro."""
 
 
 def _url(campo):
@@ -150,6 +154,8 @@ class CheckinSerializer(serializers.Serializer):
     redes = serializers.CharField(required=False, allow_blank=True, default="")
     consentimento = serializers.BooleanField(required=False, default=False)
     site = serializers.CharField(required=False, allow_blank=True, default="")  # isca anti-robô
+    # Vazio: etapa 1 (manda o código ao e-mail). Preenchido: etapa 2 (grava o check-in). Ver confirmacao.py.
+    codigo = serializers.CharField(max_length=20, required=False, allow_blank=True, default="")
 
     def __init__(self, *args, config: ConfiguracaoMemorial, **kwargs):
         super().__init__(*args, **kwargs)
@@ -165,7 +171,7 @@ class CheckinSerializer(serializers.Serializer):
         try:
             ano = int(v)
         except (TypeError, ValueError):
-            raise serializers.ValidationError(MSG["ano"])
+            raise serializers.ValidationError(MSG["ano"]) from None
         if not self.config.ano_inicial <= ano <= ano_atual():
             raise serializers.ValidationError(MSG["ano"])
         return ano
@@ -181,7 +187,7 @@ class CheckinSerializer(serializers.Serializer):
         try:
             serializers.EmailField().run_validation(v)
         except serializers.ValidationError:
-            raise serializers.ValidationError(MSG["email"])
+            raise serializers.ValidationError(MSG["email"]) from None
         return v
 
     def validate_instagram(self, v):
@@ -201,7 +207,7 @@ class CheckinSerializer(serializers.Serializer):
             try:
                 redes_sociais.validar(rede, usuario)
             except redes_sociais.RedeInvalida as exc:
-                raise serializers.ValidationError(str(exc))
+                raise serializers.ValidationError(str(exc)) from exc
         return v
 
     def validate_redes(self, v):
@@ -210,7 +216,7 @@ class CheckinSerializer(serializers.Serializer):
         try:
             lista = json.loads(v)
         except ValueError:
-            raise serializers.ValidationError(MSG["redes"])
+            raise serializers.ValidationError(MSG["redes"]) from None
         if not isinstance(lista, list) or not all(isinstance(i, dict) for i in lista):
             raise serializers.ValidationError(MSG["redes"])
         lista = [i for i in lista if str(i.get("usuario") or "").strip()]
@@ -221,7 +227,7 @@ class CheckinSerializer(serializers.Serializer):
             try:
                 par = redes_sociais.validar(str(item.get("rede") or ""), str(item.get("usuario") or ""))
             except redes_sociais.RedeInvalida as exc:
-                raise serializers.ValidationError(str(exc))
+                raise serializers.ValidationError(str(exc)) from exc
             if par not in limpas:
                 limpas.append(par)
         return limpas
@@ -243,9 +249,10 @@ class CheckinSerializer(serializers.Serializer):
 
 
 def registrar_checkin(dados, imagens, config: ConfiguracaoMemorial, url_painel):
-    """Cria ou atualiza o cadastro (mesmo e-mail + mesmo ano = mesma pessoa) e guarda as fotos.
+    """Cria o cadastro e guarda as fotos. Só é chamado depois do código confirmado (confirmacao.py).
 
-    Um perfil oculto pela equipe continua oculto: refazer o check-in não o traz de volta.
+    Um check-in por e-mail: se o e-mail já tem cadastro, levanta JaCadastrado e nada muda. Alterar um
+    cadastro existente é com a equipe, pelo painel.
     """
     agora = timezone.now()
     campos = {
@@ -259,23 +266,19 @@ def registrar_checkin(dados, imagens, config: ConfiguracaoMemorial, url_painel):
         "checkin_em": agora,
         "origem": Aluno.Origem.CHECKIN,
     }
-    aluno = Aluno.objects.filter(email=dados["email"], ano=dados["ano"]).first()
-    novo = aluno is None
-    if aluno:
-        for k, v in campos.items():
-            setattr(aluno, k, v)
-    else:
-        status = Aluno.Status.PENDENTE if config.aprovar_perfis else Aluno.Status.APROVADO
-        aluno = Aluno(email=dados["email"], ano=dados["ano"], status=status, **campos)
+    status = Aluno.Status.PENDENTE if config.aprovar_perfis else Aluno.Status.APROVADO
+    aluno = Aluno(email=dados["email"], ano=dados["ano"], status=status, **campos)
     # Registrado aqui, como check-in do visitante, e não como cadastro genérico pelos signals.
     # Tudo ou nada: uma foto que falhe no meio não deixa um cadastro pela metade.
-    with sem_registro(), transaction.atomic():
-        aluno.save()
-        redes_sociais.gravar(aluno, dados["redes"])
-        fotos = [FotoAluno.objects.create(aluno=aluno, imagem=imagem, ano=dados["ano"]) for imagem in imagens]
-    tipo = Registro.Tipo.CHECKIN_NOVO if novo else Registro.Tipo.CHECKIN_ATUALIZADO
-    registrar(tipo, f"Check-in: {aluno}", autor=VISITANTE, aluno_ref=aluno.pk)
+    try:
+        with sem_registro(), transaction.atomic():
+            aluno.save()
+            redes_sociais.gravar(aluno, dados["redes"])
+            fotos = [FotoAluno.objects.create(aluno=aluno, imagem=imagem, ano=dados["ano"]) for imagem in imagens]
+    except IntegrityError:  # o mesmo e-mail gravado por outro pedido ao mesmo tempo
+        raise JaCadastrado from None
+    registrar(Registro.Tipo.CHECKIN_NOVO, f"Check-in: {aluno}", autor=VISITANTE, aluno_ref=aluno.pk)
     for _ in imagens:
         registrar(Registro.Tipo.FOTO_ENVIADA, f"Foto enviada por {aluno.nome}", autor=VISITANTE, aluno_ref=aluno.pk)
-    avisar_equipe(aluno, fotos, novo, url_painel)
+    avisar_equipe(aluno, fotos, True, url_painel)
     return aluno

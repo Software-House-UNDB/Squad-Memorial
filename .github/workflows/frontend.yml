@@ -1,0 +1,65 @@
+# Frontend (React + Vite): tipos, lint (Biome), contratos de arquitetura (dependency-cruiser),
+# código morto (Knip), testes unitários com cobertura (Vitest) e build.
+name: Frontend
+
+on:
+  push:
+    branches: [main, feats]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: frontend
+
+jobs:
+  qualidade:
+    name: Lint, arquitetura e código morto
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Tipos (TypeScript)
+        run: npm run typecheck
+      - name: Biome
+        run: npx biome lint --reporter=github .
+      - name: Contratos de arquitetura (dependency-cruiser)
+        run: npm run lint:arquitetura
+      - name: Código e dependências sem uso (Knip)
+        run: npm run lint:mortos
+
+  testes:
+    name: Testes unitários e build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Testes unitários com cobertura
+        run: npm run test:coverage
+      - name: Enviar cobertura ao Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: frontend/coverage/lcov.info
+          flags: frontend
+          fail_ci_if_error: false
+      - name: Build
+        run: npm run build

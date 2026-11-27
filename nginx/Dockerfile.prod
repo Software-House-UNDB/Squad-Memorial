@@ -9,6 +9,11 @@ RUN npm ci --no-audit --no-fund
 COPY frontend/ ./
 # Produção nunca usa o modo demonstração; a API é o próprio servidor (mesma origem).
 ENV VITE_MODO_DEMO=0 VITE_API_URL=
+# Sentry no navegador (opcional; vazio = desligado). Vêm do .env pelo docker-compose.prod.yml (build args).
+ARG VITE_SENTRY_DSN=""
+ARG VITE_SENTRY_ENVIRONMENT="producao"
+ARG VITE_SENTRY_RELEASE=""
+ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN VITE_SENTRY_ENVIRONMENT=$VITE_SENTRY_ENVIRONMENT VITE_SENTRY_RELEASE=$VITE_SENTRY_RELEASE
 RUN npm run build
 
 # ---------- Etapa 2: nginx ----------

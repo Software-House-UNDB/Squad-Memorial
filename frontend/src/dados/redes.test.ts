@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AS_PRINCIPAIS, empacotar, lerEntrada, lerRedes, MAIS_REDES, normalizarOutra, normalizarRede, REDES } from './redes';
-import { type DadosCheckin } from './tipos';
+import type { DadosCheckin } from './tipos';
 import { MENSAGENS, ORDEM_CAMPOS, validarCheckin } from './validacao';
 
 describe('lerEntrada', () => {

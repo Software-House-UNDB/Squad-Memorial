@@ -15,7 +15,10 @@ import '@fontsource/montserrat/latin-700.css';
 import '../estilos/tokens.css';
 import './checkin.css';
 
+import { iniciarSentry } from '../config/observabilidade';
 import { Checkin } from './Checkin';
+
+void iniciarSentry('checkin');
 
 createRoot(document.getElementById('raiz')!).render(
   <StrictMode>

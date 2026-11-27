@@ -26,6 +26,7 @@ export function OverlayVideo({ video, comSom, aoFechar }: Props) {
   const [legendas, setLegendas] = useState(true);
 
   // começa a tocar ao abrir (o toque que abriu o overlay libera o autoplay com som)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `video.id` é o gatilho (outro vídeo no mesmo overlay)
   useEffect(() => {
     const el = v.ref.current;
     if (!el) return;

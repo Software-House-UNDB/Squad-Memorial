@@ -140,7 +140,8 @@ o perfil aparece na Sala 06 logo depois do check-in, e a tela avisa isso. As fot
 - com o painel aberto: número no menu e no título da aba, e uma faixa "Chegou 1 item novo" (consulta a cada 30 s, sem recarregar a tela
   nem perder a seleção);
 - por e-mail, com as fotos em anexo e o link do painel, a cada check-in que deixar algo pendente. Vai para os superusuários e o grupo
-  **Administrativo**, no e-mail de cada usuário. Só funciona com `EMAIL_HOST` configurado no `.env` (ver `.env.example`); sem ele, nada é enviado.
+  **Administrativo**, no e-mail de cada usuário. Usa o mesmo `EMAIL_HOST` do código de confirmação do check-in (ver `.env.example`),
+  que é obrigatório.
   Porta 587 usa `EMAIL_USE_TLS=1`; porta 465 usa `EMAIL_USE_SSL=1`. A tela de aprovações diz quantas pessoas recebem o aviso (e avisa se
   ninguém tem e-mail cadastrado) e tem o botão **Enviar e-mail de teste para mim** (para quem pode alterar a configuração), que mostra o erro
   do servidor de e-mail se o envio falhar. Pelo terminal: `docker compose exec backend python manage.py testar_email [destinatário]`.
@@ -152,7 +153,7 @@ Tudo que entrou e saiu do sistema, com busca, filtros por tipo e data, e exporta
 
 | Direção | O que conta |
 |---|---|
-| Entrada | check-in novo ou atualizado, foto enviada, cadastro criado ou alterado (com quem fez), aprovações, login da equipe, login recusado |
+| Entrada | check-in, foto enviada, cadastro criado ou alterado (com quem fez), aprovações, login da equipe, login recusado |
 | Saída | cadastro removido, ex-aluno removido, exportação de dados, aviso por e-mail, logout da equipe |
 
 **Limites:** o conteúdo de exemplo (`carregar_exemplo`) não entra no registro. Do que aconteceu antes da migração `0012`, só
@@ -173,7 +174,7 @@ salas, e o menu do painel mostra só o que cada usuário pode acessar. Para libe
 | `GET alunos/?q=&ano=&decada=1990-1999&pagina=` | busca no diretório (12 por página), recentes primeiro |
 | `GET alunos/<id>/` | perfil, `redes` (lista), fotos **aprovadas**, até 4 colegas da mesma turma e `totalColegas` |
 | `GET checkin/` | textos do formulário (termo e versão, ano inicial) |
-| `POST checkin/` | multipart: `nome, ano, turma, email, instagram, facebook` (ou `redes`), `consentimento, fotos[]` |
+| `POST checkin/` | multipart: `nome, ano, turma, email, instagram, facebook` (ou `redes`), `consentimento`. **Sem `codigo`**: confere os dados e manda o código ao e-mail (202). **Com `codigo`** (e `fotos[]`): grava o check-in (201). Ver [Confirmação do check-in por e-mail](#confirmação-do-check-in-por-e-mail) |
 
 Formatos em `frontend/src/dados/tipos.ts`. URLs de mídia são relativas (`/media/...`).
 
@@ -190,10 +191,31 @@ O perfil devolve `redes: [{rede, rotulo, usuario}]` (com `link` em "outra", só 
 `instagram` e `facebook` no formato antigo, para totens e celulares com o frontend anterior. Painel e admin mostram o rótulo certo
 de cada rede (ex.: "TikTok: tiktok.com/@maria") e editam as redes do ex-aluno. Detalhes: [`docs/passagem-para-o-backend.md`](docs/passagem-para-o-backend.md).
 
-O check-in tem limite de frequência por IP (`CHECKIN_LIMITE_MINUTO=5/min`, `CHECKIN_LIMITE_HORA=30/hour`;
-atrás do túnel use `DJANGO_NUM_PROXIES=2`), campo isca anti-robô, até 3 fotos de 10 MB (verificadas e
-reencodadas, sem EXIF; o nginx aceita até 30 MB só nessa rota) e resposta mínima. Mesmo e-mail + mesmo
-ano atualiza o cadastro em vez de duplicar. O corpo das requisições não é registrado em log.
+O check-in tem limite de frequência por IP (`CHECKIN_LIMITE_MINUTO=10/min`, `CHECKIN_LIMITE_HORA=60/hour`; cada
+check-in são dois envios, então isso dá 5 por minuto; atrás do túnel use `DJANGO_NUM_PROXIES=2`), campo isca anti-robô,
+até 3 fotos de 10 MB (verificadas e reencodadas, sem EXIF; o nginx aceita até 30 MB só nessa rota), resposta mínima e
+confirmação por e-mail (abaixo). O corpo das requisições não é registrado em log.
+
+### Confirmação do check-in por e-mail
+
+**Um check-in por e-mail**, e só de quem tem acesso a ele (`backend/memorial/confirmacao.py`):
+
+1. A pessoa lê o QR Code no totem (o totem só mostra o QR Code; o formulário é no celular), preenche e toca em
+   **Fazer check-in**. O servidor confere os dados e manda um **código de 6 números** para o e-mail. Nada é gravado ainda.
+2. A pessoa digita o código na mesma página. Só então o check-in é gravado e ela aparece na Sala 06 (as fotos vão nesta etapa).
+
+- **E-mail que já tem cadastro**: no lugar do código, a pessoa recebe um e-mail dizendo que o check-in já foi feito e que,
+  para alterar os dados, deve falar com a recepção. A página responde igual nos dois casos, para não revelar quem já visitou
+  o Memorial. Para alterar ou refazer, a equipe edita ou apaga o cadastro no painel (Ex-alunos).
+- **O código** vale 15 minutos (`CHECKIN_CODIGO_MINUTOS`), uma vez só, para 5 tentativas (`CHECKIN_CODIGO_TENTATIVAS`);
+  pedir outro invalida o anterior. Reenvio depois de 60 s (`CHECKIN_CODIGO_INTERVALO`) e até 5 por hora para o mesmo e-mail
+  (`CHECKIN_CODIGO_POR_HORA`). O banco guarda só o hash do código, e os pedidos somem depois de 1 dia.
+- **E-mail é obrigatório**: sem `EMAIL_HOST` (ou um `EMAIL_BACKEND` que não seja SMTP), o check-in responde "Não conseguimos enviar
+  o código agora… fale com a equipe na recepção". Teste o envio antes de abrir ao público (`manage.py testar_email`) e confira se
+  o código não cai no spam do Gmail e do Outlook.
+- **Desenvolvimento**: com `EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend` (o do `.env.example`) o e-mail, com o
+  código, aparece em `docker compose logs backend`.
+- **Modo demonstração** (Vercel): não há e-mail; o código é `123456`, e a tela avisa.
 
 ## Privacidade (LGPD)
 
@@ -261,7 +283,9 @@ Os dados da Sala 06 (aba Colegas) são de pessoas reais:
     Pinterest, Snapchat, Telegram, Twitch, GitHub, Behance e "Outra rede". A pessoa digita só o usuário (o prefixo do endereço fica fixo) ou cola o link
     inteiro e a rede é reconhecida. Em "Outra rede" vale um endereço curto (`site.com/perfil`, até 94 caracteres, sem `https://`, sem parâmetros);
   - **termo**: aceite com a frase curta e "Ler termo completo" recolhível; sem o termo carregado o envio fica bloqueado (ver Privacidade);
-  - **tela de sucesso**: sem botão de novo check-in (um por celular; a regra de e-mail + ano repetido continua no servidor); mostra a orientação
+  - **confirmação**: depois de "Fazer check-in", a tela pede o código de 6 números enviado ao e-mail, com "Enviar outro código" (após 60 s)
+    e "Corrigir os dados" (volta ao formulário preenchido). Ver [Confirmação do check-in por e-mail](#confirmação-do-check-in-por-e-mail);
+  - **tela de sucesso**: sem botão de novo check-in (um por e-mail, regra do servidor); mostra a orientação
     para começar pela Sala 01 e a lista das 6 salas;
   - **envio**: tempo limite de 60 s com mensagem própria, mensagem clara para o limite de envios (429), aviso "Preparando suas fotos…" ao reduzir as fotos,
     atributos de teclado nos campos (e-mail, link, nome) e Ano e Turma alinhados lado a lado.
@@ -304,8 +328,52 @@ URL=http://localhost:8080/ npm run test:e2e   # em 1600 × 900 e 1920 × 1080 (p
 ```
 
 O e2e faz um check-in de teste por execução ("Teste E2E …", e-mail `@exemplo.invalid`); apague-os no
-admin quando quiser. No check-in ele confere a validação do nome, escolhe o TikTok (rede guardada com prefixo) e confirma que o perfil aparece
+admin quando quiser. O código de confirmação é lido dos e-mails que o backend imprime no log (`EMAIL_BACKEND` do console, como no
+`.env.example`); `EMAILS_CMD` troca o comando que mostra o log (padrão: `docker compose logs --no-log-prefix --since 10m backend`).
+No check-in ele confere a validação do nome, o código errado e o certo, escolhe o TikTok (rede guardada com prefixo) e confirma que o perfil aparece
 na Sala 06 sem recarregar, com a turma e `tiktok.com/@…`; também confere que a API nunca devolve e-mail. As capturas vão para `frontend/.impeccable/review/e2e/`.
+
+### Qualidade de código
+
+```bash
+# backend (pip install -r requirements-dev.txt)
+cd backend
+ruff check .                              # estilo, bugs e segurança (regras do bandit); config em pyproject.toml
+lint-imports                              # contratos de arquitetura (abaixo)
+coverage run manage.py test memorial && coverage report
+
+# frontend
+cd frontend
+npm run lint                              # Biome (só lint; a formatação não é imposta)
+npm run lint:arquitetura                  # dependency-cruiser: contratos em .dependency-cruiser.cjs
+npm run lint:mortos                       # Knip: arquivos, exports e dependências sem uso
+npm run test:coverage                     # Vitest com cobertura (coverage/lcov.info)
+npm run test:mutacao                      # Stryker nas regras de src/dados e src/config (~1 min; relatório em reports/mutation/)
+```
+
+**Contratos de arquitetura.** No backend (`[tool.importlinter]` em `backend/pyproject.toml`): os modelos não importam a
+camada web; a API pública (views, serializers, confirmação do check-in) não importa o painel da equipe; `media.py` não
+depende de modelos nem de views; e o app `memorial` não depende de `config`. No frontend: `dados/` não conhece telas nem
+componentes; `componentes/` não importa telas; o check-in (celular) não importa nada do quiosque nem das telas do totem, e
+o totem não importa o check-in; sem imports circulares e sem arquivo órfão.
+
+**Título do PR.** Segue o padrão Conventional Commits, porque vira a mensagem do squash merge: `tipo(escopo): descrição`,
+ex. `feat(check-in): confirma o e-mail com código`. Tipos: feat, fix, docs, style, refactor, perf, test, build, ci,
+chore, revert. Regras em `frontend/commitlint.config.mjs`; os commits do dia a dia ficam livres.
+
+### Integração contínua (GitHub Actions)
+
+| Workflow | Quando | O que faz |
+|---|---|---|
+| `backend.yml` | push em main/feats e todo PR | Ruff, import-linter, `makemigrations --check`, testes no PostgreSQL 16 com cobertura → Codecov (flag `backend`) |
+| `frontend.yml` | push em main/feats e todo PR | TypeScript, Biome, dependency-cruiser, Knip, Vitest com cobertura → Codecov (flag `frontend`), build |
+| `e2e.yml` | push em main/feats e todo PR | Playwright com o conteúdo de exemplo (backend + Vite, código do check-in lido do log); capturas como artefato |
+| `commitlint.yml` | PR aberto ou editado | Título do PR no padrão |
+| `mutacao.yml` | segunda 6h e manual | Stryker; relatório HTML como artefato; falha abaixo de 50% |
+
+Para configurar no GitHub:
+- **Secret `CODECOV_TOKEN`** (Settings → Secrets and variables → Actions): o token do repositório em codecov.io. Sem ele, o envio da cobertura falha sem reprovar a CI. O `codecov.yml` só informa por enquanto: suba para `informational: false` quando quiser exigir cobertura mínima.
+- **Proteção da branch** (Settings → Branches, em `main` e `feats`): marque como obrigatórios os jobs `Lint e arquitetura`, `Testes (PostgreSQL)`, `Lint, arquitetura e código morto`, `Testes unitários e build`, `Playwright` e `Commitlint`.
 
 ## Recomendações para os totens
 
@@ -382,6 +450,32 @@ docker compose -f docker-compose.prod.yml up -d --build  # aplica a 0019
 ```
 
 Se algum texto de um marco ainda for útil, copie-o para o ponto da linha do tempo (Décadas) antes de atualizar.
+
+## Atualizando para o check-in com confirmação por e-mail
+
+A migração `0020` passa a aceitar **um cadastro por e-mail** (antes era um por e-mail e ano). Se o banco já tiver o mesmo
+e-mail em mais de um cadastro, ela para sem mudar nada, lista os cadastros e **o backend não sobe**. Por isso, **antes de
+atualizar**, na versão que está rodando:
+
+```bash
+docker compose -f docker-compose.prod.yml exec backend python manage.py shell -c "from django.db.models import Count; from memorial.models import Aluno; print(list(Aluno.objects.exclude(email='').values_list('email').annotate(n=Count('id')).filter(n__gt=1)))"
+```
+
+Se a lista não vier vazia, escolha qual cadastro de cada e-mail fica e apague os outros no painel (Ex-alunos). Depois:
+
+1. Confira o e-mail no `.env` (`EMAIL_HOST` e os demais): **sem ele, ninguém faz check-in**. Teste com
+   `docker compose -f docker-compose.prod.yml exec backend python manage.py testar_email voce@escola.com.br`.
+2. Se o `.env` tiver `CHECKIN_LIMITE_MINUTO=5/min` e `CHECKIN_LIMITE_HORA=30/hour`, troque para `10/min` e `60/hour`
+   (cada check-in agora são dois envios).
+3. Backup e atualização:
+
+```bash
+sudo scripts/backup.sh
+docker compose -f docker-compose.prod.yml up -d --build  # aplica a 0020
+```
+
+Se a `0020` parar mesmo assim (`docker compose -f docker-compose.prod.yml logs backend` mostra os e-mails repetidos), volte
+para a versão anterior, apague os cadastros que sobram no painel e atualize de novo.
 
 ## Produção (`docker-compose.prod.yml`)
 
@@ -514,6 +608,20 @@ A rede da escola vem de `REDE_INTERNA` no `.env` (faixas separadas por espaço; 
 O nginx decide pelo IP de origem, então o NAT da TI precisa **manter o IP do visitante** (encaminhamento de
 porta/DNAT). Se o firewall trocar a origem pelo próprio IP interno, todo acesso de fora parece interno: teste
 pelo celular no 4G que `https://<domínio>/sala/1` leva ao check-in.
+
+### Sentry (erros e desempenho)
+
+Desligado enquanto o DSN estiver vazio. Crie dois projetos no Sentry, um **Django** e um **React**, e preencha no `.env`:
+`SENTRY_DSN` (backend) e `SENTRY_DSN_FRONTEND` (totem e check-in). O DSN do frontend vai embutido no build, então
+depois de mudá-lo rode `docker compose -f docker-compose.prod.yml build nginx`. `SENTRY_RELEASE` (ex.: `$(git rev-parse --short HEAD)`)
+marca a versão; `SENTRY_TRACES_SAMPLE_RATE` (padrão 0.1) é a fração das requisições medidas em desempenho. No navegador
+a taxa vem de `VITE_SENTRY_TRACES_SAMPLE_RATE` (padrão 0.05); cada evento leva a tag `app` (`totem` ou `checkin`).
+
+**LGPD:** nenhum dado pessoal sai do servidor nem do aparelho. Não vão para o Sentry o corpo das requisições (check-in),
+cookies, cabeçalhos (só user-agent, tipo e tamanho), IP, usuário, a query string das URLs (a busca da Sala 06 leva nomes;
+também nos spans de desempenho), os logs do console nem o que é digitado; e-mails em qualquer texto viram `[e-mail]`.
+Filtros em `backend/config/observabilidade.py` e `frontend/src/config/observabilidade.ts`, com testes nos dois.
+Se o servidor bloquear saída para a internet, libere o host de ingestão do Sentry (`*.ingest.sentry.io`, porta 443).
 
 ### Observações
 

@@ -10,7 +10,7 @@ import { TecladoVirtual } from '../componentes/TecladoVirtual';
 import { quiosque } from '../config/quiosque';
 import type { EstadoBusca } from '../dados/alunos';
 import { decadas, rotuloDecada, trechos } from '../dados/regras';
-import { type Sala } from '../dados/tipos';
+import type { Sala } from '../dados/tipos';
 import type { EstadoTotem } from './estado';
 import { Titulo } from './Moldura';
 
@@ -122,7 +122,7 @@ export function Busca({ sala, estado: st, mudar, busca, anoInicial, aoCheckin }:
       </div>
 
       <div className={['tt-pessoas', busca.defasada && 'is-defasada'].filter(Boolean).join(' ')}>
-        {p && p.resultados.map((a) => (
+        {p?.resultados.map((a) => (
           <button key={a.id} type="button" className="tt-pc tt-cartao" onClick={() => mudar({ visao: 'perfil', perfilId: a.id, teclado: false })}>
             <Avatar nome={a.nome} foto={a.foto} tamanho={54} />
             <span className="tt-pc__txt">

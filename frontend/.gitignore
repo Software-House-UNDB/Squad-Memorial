@@ -1,3 +1,8 @@
 node_modules/
 dist/
 .impeccable/review/
+
+# relatórios de cobertura e de mutação (CI os publica como artefato)
+coverage/
+reports/
+.stryker-tmp/

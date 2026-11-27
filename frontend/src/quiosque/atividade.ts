@@ -10,7 +10,7 @@ let ultimo = performance.now();
 
 function emitir() {
   ultimo = performance.now();
-  ouvintes.forEach((f) => f());
+  for (const f of ouvintes) f();
 }
 
 function instalar() {

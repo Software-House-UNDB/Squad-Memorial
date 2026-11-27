@@ -14,7 +14,7 @@ import { criarVerificadorDeRecarga } from '../quiosque/guardas';
 import { fonte } from './fonte';
 import type { RespostaSala } from './tipos';
 
-export type Conexao = 'carregando' | 'online' | 'offline';
+type Conexao = 'carregando' | 'online' | 'offline';
 
 interface EstadoDados {
   /** Dados aplicados; null enquanto nada foi carregado. */
