@@ -509,6 +509,19 @@ class ConfiguracaoMemorial(Timestamped):
         "vídeos começam com som", default=True,
         help_text="Desligado: os vídeos começam mudos (o visitante liga o som no player).",
     )
+    class ModoCheckin(models.TextChoices):
+        DIRETO = "direto", "Via check-in direto, com aprovação"
+        EMAIL = "email", "Via e-mail, com código de segurança"
+
+    modo_checkin = models.CharField(
+        "aceite de check-ins", max_length=10, choices=ModoCheckin.choices, default=ModoCheckin.DIRETO,
+        help_text=(
+            "<b>Direto</b>: o check-in é gravado assim que o visitante envia o formulário (as fotos, e os perfis se "
+            "“aprovar perfis” estiver ligado, passam pela aprovação). <b>Por e-mail</b>: o visitante recebe um código "
+            "de 6 números no e-mail e só depois de digitá-lo o check-in é gravado. Exige o envio de e-mail funcionando "
+            "no servidor: teste antes com <code>manage.py testar_email</code>."
+        ),
+    )
     aprovar_perfis = models.BooleanField(
         "aprovar perfis antes de aparecer", default=False,
         help_text="Desligado: o perfil aparece na Sala 06 logo após o check-in. As fotos sempre passam por aprovação.",
@@ -542,6 +555,10 @@ class ConfiguracaoMemorial(Timestamped):
     def atual(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+    @property
+    def checkin_por_email(self):
+        return self.modo_checkin == self.ModoCheckin.EMAIL
 
 
 # ---------------------------------------------------------------- entradas e saídas

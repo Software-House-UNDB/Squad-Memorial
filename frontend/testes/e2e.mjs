@@ -296,17 +296,21 @@ for (const [w, h] of TELAS) {
     await cel.getByRole('button', { name: 'TikTok' }).click();
     await cel.locator('[name=rede]').fill('e2e.teste');
     await cel.locator('[name=consentimento]').check();
+    // o modo vem do painel ("Aceite de check-ins"): direto (o padrão) ou por e-mail, com código
+    const porEmail = await cel.evaluate(async () => (await (await fetch('/api/memorial/checkin/')).json()).confirmacaoEmail);
     await cel.getByRole('button', { name: 'Fazer check-in' }).click();
-    // segunda etapa: nada aparece na Sala 06 antes do código do e-mail
-    await cel.getByRole('heading', { name: 'Confirme seu e-mail' }).waitFor();
-    const codigo = await codigoDoEmail(email);
-    const errado = String((Number(codigo) + 1) % 1_000_000).padStart(6, '0');
-    await cel.locator('[name=codigo]').fill(errado);
-    await cel.getByRole('button', { name: 'Confirmar check-in' }).click();
-    await cel.getByText('Código incorreto. Confira o e-mail e tente de novo.').waitFor();
-    await cel.screenshot({ path: `${CAPTURAS}${w}-checkin-codigo.png` });
-    await cel.locator('[name=codigo]').fill(codigo);
-    await cel.getByRole('button', { name: 'Confirmar check-in' }).click();
+    if (porEmail) {
+      // segunda etapa: nada aparece na Sala 06 antes do código do e-mail
+      await cel.getByRole('heading', { name: 'Confirme seu e-mail' }).waitFor();
+      const codigo = await codigoDoEmail(email);
+      const errado = String((Number(codigo) + 1) % 1_000_000).padStart(6, '0');
+      await cel.locator('[name=codigo]').fill(errado);
+      await cel.getByRole('button', { name: 'Confirmar check-in' }).click();
+      await cel.getByText('Código incorreto. Confira o e-mail e tente de novo.').waitFor();
+      await cel.screenshot({ path: `${CAPTURAS}${w}-checkin-codigo.png` });
+      await cel.locator('[name=codigo]').fill(codigo);
+      await cel.getByRole('button', { name: 'Confirmar check-in' }).click();
+    }
     await cel.getByText(/Check-in feito, Teste!/).waitFor();
     await cel.screenshot({ path: `${CAPTURAS}${w}-checkin-celular.png` });
     await cel.context().close();

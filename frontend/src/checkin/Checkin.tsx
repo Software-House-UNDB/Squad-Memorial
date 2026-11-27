@@ -2,8 +2,9 @@
  * Check-in do visitante, no próprio celular: nome, ano, turma, e-mail, uma rede social (opcional),
  * até 3 fotos (opcionais) e a autorização obrigatória. Quem faz check-in aparece na Sala 06 (Alunos).
  *
- * Duas etapas: o formulário manda um código ao e-mail (nada é gravado ainda) e o check-in só é gravado
- * com o código digitado. Até 3 check-ins por e-mail, um por ano: quem já tem o do ano (ou os 3) recebe um aviso no
+ * O modo vem do painel ("Aceite de check-ins"). Direto (o padrão): o envio do formulário grava o check-in.
+ * Por e-mail, duas etapas: o formulário manda um código ao e-mail (nada é gravado ainda) e o check-in só é
+ * gravado com o código digitado. Até 3 check-ins por e-mail, um por ano: quem já tem o do ano (ou os 3) recebe um aviso no
  * lugar do código.
  */
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
@@ -30,6 +31,7 @@ const PADRAO: ConfigCheckin = {
   termoTexto: TERMO_PADRAO,
   termoVersao: '',
   emailContato: '',
+  confirmacaoEmail: false,
 };
 
 export function Checkin() {
@@ -147,6 +149,18 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
     }
     setEnviando(true);
     setErros({});
+    if (!config.confirmacaoEmail) {
+      const r = await fonte.checkinDireto(dados);
+      setEnviando(false);
+      if (r.ok) {
+        aoConcluir(dados.nome.trim().split(/\s+/)[0]);
+        window.scrollTo({ top: 0 });
+      } else {
+        setErros(r.erros);
+        focarPrimeiroErro(r.erros);
+      }
+      return;
+    }
     const r = await fonte.pedirCodigo(dados);
     setEnviando(false);
     if (r.ok) {

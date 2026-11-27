@@ -2,13 +2,20 @@
 import { Icone } from './Icone';
 import { QrCode } from './QrCode';
 
-const PASSOS = [
-  ['Leia o QR Code', 'Com a câmera do seu celular.'],
-  ['Preencha e confirme', 'Seus dados e o código que chega no seu e-mail.'],
-  ['Siga o percurso', 'Seu nome aparece aqui, na Sala 06 (Alunos), para os colegas encontrarem.'],
-] as const;
+const LER = ['Leia o QR Code', 'Com a câmera do seu celular.'] as const;
+const PREENCHER = ['Preencha seus dados', 'Nome, ano, turma e, se quiser, fotos e rede social.'] as const;
+const CONFIRMAR = ['Preencha e confirme', 'Seus dados e o código que chega no seu e-mail.'] as const;
+const SEGUIR = ['Siga o percurso', 'Seu nome aparece aqui, na Sala 06 (Alunos), para os colegas encontrarem.'] as const;
 
-export function OverlayCheckin({ url, aoFechar }: { url: string; aoFechar: () => void }) {
+interface Props {
+  url: string;
+  /** O check-in pede o código do e-mail ("Aceite de check-ins" no painel). */
+  porEmail: boolean;
+  aoFechar: () => void;
+}
+
+export function OverlayCheckin({ url, porEmail, aoFechar }: Props) {
+  const PASSOS = [LER, porEmail ? CONFIRMAR : PREENCHER, SEGUIR];
   const curto = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
   return (
     <div className="m-ov m-ov--checkin" role="dialog" aria-modal="true" aria-labelledby="ck-titulo">

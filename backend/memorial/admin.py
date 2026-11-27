@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.utils.html import format_html
 
 from . import redes as redes_sociais
+from .confirmacao import envio_disponivel
 from .models import (
     Acontecimento,
     Aluno,
@@ -456,13 +457,33 @@ def endereco_checkin(request, config=None):
     return config.url_checkin or request.build_absolute_uri("/check-in/")
 
 
+class ConfiguracaoForm(forms.ModelForm):
+    class Meta:
+        model = ConfiguracaoMemorial
+        fields = "__all__"
+        widgets = {"modo_checkin": forms.RadioSelect}
+
+    def clean_modo_checkin(self):
+        modo = self.cleaned_data["modo_checkin"]
+        if modo == ConfiguracaoMemorial.ModoCheckin.EMAIL and not envio_disponivel():
+            raise forms.ValidationError(
+                "O servidor ainda não tem envio de e-mail configurado (EMAIL_HOST no .env). Sem ele ninguém receberia "
+                "o código e nenhum check-in seria feito. Configure e teste com manage.py testar_email antes."
+            )
+        return modo
+
+
 @admin.register(ConfiguracaoMemorial)
 class ConfiguracaoAdmin(admin.ModelAdmin):
+    form = ConfiguracaoForm
+    radio_fields = {"modo_checkin": admin.VERTICAL}
     readonly_fields = ["qr_code"]
     fieldsets = [
         (None, {"fields": ["nome", "ano_inicial"]}),
         ("Totens", {"fields": ["segundos_inatividade", "segundos_contagem", "segundos_lightbox", "segundos_atualizacao", "videos_com_som"]}),
-        ("Check-in e privacidade", {"fields": ["url_checkin", "qr_code", "aprovar_perfis", "termo_texto", "termo_versao", "email_contato"]}),
+        ("Check-in e privacidade", {"fields": [
+            "modo_checkin", "url_checkin", "qr_code", "aprovar_perfis", "termo_texto", "termo_versao", "email_contato",
+        ]}),
     ]
 
     def has_add_permission(self, request):

@@ -233,6 +233,13 @@ td:nth-child(1), td:nth-child(2), td:nth-child(3) { white-space: nowrap; overflo
 .linha-form + .linha-form { margin-top: 1rem; }
 .campo-form { flex: 1 1 14rem; min-width: 0; max-width: 46rem; }
 .campo-form--icones { flex-basis: 100%; max-width: none; }
+.campo-form--opcoes { flex-basis: 100%; max-width: none; }
+.opcoes { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.25rem 0; }
+.opcao { display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 0.875rem; border: 1px solid var(--linha); border-radius: 6px; cursor: pointer; transition: background-color 150ms ease-out; }
+.opcao:hover { background: var(--areia); }
+.opcao input { flex: none; width: 1.125rem; height: 1.125rem; min-height: 0; margin: 0; padding: 0; accent-color: var(--dourado-texto); }
+.opcao:has(input:checked) { color: var(--dourado-texto); font-weight: 600; background: var(--dourado-fundo); border-color: var(--dourado-texto); }
+.opcao:has(input:focus-visible) { outline: 2px solid var(--dourado-texto); outline-offset: 2px; }
 .campo-form__rotulo { display: block; margin-bottom: 0.25rem; font-size: 0.8125rem; font-weight: 600; }
 .campo-form__valor { font-size: 0.875rem; overflow-wrap: anywhere; }
 .obrigatorio { color: var(--alerta); }

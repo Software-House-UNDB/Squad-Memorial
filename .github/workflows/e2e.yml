@@ -1,5 +1,6 @@
 # Ponta a ponta (Playwright): o sistema inteiro com o conteúdo de exemplo, em 1600 × 900 e 1920 × 1080:
-# as 6 salas, fotos, inatividade, Voltar do Android, busca, perfil e o check-in pelo celular com o código do e-mail.
+# as 6 salas, fotos, inatividade, Voltar do Android, busca, perfil e o check-in pelo celular, nos dois modos do painel
+# (direto e por e-mail, com o código lido do log).
 name: E2E
 
 on:
@@ -58,12 +59,18 @@ jobs:
             sleep 1
           done
           echo "backend ou frontend não subiram"; cat "$RUNNER_TEMP/django.log" "$RUNNER_TEMP/vite.log"; exit 1
-      - name: Testes ponta a ponta
+      - name: Testes ponta a ponta (check-in direto, o padrão)
         working-directory: frontend
         env:
           URL: http://127.0.0.1:5173/
-          EMAILS_CMD: cat ${{ runner.temp }}/django.log
         run: npm run test:e2e
+      - name: Testes ponta a ponta (check-in por e-mail, com código)
+        env:
+          URL: http://127.0.0.1:5173/
+          EMAILS_CMD: cat ${{ runner.temp }}/django.log
+        run: |
+          (cd backend && python manage.py shell -c "from memorial.models import ConfiguracaoMemorial as C; C.objects.filter(pk=C.atual().pk).update(modo_checkin='email')")
+          cd frontend && npm run test:e2e
       - name: Capturas de tela
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

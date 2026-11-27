@@ -39,17 +39,23 @@ const fonteServidor: Fonte = {
   alunos: (f) => buscar<PaginaAlunos>(`/api/memorial/alunos/${parametrosAlunos(f)}`, 8_000),
   aluno: (id) => buscar<AlunoPerfil>(`/api/memorial/alunos/${encodeURIComponent(String(id))}/`, 8_000),
   configCheckin: () => buscar<ConfigCheckin>('/api/memorial/checkin/', 10_000),
-  pedirCodigo: (d) => enviarCheckin(d, '', 30_000),
-  checkin: (d, codigo) => enviarCheckin(d, codigo, 60_000),
+  checkinDireto: (d) => enviarCheckin(d, { fotos: true, esperado: 201 }, 60_000),
+  pedirCodigo: (d) => enviarCheckin(d, { fotos: false, esperado: 202 }, 30_000),
+  checkin: (d, codigo) => enviarCheckin(d, { codigo, fotos: true, esperado: 201 }, 60_000),
 };
 
 export const fonte: Fonte = quiosque.demo ? fonteDemo : fonteServidor;
 
-/**
- * Envia o formulário. Sem código (etapa 1) vão só os textos, para o pedido do código ser rápido;
- * com o código (etapa 2) vão também as fotos.
- */
-async function enviarCheckin(d: DadosCheckin, codigo: string, limiteMs: number): Promise<ResultadoCheckin> {
+interface Envio {
+  codigo?: string;
+  /** No pedido do código (etapa 1) vão só os textos, para ele ser rápido; as fotos vão quando o check-in é gravado. */
+  fotos: boolean;
+  /** 201: check-in gravado. 202: código enviado ao e-mail. */
+  esperado: 201 | 202;
+}
+
+/** Envia o formulário: no check-in direto, na etapa 1 (pedir o código) ou na etapa 2 (com o código). */
+async function enviarCheckin(d: DadosCheckin, { codigo, fotos, esperado }: Envio, limiteMs: number): Promise<ResultadoCheckin> {
   const corpo = new FormData();
   for (const k of ['nome', 'ano', 'email', 'site'] as const) corpo.append(k, d[k]);
   corpo.append('turma', d.turma);
@@ -59,10 +65,8 @@ async function enviarCheckin(d: DadosCheckin, codigo: string, limiteMs: number):
   corpo.append('instagram', redes.instagram);
   corpo.append('facebook', redes.facebook);
   corpo.append('consentimento', d.consentimento ? 'true' : 'false');
-  if (codigo) {
-    corpo.append('codigo', codigo);
-    for (const f of d.fotos) corpo.append('fotos', f, f.name);
-  }
+  if (codigo) corpo.append('codigo', codigo);
+  if (fotos) for (const f of d.fotos) corpo.append('fotos', f, f.name);
   // Sem tempo limite o botão ficaria preso numa internet ruim; 60 s dá folga para 3 fotos no 4G.
   const ctrl = new AbortController();
   const t = window.setTimeout(() => ctrl.abort(), limiteMs);
@@ -77,7 +81,7 @@ async function enviarCheckin(d: DadosCheckin, codigo: string, limiteMs: number):
   } finally {
     window.clearTimeout(t);
   }
-  if (r.status === (codigo ? 201 : 202)) return { ok: true };
+  if (r.status === esperado) return { ok: true };
   if (r.status === 413) return { ok: false, erros: { fotos: 'As fotos passaram do limite. Envie menos fotos ou fotos menores.' } };
   const corpoErro = (await r.json().catch(() => ({}))) as { erros?: ErrosCheckin & { instagram?: string; facebook?: string } };
   if (corpoErro.erros) {

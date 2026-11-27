@@ -82,7 +82,7 @@ def _item(nome, form, obj, dono, readonly):
     if isinstance(widget, forms.CheckboxInput):
         tipo = "check"
     elif isinstance(widget, forms.RadioSelect):
-        tipo = "icone"
+        tipo = "icone" if nome == "icone" else "opcoes"
     elif getattr(widget, "input_type", "") == "color":
         tipo = "cor"
     atual = form.initial.get(nome)  # o que está salvo, mesmo com erro em outro campo do formulário

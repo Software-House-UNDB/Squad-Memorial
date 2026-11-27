@@ -204,9 +204,12 @@ class LimiteCheckinHora(_LimiteCheckin):
 @parser_classes([MultiPartParser, FormParser, JSONParser])
 @throttle_classes([LimiteCheckinMinuto, LimiteCheckinHora])
 def checkin(request):
-    """GET: textos do formulário. POST (multipart): o check-in do visitante, em duas etapas (confirmacao.py).
+    """GET: textos do formulário. POST (multipart): o check-in do visitante.
 
-    Sem `codigo`: confere os dados e manda o código ao e-mail (202). Com `codigo`: grava o check-in (201).
+    O modo vem do painel (Configuração, "Aceite de check-ins"):
+    - direto: o primeiro envio, com as fotos, grava o check-in (201);
+    - por e-mail, em duas etapas (confirmacao.py): sem `codigo`, confere os dados e manda o código ao e-mail
+      (202); com `codigo`, grava o check-in (201).
     As respostas são mínimas e não ecoam nenhum dado enviado.
     """
     config = ConfiguracaoMemorial.atual()
@@ -218,7 +221,7 @@ def checkin(request):
         erros = {campo: str(msgs[0]) for campo, msgs in entrada.errors.items()}
         return Response({"erros": erros}, status=status.HTTP_400_BAD_REQUEST)
     dados = entrada.validated_data
-    etapa_codigo = not dados["codigo"].strip()
+    etapa_codigo = config.checkin_por_email and not dados["codigo"].strip()
 
     # Robôs preenchem o campo isca, que é invisível para pessoas: finge que deu certo e não manda nada.
     if dados["site"].strip():
@@ -238,7 +241,10 @@ def checkin(request):
         if etapa_codigo:
             confirmacao.pedir_codigo(dados["email"], dados["nome"], dados["ano"], config)
             return Response({"ok": True, "codigo": "enviado"}, status=status.HTTP_202_ACCEPTED)
-        confirmacao.confirmar_codigo(dados["email"], dados["codigo"], dados["ano"])
+        if config.checkin_por_email:
+            confirmacao.confirmar_codigo(dados["email"], dados["codigo"], dados["ano"])
+        else:
+            confirmacao.conferir_regras(dados["email"], dados["ano"])
         registrar_checkin(dados, imagens, config, request.build_absolute_uri(reverse("administracao")))
     except confirmacao.Recusado as r:
         return Response({"erros": {r.campo: r.mensagem}}, status=r.status)

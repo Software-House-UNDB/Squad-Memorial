@@ -39,6 +39,7 @@ def montar_config(c: ConfiguracaoMemorial):
         "segundosAtualizacao": c.segundos_atualizacao,
         "videosComSom": c.videos_com_som,
         "urlCheckin": c.url_checkin,
+        "checkinPorEmail": c.checkin_por_email,
     }
 
 
@@ -117,6 +118,8 @@ def montar_config_checkin(c: ConfiguracaoMemorial):
         "termoTexto": c.termo_texto,
         "termoVersao": c.termo_versao,
         "emailContato": c.email_contato,
+        # true: duas etapas (código no e-mail); false: o check-in é gravado no primeiro envio
+        "confirmacaoEmail": c.checkin_por_email,
     }
 
 
