@@ -436,7 +436,7 @@ class CheckinTests(Base):
         self.assertEqual(Aluno.objects.count(), 0)
 
     def test_falha_ao_enviar_o_codigo(self):
-        with mock.patch("memorial.confirmacao.EmailMessage.send", side_effect=OSError("smtp fora")):
+        with mock.patch("django.core.mail.EmailMessage.send", side_effect=OSError("smtp fora")):
             r = self.checkin()
         self.assertEqual(r.status_code, 503)
         self.assertEqual(Aluno.objects.count(), 0)
@@ -925,11 +925,16 @@ class AprovacaoTests(Base):
         self.checkin_foto(2)
         self.assertEqual(sorted(m.to[0] for m in avisos_a_equipe()), ["adm@escola.test", "chefe@escola.test"])
         m = avisos_a_equipe()[0]
-        self.assertEqual(len(m.attachments), 2)
-        self.assertEqual(m.attachments[0][2], "image/jpeg")
+        # logo + 2 fotos dentro da mensagem (Content-ID), mostradas no HTML
+        tipos = [img.get_content_type() for img in m.attachments]
+        self.assertEqual(tipos, ["image/png", "image/jpeg", "image/jpeg"])
+        [(html, _)] = m.alternatives
+        self.assertIn("cid:foto-1", html)
+        self.assertIn("cid:foto-2", html)
         self.assertIn("Maria Clara Souza", m.subject)
         self.assertIn("http://testserver/administracao/", m.body)
-        self.assertNotIn(EMAIL, m.body + m.subject)
+        self.assertIn("http://testserver/administracao/", html)
+        self.assertNotIn(EMAIL, m.body + m.subject + html)
         self.assertTrue(Registro.objects.filter(tipo="aviso_email", direcao="saida").exists())
 
     @override_settings(EMAIL_HOST="smtp.escola.test")
@@ -1400,7 +1405,7 @@ class EmailTesteTests(Base):
         import smtplib
 
         self.client.force_login(self.chefe)
-        with mock.patch("memorial.notificacoes.EmailMessage.send", side_effect=smtplib.SMTPAuthenticationError(535, b"no")):
+        with mock.patch("django.core.mail.EmailMessage.send", side_effect=smtplib.SMTPAuthenticationError(535, b"no")):
             r = self.client.post(self.URL, follow=True)
         self.assertContains(r, "usuário ou senha recusados")
 
@@ -1459,3 +1464,35 @@ class SessaoPainelTests(TestCase):
         u.is_active = False
         u.save()
         self.assertEqual(self.client.get(self.URL).status_code, 403)
+
+
+class EmailVisualTests(TestCase):
+    """E-mails com texto + HTML no visual do agendamento e a logo dentro da mensagem."""
+
+    def test_codigo_em_texto_e_html_com_logo(self):
+        from memorial.emails import montar
+        m = montar("Memorial Dom Bosco: seu código de check-in é 012345", ["a@b.test"], "codigo",
+                   {"primeiro": "Rafael", "codigo": "012345", "minutos": 15, "contato": "memorial@escola.test"},
+                   "Seu código de confirmação é: 012345")
+        [(html, tipo)] = m.alternatives
+        self.assertEqual(tipo, "text/html")
+        self.assertIn("012345", m.body)
+        self.assertIn("012345", html)
+        self.assertIn("Olá, Rafael!", html)
+        self.assertIn('src="cid:logo"', html)
+        self.assertIn("15 minutos", html)
+        self.assertIn("mailto:memorial@escola.test", html)
+        [logo] = m.attachments
+        self.assertEqual(logo["Content-ID"], "<logo>")
+        self.assertEqual(m.mixed_subtype, "related")
+        # a mensagem montada é MIME válido: multipart/related com o alternative e a imagem
+        bruto = m.message()
+        self.assertEqual(bruto.get_content_type(), "multipart/related")
+        self.assertEqual([p.get_content_type() for p in bruto.get_payload()], ["multipart/alternative", "image/png"])
+
+    def test_html_escapa_o_nome(self):
+        from memorial.emails import montar
+        m = montar("x", ["a@b.test"], "codigo", {"primeiro": "<b>Ana</b>", "codigo": "1", "minutos": 15}, "x")
+        [(html, _)] = m.alternatives
+        self.assertIn("&lt;b&gt;Ana&lt;/b&gt;", html)
+        self.assertNotIn("<b>Ana</b>", html)

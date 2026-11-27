@@ -8,6 +8,21 @@
         "value": "montserrat",
         "createdAt": "2026-11-24T15:00:55.115Z",
         "reason": "DESIGN.md (linha 144) define Montserrat como a fonte de texto do Memorial, a mesma do totem; o painel segue o sistema visual"
+      },
+      {
+        "rule": "overused-font",
+        "value": "arial",
+        "createdAt": "2026-11-27T13:19:29.533Z",
+        "reason": "Claude: e-mail HTML precisa de fonte segura (Arial/Georgia); webfonts não carregam na maioria dos clientes de e-mail"
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "backend/memorial/templates/memorial/email/base.html"
+        ],
+        "createdAt": "2026-11-27T13:19:29.541Z",
+        "reason": "Claude: faixa dourada no topo reproduz o e-mail do agendamento que o usuário pediu como referência"
       }
     ]
   }

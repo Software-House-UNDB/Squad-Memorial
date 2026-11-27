@@ -1,0 +1,12 @@
+{% extends "memorial/email/base.html" %}
+{% block previa %}Recebemos um pedido de check-in com este e-mail. Nada foi alterado.{% endblock %}
+{% block chapeu %}Check-in no Memorial{% endblock %}
+{% block titulo %}Olá, {{ primeiro }}!{% endblock %}
+{% block conteudo %}
+  <tr><td style="padding:16px 28px 0;text-align:center">
+    <div style="display:inline-block;background:#F4E9CF;border-radius:20px;padding:6px 14px;font:700 12px Arial,sans-serif;letter-spacing:2px;color:#8C6514">VOCÊ JÁ FEZ CHECK-IN</div>
+  </td></tr>
+  <tr><td style="padding:16px 28px 0;font:15px/1.6 Arial,sans-serif;color:#3F4447;text-align:center">Recebemos um pedido de check-in com este e-mail. {{ explicacao }}, então nada foi alterado.</td></tr>
+  <tr><td style="padding:12px 28px 26px;font:14px/1.6 Arial,sans-serif;color:#5A5F62;text-align:center">Se quiser mudar algum dado do seu cadastro, fale com a equipe na recepção.<br>Não foi você que pediu? Ignore este e-mail.</td></tr>
+{% endblock %}
+{% block rodape %}Memorial Dom Bosco Maria Izabel Rodrigues · Para corrigir ou remover seus dados, fale com a equipe na recepção{% if contato %} ou escreva para <a href="mailto:{{ contato }}" style="color:#8C6514">{{ contato }}</a>{% endif %}.{% endblock %}
