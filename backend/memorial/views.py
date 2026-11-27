@@ -236,9 +236,9 @@ def checkin(request):
 
     try:
         if etapa_codigo:
-            confirmacao.pedir_codigo(dados["email"], dados["nome"], config)
+            confirmacao.pedir_codigo(dados["email"], dados["nome"], dados["ano"], config)
             return Response({"ok": True, "codigo": "enviado"}, status=status.HTTP_202_ACCEPTED)
-        confirmacao.confirmar_codigo(dados["email"], dados["codigo"])
+        confirmacao.confirmar_codigo(dados["email"], dados["codigo"], dados["ano"])
         registrar_checkin(dados, imagens, config, request.build_absolute_uri(reverse("administracao")))
     except confirmacao.Recusado as r:
         return Response({"erros": {r.campo: r.mensagem}}, status=r.status)

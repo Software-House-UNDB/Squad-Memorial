@@ -3,7 +3,8 @@
  * até 3 fotos (opcionais) e a autorização obrigatória. Quem faz check-in aparece na Sala 06 (Alunos).
  *
  * Duas etapas: o formulário manda um código ao e-mail (nada é gravado ainda) e o check-in só é gravado
- * com o código digitado. Um check-in por e-mail: quem já tem cadastro recebe um aviso no lugar do código.
+ * com o código digitado. Até 3 check-ins por e-mail, um por ano: quem já tem o do ano (ou os 3) recebe um aviso no
+ * lugar do código.
  */
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import assinatura from '../assets/memorial/assinatura.png';
@@ -414,8 +415,9 @@ function Confirmacao({ email, aoConfirmar, aoReenviar, aoCorrigir }: PropsConfir
         <button type="button" className="ck-termo__tentar" disabled={enviando} onClick={aoCorrigir}>Corrigir os dados</button>
       </div>
       <p className="ck-conf__nota">
-        Cada e-mail faz um <span className="sem-quebra">check-in</span> só. Se você já fez o seu, vai receber um aviso no
-        lugar do código. Para alterar seus dados, fale com a equipe na recepção.
+        Cada e-mail faz um <span className="sem-quebra">check-in</span> por ano, até 3 (escola e faculdade, por exemplo).
+        Se você já fez o deste ano, vai receber um aviso no lugar do código. Para alterar seus dados, fale com a equipe na
+        recepção.
       </p>
     </form>
   );

@@ -230,11 +230,11 @@ class CheckinTests(Base):
         self.assertEqual(a.consentimento_versao, ConfiguracaoMemorial.atual().termo_versao)
         self.assertEqual(self.get("/api/memorial/alunos/", q="maria clara").json()["total"], 1)
 
-    def test_um_checkin_por_email_e_o_segundo_recebe_aviso(self):
+    def test_mesmo_email_e_ano_recebe_aviso(self):
         self.checkin()
         mail.outbox.clear()
-        # outro ano, nome e maiúsculas: o mesmo e-mail não faz um segundo check-in
-        r = self.checkin(nome="Maria Clara Souza Lima", ano="1999", turma="3º B", email=EMAIL.upper())
+        # outro nome, turma e maiúsculas, mas o mesmo e-mail e ano: não grava um segundo check-in
+        r = self.checkin(nome="Maria Clara Souza Lima", turma="3º B", email=EMAIL.upper())
         self.assertEqual(r.status_code, 202)  # a mesma resposta de um e-mail novo: a página não revela nada
         self.assertEqual(r.json(), {"ok": True, "codigo": "enviado"})
         self.assertEqual(Aluno.objects.count(), 1)
@@ -242,8 +242,38 @@ class CheckinTests(Base):
         [aviso] = mail.outbox
         self.assertEqual(aviso.to, [EMAIL])
         self.assertIn("já fez check-in", aviso.subject)
+        self.assertIn("check-in de 1998", aviso.body)
         self.assertIn("recepção", aviso.body)
         self.assertIsNone(re.search(r"\b\d{6}\b", aviso.subject + aviso.body))  # sem código
+
+    def test_ate_tres_checkins_por_email_em_anos_diferentes(self):
+        # escola e faculdade do grupo, por exemplo: cada check-in de um ano
+        for ano, turma in (("2017", "3º A"), ("2022", "Direito"), ("2024", "Pós")):
+            self.assertEqual(self.checkin(ano=ano, turma=turma).status_code, 201, ano)
+        self.assertEqual(sorted(Aluno.objects.values_list("ano", flat=True)), [2017, 2022, 2024])
+        mail.outbox.clear()
+        r = self.checkin(ano="2025", turma="MBA")
+        self.assertEqual(r.status_code, 202)  # igual a um e-mail novo
+        self.assertEqual(Aluno.objects.count(), 3)
+        [aviso] = mail.outbox
+        self.assertIn("já tem 3 check-ins", aviso.body)
+        self.assertIsNone(re.search(r"\b\d{6}\b", aviso.subject + aviso.body))
+
+    @override_settings(CHECKIN_MAX_POR_EMAIL=1)
+    def test_limite_por_email_configuravel(self):
+        self.assertEqual(self.checkin().status_code, 201)
+        self.assertEqual(self.checkin(ano="2005").status_code, 202)
+        self.assertEqual(Aluno.objects.count(), 1)
+
+    def test_trocar_o_ano_depois_do_codigo_nao_burla_a_regra(self):
+        self.checkin(ano="2017")
+        antes = len(mail.outbox)
+        dados = {"nome": "Maria Clara Souza", "ano": "2018", "turma": "3º A", "email": EMAIL, "consentimento": "true"}
+        self.assertEqual(self.client.post("/api/memorial/checkin/", dados).status_code, 202)
+        codigo = codigo_enviado(EMAIL, antes)  # código pedido para 2018, que ainda não tem check-in
+        r = self.client.post("/api/memorial/checkin/", {**dados, "ano": "2017", "codigo": codigo})
+        self.assertEqual(r.status_code, 409)
+        self.assertEqual(Aluno.objects.count(), 1)
 
     def test_perfil_oculto_continua_oculto(self):
         self.checkin()

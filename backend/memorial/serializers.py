@@ -18,7 +18,7 @@ from .registro import VISITANTE, registrar, sem_registro
 
 
 class JaCadastrado(Exception):
-    """O e-mail do check-in já tem cadastro."""
+    """O e-mail do check-in já tem cadastro neste ano."""
 
 
 def _url(campo):
@@ -251,8 +251,8 @@ class CheckinSerializer(serializers.Serializer):
 def registrar_checkin(dados, imagens, config: ConfiguracaoMemorial, url_painel):
     """Cria o cadastro e guarda as fotos. Só é chamado depois do código confirmado (confirmacao.py).
 
-    Um check-in por e-mail: se o e-mail já tem cadastro, levanta JaCadastrado e nada muda. Alterar um
-    cadastro existente é com a equipe, pelo painel.
+    Um check-in por e-mail e ano: se já existe, levanta JaCadastrado e nada muda (o limite por e-mail é
+    conferido antes, em confirmacao.py). Alterar um cadastro existente é com a equipe, pelo painel.
     """
     agora = timezone.now()
     campos = {
@@ -275,7 +275,7 @@ def registrar_checkin(dados, imagens, config: ConfiguracaoMemorial, url_painel):
             aluno.save()
             redes_sociais.gravar(aluno, dados["redes"])
             fotos = [FotoAluno.objects.create(aluno=aluno, imagem=imagem, ano=dados["ano"]) for imagem in imagens]
-    except IntegrityError:  # o mesmo e-mail gravado por outro pedido ao mesmo tempo
+    except IntegrityError:  # o mesmo e-mail e ano gravados por outro pedido ao mesmo tempo
         raise JaCadastrado from None
     registrar(Registro.Tipo.CHECKIN_NOVO, f"Check-in: {aluno}", autor=VISITANTE, aluno_ref=aluno.pk)
     for _ in imagens:

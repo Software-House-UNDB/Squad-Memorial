@@ -1,8 +1,11 @@
-"""Confirmação do check-in por e-mail: um check-in por e-mail, e só de quem tem acesso a ele.
+"""Confirmação do check-in por e-mail, só de quem tem acesso a ele.
+
+Cada e-mail faz até CHECKIN_MAX_POR_EMAIL check-ins (3): a mesma pessoa pode ter estudado na escola e na faculdade
+do grupo. Cada um é de um ano diferente; para o mesmo e-mail e ano, vale o primeiro.
 
 1. O visitante envia o formulário sem código: os dados são conferidos e um código de 6 dígitos vai para o e-mail.
-   Se o e-mail já tem cadastro, vai no lugar um aviso de que o check-in já foi feito (e de que alterar é com a
-   recepção). A resposta é a mesma nos dois casos, para a página não revelar quem já visitou o Memorial.
+   Se o e-mail já tem check-in nesse ano, ou já chegou ao limite, vai no lugar um aviso (alterar é com a recepção).
+   A resposta é a mesma em todos os casos, para a página não revelar quem já visitou o Memorial.
 2. O visitante envia o formulário de novo, com o código: só então o check-in é gravado.
 
 Nada do formulário fica guardado entre as duas etapas: o celular reenvia tudo. Do código fica só o hash.
@@ -29,7 +32,8 @@ MSG_CODIGO = {
     "expirado": "Este código não vale mais. Toque em “Enviar outro código”.",
     "bloqueado": "Muitas tentativas com este código. Toque em “Enviar outro código”.",
 }
-MSG_JA_CADASTRADO = "Este e-mail já tem check-in no Memorial. Para alterar seus dados, fale com a equipe na recepção."
+MSG_JA_CADASTRADO = "Este e-mail já tem check-in para este ano no Memorial. Para alterar seus dados, fale com a equipe na recepção."
+MSG_LIMITE = "Este e-mail já chegou ao limite de check-ins no Memorial. Para alterar seus dados, fale com a equipe na recepção."
 MSG_ESPERE = "Já enviamos um código para este e-mail há pouco. Confira a caixa de entrada e o spam, ou espere um pouco para pedir outro."
 MSG_SEM_EMAIL = "Não conseguimos enviar o código agora. Tente de novo em instantes ou fale com a equipe na recepção."
 
@@ -70,15 +74,25 @@ def _enviar(assunto, corpo, email):
         raise Recusado("geral", MSG_SEM_EMAIL, status=503)
 
 
-def pedir_codigo(email, nome, config: ConfiguracaoMemorial):
-    """Etapa 1: manda o código (ou o aviso de cadastro existente). Levanta Recusado se não puder enviar."""
+def impedimento(email, ano):
+    """Por que este e-mail não pode fazer este check-in: "ano" (já tem nesse ano), "limite" (já tem o máximo) ou None."""
+    feitos = Aluno.objects.filter(email=email)
+    if feitos.filter(ano=ano).exists():
+        return "ano"
+    if feitos.count() >= settings.CHECKIN_MAX_POR_EMAIL:
+        return "limite"
+    return None
+
+
+def pedir_codigo(email, nome, ano, config: ConfiguracaoMemorial):
+    """Etapa 1: manda o código (ou o aviso de que não dá). Levanta Recusado se não puder enviar."""
     if not envio_disponivel():
         log.error("Check-in sem confirmação possível: configure o envio de e-mail (EMAIL_HOST).")
         raise Recusado("geral", MSG_SEM_EMAIL, status=503)
     agora = timezone.now()
     ConfirmacaoEmail.objects.filter(criado_em__lt=agora - timedelta(days=1)).delete()  # faxina
 
-    # Os limites valem igual para e-mail novo e já cadastrado: a resposta não pode diferenciar os dois.
+    # Os limites de envio valem igual para todo e-mail: a resposta não pode diferenciar quem já tem cadastro.
     recentes = ConfirmacaoEmail.objects.filter(email=email, criado_em__gte=agora - timedelta(hours=1))
     ultimo = recentes.first()
     if ultimo and ultimo.criado_em > agora - timedelta(seconds=settings.CHECKIN_CODIGO_INTERVALO):
@@ -87,7 +101,7 @@ def pedir_codigo(email, nome, config: ConfiguracaoMemorial):
         raise Recusado("geral", MSG_ESPERE, status=429)
 
     codigo = f"{secrets.randbelow(1_000_000):06d}"
-    ja_cadastrado = Aluno.objects.filter(email=email).exists()
+    motivo = impedimento(email, ano)
     with transaction.atomic():
         # Um código por vez: pedir outro invalida os anteriores.
         ConfirmacaoEmail.objects.filter(email=email, usado_em__isnull=True).update(expira_em=agora)
@@ -97,12 +111,17 @@ def pedir_codigo(email, nome, config: ConfiguracaoMemorial):
         )
 
     primeiro = nome.split(" ")[0]
-    if ja_cadastrado:
+    if motivo:
+        maximo = settings.CHECKIN_MAX_POR_EMAIL
+        explicacao = (
+            f"Este e-mail já tem um check-in de {ano} no Memorial Dom Bosco, e cada e-mail faz um check-in por ano"
+            if motivo == "ano" else
+            f"Este e-mail já tem {maximo} check-ins no Memorial Dom Bosco, o máximo para um mesmo e-mail"
+        )
         _enviar(
             "Memorial Dom Bosco: você já fez check-in",
             f"Olá, {primeiro}.\n\n"
-            "Recebemos um pedido de check-in com este e-mail, mas ele já tem um cadastro no Memorial Dom Bosco. "
-            "Cada e-mail faz um check-in só, então nada foi alterado.\n\n"
+            f"Recebemos um pedido de check-in com este e-mail. {explicacao}, então nada foi alterado.\n\n"
             "Se quiser mudar algum dado do seu cadastro, fale com a equipe na recepção.\n\n" + _rodape(config),
             email,
         )
@@ -117,7 +136,7 @@ def pedir_codigo(email, nome, config: ConfiguracaoMemorial):
         )
 
 
-def confirmar_codigo(email, codigo):
+def confirmar_codigo(email, codigo, ano):
     """Etapa 2: o código confere? Marca como usado. Levanta Recusado se não.
 
     O cadastro existente só é verificado depois do código certo: antes disso, a resposta revelaria
@@ -143,5 +162,6 @@ def confirmar_codigo(email, codigo):
             conf.save(update_fields=["usado_em"])
     if erro:
         raise Recusado("codigo", MSG_CODIGO[erro])
-    if Aluno.objects.filter(email=email).exists():  # cadastrado entre as duas etapas
-        raise Recusado("geral", MSG_JA_CADASTRADO, status=409)
+    motivo = impedimento(email, ano)  # cadastrado entre as duas etapas, ou o ano trocado depois do código
+    if motivo:
+        raise Recusado("geral", MSG_JA_CADASTRADO if motivo == "ano" else MSG_LIMITE, status=409)
