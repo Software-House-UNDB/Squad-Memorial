@@ -247,6 +247,13 @@ class CheckinDiretoTests(Base):
         modo_email()
         self.assertIs(self.client.get("/api/memorial/checkin/").json()["confirmacaoEmail"], True)
 
+    def test_config_diz_se_o_perfil_passa_por_aprovacao_e_a_validade_do_codigo(self):
+        cfg = self.client.get("/api/memorial/checkin/").json()
+        self.assertIs(cfg["aprovarPerfis"], False)
+        self.assertEqual(cfg["codigoMinutos"], 15)
+        ConfiguracaoMemorial.objects.update(aprovar_perfis=True)
+        self.assertIs(self.client.get("/api/memorial/checkin/").json()["aprovarPerfis"], True)
+
     def test_mesmas_regras_de_email_e_ano_e_limite(self):
         self.assertEqual(self.checkin(ano="2017").status_code, 201)
         r = self.checkin(ano="2017", nome="Outra Pessoa Qualquer")
