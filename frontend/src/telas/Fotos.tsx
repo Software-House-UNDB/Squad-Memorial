@@ -1,12 +1,14 @@
 /**
  * Aba Fotos: à esquerda os períodos de 5 anos (só os que têm foto, calculados pelo ano de cada
- * foto); à direita o período em grade de 4 × 2 polaroides, com setas de página.
+ * foto); à direita o período em grade de 4 × 2 polaroides, com setas de página. Arrastar a grade para os
+ * lados também passa a página.
  */
 import { useEffect, useRef } from 'react';
 import { Icone } from '../componentes/Icone';
 import { Polaroide } from '../componentes/Polaroide';
 import type { Periodo } from '../dados/regras';
 import type { Foto } from '../dados/tipos';
+import { useArrastarLados } from '../quiosque/arrastar';
 
 export const FOTOS_POR_PAGINA = 8;
 
@@ -22,6 +24,11 @@ interface Props {
 
 export function Fotos({ periodos, periodo, pagina, icone, aoPeriodo, aoPagina, aoAbrir }: Props) {
   const lista = useRef<HTMLDivElement>(null);
+  const paginasDoPeriodo = periodo ? Math.max(1, Math.ceil(periodo.fotos.length / FOTOS_POR_PAGINA)) : 1;
+  const arrastar = useArrastarLados((d) => {
+    const alvo = Math.min(pagina, paginasDoPeriodo - 1) + d;
+    if (alvo >= 0 && alvo < paginasDoPeriodo) aoPagina(alvo);
+  });
 
   // mantém o período escolhido à vista na lista que rola
   // biome-ignore lint/correctness/useExhaustiveDependencies: o período é o gatilho; a posição vem do DOM
@@ -72,7 +79,7 @@ export function Fotos({ periodos, periodo, pagina, icone, aoPeriodo, aoPagina, a
             </button>
           </span>
         </header>
-        <div className="tt-galeria__grade">
+        <div className="tt-galeria__grade" {...arrastar}>
           {itens.map((f, i) => (
             <Polaroide
               key={f.id}

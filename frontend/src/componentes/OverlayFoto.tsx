@@ -2,9 +2,9 @@
  * Foto ampliada: fundo escuro, foto grande com moldura branca, setas, "ANO · FOTO i DE n" e Fechar.
  * Deslizar para o lado troca a foto. Sem toque por segundosLightbox (45 s), fecha sozinha.
  */
-import { useRef } from 'react';
 import { quiosque } from '../config/quiosque';
 import type { Foto } from '../dados/tipos';
+import { useArrastarLados } from '../quiosque/arrastar';
 import { useTemporizadorLocal } from '../quiosque/Inatividade';
 import { Icone } from './Icone';
 import { Imagem } from './Imagem';
@@ -20,7 +20,7 @@ interface Props {
 export function OverlayFoto({ fotos, indice, icone, aoMudar, aoFechar }: Props) {
   const foto = fotos[indice];
   const n = fotos.length;
-  const inicio = useRef<{ x: number; y: number } | null>(null);
+  const arrastar = useArrastarLados((d) => aoMudar((indice + d + n) % n));
   useTemporizadorLocal(true, quiosque.inatividade.lightboxMs, aoFechar);
   if (!foto) return null;
   // o banco de exemplo ainda traz "Conteúdo de exemplo" no crédito: essa linha não aparece
@@ -33,18 +33,9 @@ export function OverlayFoto({ fotos, indice, icone, aoMudar, aoFechar }: Props) 
       <button type="button" className="m-ov__fechar" onClick={aoFechar}>
         <Icone nome="x" tamanho={20} /> Fechar
       </button>
-      <div className="m-ov__foto-area">
-        <div
-          className="m-ov__moldura"
-          onPointerDown={(e) => { inicio.current = { x: e.clientX, y: e.clientY }; }}
-          onPointerUp={(e) => {
-            const i = inicio.current;
-            inicio.current = null;
-            if (!i) return;
-            const dx = e.clientX - i.x;
-            if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(e.clientY - i.y)) ir(dx < 0 ? 1 : -1);
-          }}
-        >
+      {/* o arraste vale na área toda, setas incluídas: em pé elas ficam sobre a foto (retrato.css) */}
+      <div className="m-ov__foto-area" {...arrastar}>
+        <div className="m-ov__moldura">
           <Imagem key={foto.id} src={foto.src} alt={foto.alt || foto.legenda} semente={foto.id} icone={icone(foto)} tamanhoIcone={120} prioridade />
         </div>
         {n > 1 && (
