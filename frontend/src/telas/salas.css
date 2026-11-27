@@ -114,7 +114,8 @@
 .tt-galeria__cab h2 { font-size: 38px; font-weight: 700; line-height: 1; color: var(--grafite); }
 .tt-galeria__cont { font-size: var(--t-apoio); color: var(--suave-2); }
 .tt-galeria__setas { margin-left: auto; display: flex; gap: 12px; }
-.tt-galeria__grade { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 22px; padding: 2px 4px 6px; }
+/* touch-action: arrastar para os lados passa a página (Fotos.tsx) sem o navegador ficar com o gesto */
+.tt-galeria__grade { touch-action: pan-y; flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 22px; padding: 2px 4px 6px; }
 
 /* ---------- Vídeos ---------- */
 .tt-videos { display: flex; gap: 28px; margin-top: 22px; height: calc(552px + var(--cresce, 0px)); }
