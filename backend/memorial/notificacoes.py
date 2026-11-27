@@ -8,9 +8,10 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.mail import EmailMessage, get_connection
+from django.core.mail import get_connection
 from django.db.models import Q
 
+from .emails import montar
 from .models import Aluno, Registro
 from .registro import SISTEMA, registrar
 
@@ -57,7 +58,7 @@ def enviar_teste(para, url_painel):
         f"Painel: {url_painel}\n"
     )
     try:
-        enviados = EmailMessage("Memorial: e-mail de teste", corpo, to=[para]).send()
+        enviados = montar("Memorial: e-mail de teste", [para], "teste", {"url_painel": url_painel}, corpo).send()
     except Exception as exc:
         log.warning("E-mail de teste não enviado: %s", exc.__class__.__name__)
         raise ErroEmail(_explicar(exc)) from exc
@@ -92,13 +93,18 @@ def avisar_equipe(aluno, fotos, novo, url_painel):
         f"Nada aparece nos totens antes da aprovação. Aprove ou recuse em:\n{url_painel}\n"
     )
     try:
-        anexos = []
-        for i, foto in enumerate(fotos, start=1):
+        imagens = []
+        for foto in fotos:
             with foto.miniatura.open("rb") as arquivo:
-                anexos.append((f"foto-{i}.jpg", arquivo.read(), "image/jpeg"))
+                imagens.append(arquivo.read())
+        contexto = {
+            "nome": aluno.nome, "pendencias": " e ".join(pendencias), "url_painel": url_painel,
+            "linhas": [("Ano", aluno.ano), ("Turma", aluno.turma), ("Para aprovar", " e ".join(pendencias))],
+        }
         conexao = get_connection()
         mensagens = [
-            EmailMessage(f"Memorial: aprovação pendente de {aluno.nome}", corpo, to=[e], attachments=anexos, connection=conexao)
+            montar(f"Memorial: aprovação pendente de {aluno.nome}", [e], "aviso_equipe", contexto, corpo,
+                   fotos=imagens, connection=conexao)
             for e in para
         ]
         enviados = conexao.send_messages(mensagens) or 0

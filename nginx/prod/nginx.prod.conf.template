@@ -48,6 +48,9 @@ map $request_method $chave_login {
     default "";
 }
 limit_req_zone $chave_login zone=login:10m rate=10r/m;
+# Check-in: cada envio pode mandar um código por e-mail. O limite por e-mail fica no Django (1 por minuto, 5 por
+# hora); este, por IP, impede que alguém peça códigos para muitos e-mails e esgote a cota diária do Gmail.
+limit_req_zone $chave_login zone=checkin:10m rate=20r/m;
 
 # Sem servidor de versão no cabeçalho e nas páginas de erro
 server_tokens off;
@@ -135,6 +138,8 @@ server {
     # ---------- Django ----------
     # Check-in pelo celular: até 3 fotos de 10 MB cada.
     location = /api/memorial/checkin/ {
+        limit_req zone=checkin burst=10 nodelay;
+        limit_req_status 429;
         client_max_body_size 30m;
         proxy_pass http://backend;
         proxy_read_timeout 120s;
