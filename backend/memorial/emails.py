@@ -47,6 +47,6 @@ def montar(assunto, para, modelo, contexto, texto, fotos=(), connection=None, re
     msg.attach_alternative(html, "text/html")
     msg.mixed_subtype = "related"  # texto/HTML e as imagens que o HTML referencia formam uma só mensagem
     msg.attach(_imagem("logo", _logo(), "png"))
-    for cid, dados in zip(ctx["fotos_cids"], fotos):
+    for cid, dados in zip(ctx["fotos_cids"], fotos, strict=True):
         msg.attach(_imagem(cid, dados, "jpeg"))
     return msg
