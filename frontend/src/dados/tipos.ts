@@ -182,6 +182,10 @@ export interface ConfigCheckin {
    * false (o padrão): o check-in é gravado no primeiro envio.
    */
   confirmacaoEmail: boolean;
+  /** true: o perfil só aparece na Sala 06 depois da aprovação da equipe. As fotos sempre passam por ela. */
+  aprovarPerfis?: boolean;
+  /** Validade do código de confirmação, em minutos (CHECKIN_CODIGO_MINUTOS). */
+  codigoMinutos?: number;
 }
 
 export interface DadosCheckin {

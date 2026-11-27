@@ -7,6 +7,7 @@ Regra de privacidade: nada aqui lê `email`, IP ou dados de consentimento de um 
 import json
 import re
 
+from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework import serializers
@@ -120,6 +121,10 @@ def montar_config_checkin(c: ConfiguracaoMemorial):
         "emailContato": c.email_contato,
         # true: duas etapas (código no e-mail); false: o check-in é gravado no primeiro envio
         "confirmacaoEmail": c.checkin_por_email,
+        # true: o perfil só aparece na Sala 06 depois da aprovação (a tela final avisa)
+        "aprovarPerfis": c.aprovar_perfis,
+        # validade do código: o celular reaproveita o código já enviado se o visitante só corrigir os dados
+        "codigoMinutos": settings.CHECKIN_CODIGO_MINUTOS,
     }
 
 
