@@ -21,6 +21,12 @@ import { MAX_FOTOS, ORDEM_CAMPOS, validarCheckin } from '../dados/validacao';
 import { FolhaRedes } from './FolhaRedes';
 import { reduzirFoto } from './reduzir';
 
+/** O que a tela final precisa saber do check-in que acabou de ser gravado. */
+interface Feito {
+  nome: string;
+  fotos: number;
+}
+
 const VAZIO: DadosCheckin = {
   nome: '', ano: '', turma: '', email: '', rede: '', usuario: '', consentimento: false, fotos: [], site: '',
 };
@@ -32,13 +38,15 @@ const PADRAO: ConfigCheckin = {
   termoVersao: '',
   emailContato: '',
   confirmacaoEmail: false,
+  aprovarPerfis: false,
+  codigoMinutos: 15,
 };
 
 export function Checkin() {
   const [config, setConfig] = useState<ConfigCheckin>(PADRAO);
   /** O termo mostrado é o do servidor? Com o texto de reserva (PADRAO) o servidor gravaria outra versão. */
   const [termo, setTermo] = useState<'carregando' | 'ok' | 'falhou'>('carregando');
-  const [feito, setFeito] = useState<string | null>(null);
+  const [feito, setFeito] = useState<Feito | null>(null);
 
   const carregarTermo = () => {
     setTermo('carregando');
@@ -61,7 +69,7 @@ export function Checkin() {
       )}
       <main className="ck-corpo">
         {feito !== null ? (
-          <Sucesso nome={feito} />
+          <Sucesso {...feito} aprovarPerfis={!!config.aprovarPerfis} />
         ) : (
           <Formulario config={config} termo={termo} aoRecarregarTermo={carregarTermo} aoConcluir={setFeito} />
         )}
@@ -79,7 +87,7 @@ interface PropsFormulario {
   config: ConfigCheckin;
   termo: 'carregando' | 'ok' | 'falhou';
   aoRecarregarTermo: () => void;
-  aoConcluir: (nome: string) => void;
+  aoConcluir: (feito: Feito) => void;
 }
 
 function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormulario) {
@@ -95,6 +103,13 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
   const [folha, setFolha] = useState(false);
   /** Depois do envio do formulário: a tela do código. Os dados continuam aqui, para a segunda etapa. */
   const [confirmando, setConfirmando] = useState(false);
+  /**
+   * O código já enviado: vale para o e-mail, não para os dados. Se o visitante tocar em "Corrigir os dados" e
+   * mantiver o e-mail, a tela volta ao campo do código em vez de pedir outro (o servidor recusaria um novo
+   * pedido antes de 1 minuto, e o visitante ficaria preso no formulário).
+   */
+  const codigoPedido = useRef<{ email: string; em: number } | null>(null);
+  const [avisoCodigo, setAvisoCodigo] = useState('');
   const idRede = useId();
   const rede = d.rede ? redePorId(d.rede) : null;
 
@@ -153,7 +168,7 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
       const r = await fonte.checkinDireto(dados);
       setEnviando(false);
       if (r.ok) {
-        aoConcluir(dados.nome.trim().split(/\s+/)[0]);
+        aoConcluir({ nome: dados.nome.trim().split(/\s+/)[0], fotos: dados.fotos.length });
         window.scrollTo({ top: 0 });
       } else {
         setErros(r.erros);
@@ -161,9 +176,21 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
       }
       return;
     }
+    const email = dados.email.trim().toLowerCase();
+    const pedido = codigoPedido.current;
+    const validadeMs = ((config.codigoMinutos ?? 15) - 1) * 60_000; // 1 minuto de folga para digitar
+    if (pedido && pedido.email === email && Date.now() - pedido.em < validadeMs) {
+      setEnviando(false);
+      setAvisoCodigo('Dados corrigidos. Use o mesmo código que enviamos para este e-mail.');
+      setConfirmando(true);
+      window.scrollTo({ top: 0 });
+      return;
+    }
     const r = await fonte.pedirCodigo(dados);
     setEnviando(false);
     if (r.ok) {
+      codigoPedido.current = { email, em: Date.now() };
+      setAvisoCodigo('');
       setConfirmando(true);
       window.scrollTo({ top: 0 });
     } else {
@@ -175,7 +202,7 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
   const confirmar = async (codigo: string): Promise<ResultadoCheckin> => {
     const r = await fonte.checkin(d, codigo);
     if (r.ok) {
-      aoConcluir(d.nome.trim().split(/\s+/)[0]);
+      aoConcluir({ nome: d.nome.trim().split(/\s+/)[0], fotos: d.fotos.length });
       window.scrollTo({ top: 0 });
     }
     return r;
@@ -183,7 +210,13 @@ function Formulario({ config, termo, aoRecarregarTermo, aoConcluir }: PropsFormu
 
   if (confirmando) {
     return (
-      <Confirmacao email={d.email.trim()} aoConfirmar={confirmar} aoReenviar={() => fonte.pedirCodigo(d)}
+      <Confirmacao email={d.email.trim()} aoConfirmar={confirmar} avisoInicial={avisoCodigo}
+        esperaInicial={Math.max(0, ESPERA_REENVIO - Math.floor((Date.now() - (codigoPedido.current?.em ?? Date.now())) / 1000))}
+        aoReenviar={async () => {
+          const r = await fonte.pedirCodigo(d);
+          if (r.ok) codigoPedido.current = { email: d.email.trim().toLowerCase(), em: Date.now() };
+          return r;
+        }}
         aoCorrigir={() => { setConfirmando(false); window.scrollTo({ top: 0 }); }} />
     );
   }
@@ -338,18 +371,22 @@ const ESPERA_REENVIO = 60; // segundos, como o servidor (CHECKIN_CODIGO_INTERVAL
 
 interface PropsConfirmacao {
   email: string;
+  /** Mensagem ao abrir a tela (ex.: voltou de "Corrigir os dados" e o código continua valendo). */
+  avisoInicial?: string;
+  /** Segundos até liberar "Enviar outro código", contados desde o último envio. */
+  esperaInicial?: number;
   aoConfirmar: (codigo: string) => Promise<ResultadoCheckin>;
   aoReenviar: () => Promise<ResultadoCheckin>;
   aoCorrigir: () => void;
 }
 
 /** Segunda etapa: o código de 6 números que chegou no e-mail. */
-function Confirmacao({ email, aoConfirmar, aoReenviar, aoCorrigir }: PropsConfirmacao) {
+function Confirmacao({ email, avisoInicial = '', esperaInicial = ESPERA_REENVIO, aoConfirmar, aoReenviar, aoCorrigir }: PropsConfirmacao) {
   const [codigo, setCodigo] = useState('');
   const [erros, setErros] = useState<{ codigo?: string; geral?: string }>({});
-  const [aviso, setAviso] = useState('');
+  const [aviso, setAviso] = useState(avisoInicial);
   const [enviando, setEnviando] = useState(false);
-  const [espera, setEspera] = useState(ESPERA_REENVIO);
+  const [espera, setEspera] = useState(esperaInicial);
   const titulo = useRef<HTMLHeadingElement>(null);
   const campo = useRef<HTMLInputElement>(null);
 
@@ -430,7 +467,7 @@ function Confirmacao({ email, aoConfirmar, aoReenviar, aoCorrigir }: PropsConfir
       </div>
       <p className="ck-conf__nota">
         Cada e-mail faz um <span className="sem-quebra">check-in</span> por ano, até 3 (escola e faculdade, por exemplo).
-        Se você já fez o deste ano, vai receber um aviso no lugar do código. Para alterar seus dados, fale com a equipe na
+        Se este e-mail já fez o deste ano, ou já tem 3, você recebe um aviso no lugar do código. Para alterar seus dados, fale com a equipe na
         recepção.
       </p>
     </form>
@@ -479,14 +516,26 @@ function Miniatura({ arquivo, aoRemover }: { arquivo: File; aoRemover: () => voi
   );
 }
 
-function Sucesso({ nome }: { nome: string }) {
+/** Onde e quando o visitante vai se ver: com "aprovar perfis" ligado, nada aparece antes da equipe aprovar. */
+export function textoSucesso(aprovarPerfis: boolean, fotos: number): string {
+  if (aprovarPerfis) {
+    return fotos
+      ? 'Seu perfil e suas fotos aparecem na Sala 06 (Alunos) assim que a equipe do Memorial aprovar.'
+      : 'Seu perfil aparece na Sala 06 (Alunos) assim que a equipe do Memorial aprovar.';
+  }
+  return fotos
+    ? 'Na Sala 06 (Alunos), seus colegas já encontram você pelo nome. Suas fotos aparecem depois da aprovação da equipe.'
+    : 'Na Sala 06 (Alunos), seus colegas já encontram você pelo nome.';
+}
+
+function Sucesso({ nome, fotos, aprovarPerfis }: Feito & { aprovarPerfis: boolean }) {
   const titulo = useRef<HTMLHeadingElement>(null);
   useEffect(() => titulo.current?.focus(), []);
   return (
     <div className="ck-ok" role="status">
       <div className="ck-ok__selo"><Icone nome="check" tamanho={48} traco={2.2} cor="var(--dourado)" /></div>
       <h1 className="serif" ref={titulo} tabIndex={-1}>Check-in feito, {nome}!</h1>
-      <p>Na Sala 06 (Alunos), seus colegas encontram você pelo nome.</p>
+      <p>{textoSucesso(aprovarPerfis, fotos)}</p>
       <section className="ck-ok__percurso" aria-labelledby="ck-percurso">
         <h2 id="ck-percurso" className="serif">Comece pela Sala 01 (Fundação)</h2>
         <ol>
