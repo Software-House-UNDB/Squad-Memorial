@@ -26,6 +26,17 @@
               {% if item.bf.help_text %}<p class="ajuda">{{ item.bf.help_text|safe }}</p>{% endif %}
               {% for e in item.bf.errors %}<p class="erro-campo">{{ e }}</p>{% endfor %}
             </div>
+          {% elif item.tipo == 'opcoes' %}
+            <div class="campo-form campo-form--opcoes{% if item.bf.errors %} tem-erro{% endif %}" role="radiogroup" aria-label="{{ item.bf.label|capfirst }}">
+              <span class="campo-form__rotulo">{{ item.bf.label|capfirst }}</span>
+              <div class="opcoes">
+                {% for r in item.bf %}
+                  <label class="opcao">{{ r.tag }} <span>{{ r.choice_label }}</span></label>
+                {% endfor %}
+              </div>
+              {% if item.bf.help_text %}<p class="ajuda">{{ item.bf.help_text|safe }}</p>{% endif %}
+              {% for e in item.bf.errors %}<p class="erro-campo">{{ e }}</p>{% endfor %}
+            </div>
           {% else %}
             <div class="campo-form{% if item.tipo == 'cor' %} campo-form--cor{% endif %}{% if item.bf.errors %} tem-erro{% endif %}">
               <label class="campo-form__rotulo" for="{{ item.bf.id_for_label }}">{{ item.bf.label|capfirst }}{% if item.bf.field.required %} <span class="obrigatorio" title="Obrigatório" aria-label="obrigatório">*</span>{% endif %}</label>

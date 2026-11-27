@@ -82,11 +82,14 @@ def codigo_enviado(email, desde=0):
 
 
 def fazer_checkin(client, dados):
-    """As duas etapas do check-in: pede o código, lê no e-mail e confirma. Devolve a última resposta.
+    """O check-in como o celular faz, no modo do painel. Devolve a última resposta.
 
-    Fotos vão só na segunda etapa, como no celular. Sem código no e-mail (dados inválidos, e-mail já
-    cadastrado, campo isca), devolve a resposta da primeira etapa.
+    Direto: um envio só, com as fotos. Por e-mail: pede o código, lê no e-mail e confirma; as fotos vão só na
+    segunda etapa. Sem código no e-mail (dados inválidos, e-mail já cadastrado, campo isca), devolve a resposta
+    da primeira etapa.
     """
+    if not ConfiguracaoMemorial.atual().checkin_por_email:
+        return client.post("/api/memorial/checkin/", dados)
     sem_fotos = {k: v for k, v in dados.items() if k != "fotos"}
     antes = len(mail.outbox)
     r = client.post("/api/memorial/checkin/", sem_fotos)
@@ -220,7 +223,74 @@ class PrivacidadeTests(Base):
             self.assertNotIn("@x.com", corpo, url)
 
 
+def modo_email():
+    ConfiguracaoMemorial.objects.update_or_create(pk=ConfiguracaoMemorial.atual().pk, defaults={"modo_checkin": "email"})
+
+
+class CheckinDiretoTests(Base):
+    """Check-in direto (o padrão): gravado no primeiro envio, sem código."""
+
+    def test_grava_no_primeiro_envio_com_fotos_e_sem_mandar_codigo(self):
+        r = self.client.post("/api/memorial/checkin/", {
+            "nome": "Maria Clara Souza", "ano": "1998", "turma": "3º A", "email": EMAIL, "consentimento": "true", "fotos": png(),
+        })
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(r.json(), {"ok": True})
+        a = Aluno.objects.get()
+        self.assertEqual(a.fotos.count(), 1)
+        self.assertEqual(a.fotos.get().status, FotoAluno.Status.PENDENTE)  # as fotos sempre passam pela aprovação
+        self.assertEqual([m for m in mail.outbox if m.to == [EMAIL]], [])  # nenhum e-mail ao visitante
+        self.assertFalse(ConfirmacaoEmail.objects.exists())
+
+    def test_config_diz_o_modo_ao_celular(self):
+        self.assertIs(self.client.get("/api/memorial/checkin/").json()["confirmacaoEmail"], False)
+        modo_email()
+        self.assertIs(self.client.get("/api/memorial/checkin/").json()["confirmacaoEmail"], True)
+
+    def test_mesmas_regras_de_email_e_ano_e_limite(self):
+        self.assertEqual(self.checkin(ano="2017").status_code, 201)
+        r = self.checkin(ano="2017", nome="Outra Pessoa Qualquer")
+        self.assertEqual(r.status_code, 409)
+        self.assertIn("já tem check-in para este ano", r.json()["erros"]["geral"])
+        self.assertEqual(self.checkin(ano="2022").status_code, 201)
+        self.assertEqual(self.checkin(ano="2024").status_code, 201)
+        r = self.checkin(ano="2025")
+        self.assertEqual(r.status_code, 409)
+        self.assertIn("limite", r.json()["erros"]["geral"])
+        self.assertEqual(Aluno.objects.count(), 3)
+
+    def test_codigo_enviado_e_ignorado(self):
+        self.assertEqual(self.checkin(codigo="123456").status_code, 201)
+        self.assertEqual(Aluno.objects.count(), 1)
+
+    def test_aprovar_perfis_continua_valendo(self):
+        ConfiguracaoMemorial.objects.filter(pk=ConfiguracaoMemorial.atual().pk).update(aprovar_perfis=True)
+        self.checkin()
+        self.assertEqual(Aluno.objects.get().status, Aluno.Status.PENDENTE)
+
+    def test_trocar_para_email_exige_envio_configurado(self):
+        from django.forms.models import model_to_dict
+
+        from memorial.admin import ConfiguracaoForm
+
+        dados = {k: v for k, v in model_to_dict(ConfiguracaoMemorial.atual()).items() if v is not None}
+        with override_settings(EMAIL_HOST="", EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"):
+            form = ConfiguracaoForm({**dados, "modo_checkin": "email"}, instance=ConfiguracaoMemorial.atual())
+            self.assertFalse(form.is_valid())
+            self.assertIn("EMAIL_HOST", form.errors["modo_checkin"][0])
+            self.assertTrue(ConfiguracaoForm({**dados, "modo_checkin": "direto"}, instance=ConfiguracaoMemorial.atual()).is_valid())
+        with override_settings(EMAIL_HOST="smtp.exemplo.invalid", EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"):
+            form = ConfiguracaoForm({**dados, "modo_checkin": "email"}, instance=ConfiguracaoMemorial.atual())
+            self.assertTrue(form.is_valid(), form.errors)
+
+
 class CheckinTests(Base):
+    """Check-in por e-mail, com código (o modo direto está em CheckinDiretoTests)."""
+
+    def setUp(self):
+        super().setUp()
+        modo_email()
+
     def test_cria_e_aparece_na_sala_5(self):
         r = self.checkin(instagram="@maria.souza")
         self.assertEqual(r.status_code, 201)
@@ -637,7 +707,7 @@ class RegistroTests(Base):
 
     def test_checkin_novo_e_foto(self):
         self.assertEqual(self.checkin(fotos=png()).status_code, 201)
-        self.assertEqual(self.checkin().status_code, 202)  # o mesmo e-mail de novo: não grava nem registra nada
+        self.assertEqual(self.checkin().status_code, 409)  # o mesmo e-mail e ano de novo: não grava nem registra nada
         tipos = list(Registro.objects.order_by("id").values_list("tipo", "direcao", "autor"))
         self.assertEqual(tipos, [("checkin_novo", "entrada", "Visitante"), ("foto_enviada", "entrada", "Visitante")])
 
@@ -1013,6 +1083,13 @@ class GestaoTests(Base):
         self.client.post(url, {"selecionados": [d.pk], "confirmar": "1"})
         self.assertFalse(Decada.objects.filter(pk=d.pk).exists())
         self.assertEqual(self.client.get(url).status_code, 405)
+
+    def test_configuracao_mostra_o_aceite_de_checkins_como_opcoes(self):
+        html = self.client.get(f"{self.BASE}/configuracao/{ConfiguracaoMemorial.atual().pk}/").content.decode()
+        self.assertIn("campo-form--opcoes", html)
+        self.assertIn("Via check-in direto, com aprovação", html)
+        self.assertIn("Via e-mail, com código de segurança", html)
+        self.assertRegex(html, r'type="radio" name="modo_checkin" value="direto"[^>]*checked')
 
     def test_configuracao_abre_direto_e_nao_apaga(self):
         r = self.client.get(f"{self.BASE}/configuracao/", follow=True)

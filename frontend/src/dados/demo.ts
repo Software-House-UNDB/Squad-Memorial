@@ -14,7 +14,7 @@ import { corresponde, normalizar } from './regras';
 import { SALAS_PADRAO } from './salas';
 import type {
   AlunoPerfil, AlunoResumo, ConfigCheckin, ConfigMemorial, DadosCheckin, Decada, FiltroAlunos,
-  Fonte, Foto, PaginaAlunos, RespostaSala, Video,
+  Fonte, Foto, PaginaAlunos, RespostaSala, ResultadoCheckin, Video,
 } from './tipos';
 import { empacotar, normalizarRede } from './redes';
 import { TERMO_PADRAO } from './termo';
@@ -75,6 +75,7 @@ const CONFIG: ConfigMemorial = {
   segundosAtualizacao: 300,
   videosComSom: true,
   urlCheckin: '',
+  checkinPorEmail: false,
 };
 
 /** Mesma regra do protótipo (photosFor) e do backend (carregar_exemplo.fotos_do_periodo). */
@@ -221,7 +222,10 @@ export const fonteDemo: Fonte = {
 
   configCheckin: async (): Promise<ConfigCheckin> => ({
     anoInicial: ANO_INICIAL, anoAtual: anoAtual(), termoTexto: TERMO_DEMO, termoVersao: '1.0', emailContato: '',
+    confirmacaoEmail: false, // como o padrão do servidor (check-in direto)
   }),
+
+  checkinDireto: async (d: DadosCheckin) => gravarLocal(d),
 
   // Sem servidor, não há e-mail: o código é sempre CODIGO_DEMO, e a tela de confirmação o mostra.
   async pedirCodigo(d: DadosCheckin) {
@@ -237,26 +241,34 @@ export const fonteDemo: Fonte = {
     if (codigo.replace(/\D/g, '') !== CODIGO_DEMO) {
       return { ok: false as const, erros: { codigo: 'Código incorreto. Confira o e-mail e tente de novo.' } };
     }
-    const email = d.email.trim().toLowerCase();
-    const ano = Number(d.ano);
-    // Mesma regra do servidor: um check-in por e-mail e ano, até 3 por e-mail.
-    const doEmail = checkinsLocais().filter((a) => a.email === email);
-    if (doEmail.some((a) => a.ano === ano)) {
-      return { ok: false as const, erros: { geral: 'Este e-mail já tem check-in para este ano no Memorial. Para alterar seus dados, fale com a equipe na recepção.' } };
-    }
-    if (doEmail.length >= 3) {
-      return { ok: false as const, erros: { geral: 'Este e-mail já chegou ao limite de check-ins no Memorial. Para alterar seus dados, fale com a equipe na recepção.' } };
-    }
-    const lista = checkinsLocais();
-    // Mesmo empacotamento do envio ao servidor: a rede vai nos campos de sempre.
-    const { rede, usuario } = normalizarRede(d.rede, d.usuario);
-    lista.unshift({
-      id: `n${Date.now()}`, nome: d.nome.trim().replace(/\s+/g, ' '), ano, turma: d.turma.replace(/\s+/g, ' ').trim(), foto: null,
-      checkinEm: new Date().toISOString(), novo: true, email,
-      ...empacotar(rede, usuario),
-      fotos: [], // fotos só aparecem depois da aprovação da equipe
-    });
-    localStorage.setItem(CHAVE_CHECKINS, JSON.stringify(lista.slice(0, 50)));
-    return { ok: true as const };
+    return gravarLocal(d);
   },
 };
+
+/** Grava o check-in neste navegador, com as mesmas regras do servidor. */
+function gravarLocal(d: DadosCheckin): ResultadoCheckin {
+  const erros = validarCheckin(d, ANO_INICIAL, anoAtual());
+  if (Object.keys(erros).length) return { ok: false, erros };
+  if (d.site.trim()) return { ok: true };
+  const email = d.email.trim().toLowerCase();
+  const ano = Number(d.ano);
+  // Mesma regra do servidor: um check-in por e-mail e ano, até 3 por e-mail.
+  const doEmail = checkinsLocais().filter((a) => a.email === email);
+  if (doEmail.some((a) => a.ano === ano)) {
+    return { ok: false, erros: { geral: 'Este e-mail já tem check-in para este ano no Memorial. Para alterar seus dados, fale com a equipe na recepção.' } };
+  }
+  if (doEmail.length >= 3) {
+    return { ok: false, erros: { geral: 'Este e-mail já chegou ao limite de check-ins no Memorial. Para alterar seus dados, fale com a equipe na recepção.' } };
+  }
+  const lista = checkinsLocais();
+  // Mesmo empacotamento do envio ao servidor: a rede vai nos campos de sempre.
+  const { rede, usuario } = normalizarRede(d.rede, d.usuario);
+  lista.unshift({
+    id: `n${Date.now()}`, nome: d.nome.trim().replace(/\s+/g, ' '), ano, turma: d.turma.replace(/\s+/g, ' ').trim(), foto: null,
+    checkinEm: new Date().toISOString(), novo: true, email,
+    ...empacotar(rede, usuario),
+    fotos: [], // fotos só aparecem depois da aprovação da equipe
+  });
+  localStorage.setItem(CHAVE_CHECKINS, JSON.stringify(lista.slice(0, 50)));
+  return { ok: true };
+}

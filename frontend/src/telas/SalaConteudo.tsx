@@ -108,7 +108,7 @@ export function SalaConteudo({ estado: st, mudar, dados }: PropsSala & { dados: 
     const v = videos.find((x) => x.id === ov.id);
     if (v) sobre = <OverlayVideo video={v} comSom={config.videosComSom} aoFechar={() => mudar({ overlay: null })} />;
   } else if (ov?.tipo === 'checkin' && nasColegas) {
-    sobre = <OverlayCheckin url={urlCheckin} aoFechar={() => mudar({ overlay: null })} />;
+    sobre = <OverlayCheckin url={urlCheckin} porEmail={config.checkinPorEmail} aoFechar={() => mudar({ overlay: null })} />;
   }
 
   // o teclado virtual ocupa a parte de baixo: as abas saem de cena enquanto ele está aberto

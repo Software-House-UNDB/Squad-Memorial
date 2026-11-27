@@ -198,6 +198,16 @@ confirmação por e-mail (abaixo). O corpo das requisições não é registrado 
 
 ### Confirmação do check-in por e-mail
 
+**O modo é escolhido no painel**, em Configuração → Check-in e privacidade → **Aceite de check-ins**:
+- **Via check-in direto, com aprovação** (o padrão): o check-in é gravado assim que o visitante envia o formulário, com as
+  fotos. As fotos sempre passam pela aprovação, e os perfis também se "Aprovar perfis antes de aparecer" estiver ligado.
+  As regras de e-mail valem igual: no mesmo e-mail e ano, ou depois de 3, a página responde que o e-mail já tem check-in.
+- **Via e-mail, com código de segurança**: o fluxo abaixo. O painel só deixa escolher este modo se o servidor tiver envio
+  de e-mail configurado (`EMAIL_HOST`). Antes de ligar, confirme que o envio funciona de verdade com
+  `manage.py testar_email voce@escola.com.br`: com o SMTP recusando, ninguém consegue fazer check-in.
+
+O celular e o texto do QR Code no totem seguem o modo sozinhos (o totem em até `segundos_atualizacao`).
+
 **Até 3 check-ins por e-mail, um por ano**, e só de quem tem acesso a ele (`backend/memorial/confirmacao.py`). A mesma pessoa
 pode ter estudado na escola e na faculdade do grupo; o limite muda em `CHECKIN_MAX_POR_EMAIL`.
 

@@ -162,6 +162,15 @@ def confirmar_codigo(email, codigo, ano):
             conf.save(update_fields=["usado_em"])
     if erro:
         raise Recusado("codigo", MSG_CODIGO[erro])
-    motivo = impedimento(email, ano)  # cadastrado entre as duas etapas, ou o ano trocado depois do código
+    conferir_regras(email, ano)  # cadastrado entre as duas etapas, ou o ano trocado depois do código
+
+
+def conferir_regras(email, ano):
+    """Um check-in por e-mail e ano, até CHECKIN_MAX_POR_EMAIL. Levanta Recusado (409) se não pode.
+
+    No check-in direto (sem código) é a única conferência: a mensagem diz que o e-mail já tem check-in, porque
+    sem o código não há como avisar só o dono do e-mail.
+    """
+    motivo = impedimento(email, ano)
     if motivo:
         raise Recusado("geral", MSG_JA_CADASTRADO if motivo == "ano" else MSG_LIMITE, status=409)

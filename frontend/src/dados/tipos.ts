@@ -33,6 +33,8 @@ export interface ConfigMemorial {
   videosComSom: boolean;
   /** Endereço que o QR Code do check-in abre. Vazio = <origem do app>/checkin. */
   urlCheckin: string;
+  /** O check-in pede o código enviado ao e-mail (muda o texto dos passos do QR Code). */
+  checkinPorEmail: boolean;
 }
 
 /** Texto de abertura da sala (aba Apresentação). */
@@ -175,6 +177,11 @@ export interface ConfigCheckin {
   termoVersao: string;
   /** Para pedidos de remoção dos dados. Pode vir vazio. */
   emailContato: string;
+  /**
+   * O modo escolhido no painel ("Aceite de check-ins"). true: duas etapas, com o código enviado ao e-mail;
+   * false (o padrão): o check-in é gravado no primeiro envio.
+   */
+  confirmacaoEmail: boolean;
 }
 
 export interface DadosCheckin {
@@ -204,6 +211,8 @@ export interface Fonte {
   alunos(filtro: FiltroAlunos): Promise<PaginaAlunos>;
   aluno(id: number | string): Promise<AlunoPerfil>;
   configCheckin(): Promise<ConfigCheckin>;
+  /** Check-in direto (confirmacaoEmail false): grava no primeiro envio, com as fotos. */
+  checkinDireto(dados: DadosCheckin): Promise<ResultadoCheckin>;
   /**
    * Etapa 1 do check-in: confere os dados e manda o código ao e-mail. Nada é gravado ainda.
    * Se o e-mail já tem cadastro, a pessoa recebe no lugar um aviso; a resposta é a mesma.
