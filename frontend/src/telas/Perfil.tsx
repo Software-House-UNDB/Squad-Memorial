@@ -159,6 +159,7 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
     return { id, icone: rede.icone, texto: rede.exibir(usuario), rotulo: id === 'outra' ? 'Rede social' : rede.rotulo };
   });
   const turma = p.turma;
+  const anosAta = p.anosAta ?? [];
   // A API devolve no máximo 4 colegas e o total em totalColegas. Servidor antigo (sem o total): com 4, vira "4+".
   const nColegas = p.totalColegas ?? p.colegas.length;
   const colegasMais = p.totalColegas === undefined && p.colegas.length >= MAX_COLEGAS_API;
@@ -315,14 +316,35 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
               <ul className="irows">
                 <LinhaSobre icone="cap">Ex-aluno(a) do Colégio Dom Bosco</LinhaSobre>
                 <LinhaSobre icone="users">Turma {turma}</LinhaSobre>
-                <LinhaSobre icone="clock">Estudou na escola em <span className="num">{p.ano}</span></LinhaSobre>
+                <LinhaSobre icone="clock">
+                  {anosAta.length > 1 ? (
+                    <>
+                      Na ata da escola de <span className="num">{anosAta[0]}</span> a{' '}
+                      <span className="num">{anosAta[anosAta.length - 1]}</span>
+                    </>
+                  ) : (
+                    <>
+                      Estudou na escola em <span className="num">{p.ano}</span>
+                    </>
+                  )}
+                </LinhaSobre>
               </ul>
             </section>
             <div className="tt-sobre__dir">
               <section className="fcard">
                 <TituloCartao titulo="No Memorial" />
                 <ul className="irows">
-                  <LinhaSobre icone="check">{p.recente ? 'Check-in feito agora' : <>Check-in em <span className="num">{dataCurta(p.checkinEm)}</span></>}</LinhaSobre>
+                  <LinhaSobre icone="check">
+                    {p.fezCheckin === false ? (
+                      'Registro da ata da escola · ainda sem check-in'
+                    ) : p.recente ? (
+                      'Check-in feito agora'
+                    ) : (
+                      <>
+                        Check-in em <span className="num">{dataCurta(p.checkinEm)}</span>
+                      </>
+                    )}
+                  </LinhaSobre>
                   <LinhaSobre icone="image">
                     {p.fotos.length} {p.fotos.length === 1 ? 'foto aprovada' : 'fotos aprovadas'} pela equipe
                   </LinhaSobre>
@@ -335,7 +357,9 @@ export function Perfil({ aluno, aba, aoMudarAba, aoVoltar, aoAbrir, aoAbrirFoto 
                 <TituloCartao titulo="Privacidade" />
                 <ul className="irows">
                   <LinhaSobre icone="lock" apagada>
-                    Só aparece o que a pessoa autorizou no check-in. O e-mail nunca é mostrado e as fotos passam pela equipe antes de aparecer.
+                    {p.fezCheckin === false
+                      ? 'Nome, ano e turma vêm da ata da escola. A pessoa pode completar o perfil fazendo o check-in.'
+                      : 'Só aparece o que a pessoa autorizou no check-in. O e-mail nunca é mostrado e as fotos passam pela equipe antes de aparecer.'}
                   </LinhaSobre>
                 </ul>
               </section>

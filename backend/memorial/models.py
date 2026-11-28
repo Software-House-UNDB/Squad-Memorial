@@ -358,6 +358,14 @@ class Aluno(Timestamped):
     origem = models.CharField(max_length=10, choices=Origem.choices, default=Origem.CHECKIN)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.APROVADO)
     demonstrativo = models.BooleanField(default=False, help_text="Ex-aluno de exemplo (carregar_exemplo).")
+    # Cadastros vindos das ATAs da escola (comando importar_ata). Não passaram pelo termo do check-in, mas
+    # são registro da própria escola: aparecem na Sala 06 se aprovados. Quando a pessoa faz o check-in, o
+    # cadastro da ata é completado (registrar_checkin) em vez de criar outro.
+    da_ata = models.BooleanField("veio da ata", default=False, editable=False, db_index=True)
+    historico_ata = models.JSONField(
+        "anos na ata", default=list, blank=True, editable=False,
+        help_text='Um item por ano letivo em que o nome aparece na ata: {"ano", "turma", "curso", "unidade", "aba"}.',
+    )
 
     class Meta:
         ordering = ["nome_busca", "id"]
@@ -382,12 +390,21 @@ class Aluno(Timestamped):
         super().save(*args, **kwargs)
 
     @property
+    def anos_ata(self):
+        return sorted({h["ano"] for h in self.historico_ata if h.get("ano")})
+
+    @property
+    def fez_checkin(self):
+        """Cadastro da ata que a pessoa ainda não completou não tem check-in de verdade."""
+        return not (self.da_ata and not self.consentimento)
+
+    @property
     def novo(self):
-        return self.checkin_em >= timezone.now() - timedelta(hours=Aluno.HORAS_NOVO)
+        return self.fez_checkin and self.checkin_em >= timezone.now() - timedelta(hours=Aluno.HORAS_NOVO)
 
     @property
     def recente(self):
-        return self.checkin_em >= timezone.now() - timedelta(hours=Aluno.HORAS_RECENTE)
+        return self.fez_checkin and self.checkin_em >= timezone.now() - timedelta(hours=Aluno.HORAS_RECENTE)
 
     # Selo NOVO e topo da lista; "Check-in feito agora" no perfil.
     HORAS_NOVO = 24

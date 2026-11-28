@@ -147,6 +147,10 @@ export interface AlunoPerfil extends AlunoResumo {
   colegas: AlunoResumo[];
   /** Total de colegas da turma (a lista vem cortada em 4). Ausente em servidores antigos. */
   totalColegas?: number;
+  /** Anos em que o nome aparece na ata da escola (cadastro importado); vazio se não veio da ata. */
+  anosAta?: number[];
+  /** false: cadastro da ata que a pessoa ainda não completou com o check-in. */
+  fezCheckin?: boolean;
 }
 
 export interface FiltroAlunos {

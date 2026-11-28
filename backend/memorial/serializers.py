@@ -13,7 +13,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from . import redes as redes_sociais
-from .models import Aluno, ConfiguracaoMemorial, FotoAluno, Registro, ano_atual
+from .models import Aluno, ConfiguracaoMemorial, FotoAluno, Registro, ano_atual, normalizar
 from .notificacoes import avisar_equipe
 from .registro import VISITANTE, registrar, sem_registro
 
@@ -99,6 +99,9 @@ def montar_aluno_perfil(a: Aluno, fotos, colegas, total_colegas=None):
     return {
         **montar_aluno_resumo(a),
         "recente": a.recente,
+        # cadastro vindo da ata da escola: anos em que o nome aparece; fezCheckin=false se a pessoa ainda não veio
+        "anosAta": a.anos_ata,
+        "fezCheckin": a.fez_checkin,
         # Campos antigos: o frontend até a versão de novembro de 2026 lê só estes dois.
         "instagram": a.instagram,
         "facebook": a.facebook,
@@ -256,6 +259,20 @@ class CheckinSerializer(serializers.Serializer):
         return v
 
 
+def cadastro_da_ata(nome, ano):
+    """Cadastro vindo da ata, ainda sem check-in, com o mesmo nome e o ano escolhido entre os anos da ata.
+
+    Bloqueia a linha (select_for_update): dois check-ins ao mesmo tempo não completam o mesmo cadastro.
+    """
+    candidatos = Aluno.objects.select_for_update().filter(
+        da_ata=True, consentimento=False, email="", nome_busca=normalizar(nome),
+    ).order_by("id")
+    for a in candidatos:
+        if ano == a.ano or ano in a.anos_ata:
+            return a
+    return None
+
+
 def registrar_checkin(dados, imagens, config: ConfiguracaoMemorial, url_painel):
     """Cria o cadastro e guarda as fotos. Só é chamado depois do código confirmado (confirmacao.py).
 
@@ -275,17 +292,28 @@ def registrar_checkin(dados, imagens, config: ConfiguracaoMemorial, url_painel):
         "origem": Aluno.Origem.CHECKIN,
     }
     status = Aluno.Status.PENDENTE if config.aprovar_perfis else Aluno.Status.APROVADO
-    aluno = Aluno(email=dados["email"], ano=dados["ano"], status=status, **campos)
     # Registrado aqui, como check-in do visitante, e não como cadastro genérico pelos signals.
     # Tudo ou nada: uma foto que falhe no meio não deixa um cadastro pela metade.
     try:
         with sem_registro(), transaction.atomic():
+            # Quem está na ata da escola já tem cadastro: o check-in completa esse, não cria outro.
+            aluno = cadastro_da_ata(dados["nome"], dados["ano"])
+            da_ata = aluno is not None
+            if da_ata:
+                for campo, valor in campos.items():
+                    setattr(aluno, campo, valor)
+                aluno.email, aluno.ano, aluno.status = dados["email"], dados["ano"], status
+            else:
+                aluno = Aluno(email=dados["email"], ano=dados["ano"], status=status, **campos)
             aluno.save()
             redes_sociais.gravar(aluno, dados["redes"])
             fotos = [FotoAluno.objects.create(aluno=aluno, imagem=imagem, ano=dados["ano"]) for imagem in imagens]
     except IntegrityError:  # o mesmo e-mail e ano gravados por outro pedido ao mesmo tempo
         raise JaCadastrado from None
-    registrar(Registro.Tipo.CHECKIN_NOVO, f"Check-in: {aluno}", autor=VISITANTE, aluno_ref=aluno.pk)
+    if da_ata:
+        registrar(Registro.Tipo.CHECKIN_ATUALIZADO, f"Check-in (cadastro da ata): {aluno}", autor=VISITANTE, aluno_ref=aluno.pk)
+    else:
+        registrar(Registro.Tipo.CHECKIN_NOVO, f"Check-in: {aluno}", autor=VISITANTE, aluno_ref=aluno.pk)
     for _ in imagens:
         registrar(Registro.Tipo.FOTO_ENVIADA, f"Foto enviada por {aluno.nome}", autor=VISITANTE, aluno_ref=aluno.pk)
     avisar_equipe(aluno, fotos, True, url_painel)
