@@ -79,6 +79,36 @@ nas fotos: o frontend não exibe esse campo.
 - `carregar_exemplo --limpar` apaga **todo** o conteúdo das salas (apresentações, décadas, fotos, vídeos) e os
   ex-alunos de exemplo, e carrega de novo. **Ex-alunos reais nunca são apagados por este comando.**
 
+## Ex-alunos das ATAs da escola
+
+`importar_ata` lê a planilha das ATAs (`.xlsx`, uma aba por ano ou por ano e unidade) e cadastra os alunos na
+Sala 06. A planilha não precisa ser copiada para o container: vai pela entrada padrão.
+
+```bash
+# 1) confere sem gravar (mostra aba por aba, o que foi ignorado e os nomes para conferir)
+docker compose -f docker-compose.prod.yml exec -T backend python manage.py importar_ata - --simular < ata.xlsx
+# 2) importa
+docker compose -f docker-compose.prod.yml exec -T backend python manage.py importar_ata - < ata.xlsx
+# desfaz (apaga só os cadastros da ata que ninguém completou com check-in)
+docker compose -f docker-compose.prod.yml exec -T backend python manage.py importar_ata --remover
+```
+
+- **Colunas:** as abas não seguem um formato. O comando reconhece cada célula pelo conteúdo (ano letivo, unidade, RA,
+  situação, curso, série, turma); o ano vem do nome da aba. Linhas sem nome e títulos ("ANO DE 1988") são ignorados;
+  anotações no nome ("(conferir)", "[grafia incerta]") saem do nome e ficam no histórico.
+- **Um cadastro por pessoa:** os anos com o mesmo nome (ou o mesmo RA, de 2012 em diante) são juntados; o cadastro
+  fica com o último ano e a última turma, e o perfil mostra "Na ata da escola de 1980 a 1991". Um nome que some por
+  8 anos ou mais e volta é tratado como outra pessoa (homônimo). Grafias diferentes do mesmo nome sem RA continuam
+  separadas.
+- **Turma:** nos anos com duas unidades, a unidade vai junto ("301 · Centro"), para não misturar colegas; sem turma
+  na ata, fica a série ou o curso, e na falta de tudo "—".
+- **Quem aparece:** quem saiu até 2012 (`--visivel-ate`) entra aprovado. Os demais (alunos recentes, muitos
+  menores de idade) entram **ocultos**; para liberar, Admin → Ex-alunos → filtrar por ano → "Aprovar".
+- **Check-in depois:** quem está na ata e faz o check-in com o mesmo nome e um dos anos da ata completa o próprio
+  cadastro (e-mail, redes, fotos), sem criar outro. Rodar a importação de novo não duplica ninguém.
+- `--relatorio /tmp/ata.csv` grava uma linha por pessoa (anos, abas, anotações) para conferir no Excel; para trazer o
+  arquivo do container: `docker compose -f docker-compose.prod.yml cp backend:/tmp/ata.csv .`
+
 ## Textos das salas
 
 O `entrypoint.sh` roda `carregar_textos` toda vez que o backend sobe. Ele grava a apresentação e os 7 pontos da linha do tempo

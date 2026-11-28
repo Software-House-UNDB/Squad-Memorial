@@ -8,7 +8,7 @@ import hashlib
 import math
 from datetime import timedelta
 
-from django.db.models import Case, Count, DateTimeField, F, Max, When
+from django.db.models import Case, Count, DateTimeField, F, Max, Q, When
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
@@ -61,8 +61,8 @@ def _sala_ativa(numero):
 
 
 def alunos_visiveis():
-    """Só quem está aprovado e deu consentimento aparece na Sala 06."""
-    return Aluno.objects.filter(status=Aluno.Status.APROVADO, consentimento=True)
+    """Na Sala 06 só aparece quem está aprovado e deu consentimento no check-in, ou veio da ata da escola."""
+    return Aluno.objects.filter(Q(consentimento=True) | Q(da_ata=True), status=Aluno.Status.APROVADO)
 
 
 def calcular_versao(sala):
@@ -162,7 +162,7 @@ def alunos(request):
         "pagina": pagina,
         "paginas": paginas,
         "porPagina": POR_PAGINA,
-        "anos": sorted(set(base.values_list("ano", flat=True))),
+        "anos": list(base.order_by("ano").values_list("ano", flat=True).distinct()),
         "resultados": [montar_aluno_resumo(a) for a in resultados],
     }, headers=SEM_CACHE)
 

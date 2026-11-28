@@ -1523,3 +1523,132 @@ class EmailVisualTests(TestCase):
         [(html, _)] = m.alternatives
         self.assertIn("&lt;b&gt;Ana&lt;/b&gt;", html)
         self.assertNotIn("<b>Ana</b>", html)
+
+
+def planilha_ata(abas):
+    """.xlsx em memória: {"título da aba": [linhas]} — imita as manias da planilha real das ATAs."""
+    import openpyxl
+
+    wb = openpyxl.Workbook()
+    wb.active.title = "Controle"
+    wb.active.append(["CONTROLE DE ATAS"])
+    for titulo, linhas in abas.items():
+        ws = wb.create_sheet(titulo)
+        for linha in linhas:
+            ws.append(list(linha))
+    buf = BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return buf
+
+
+ATA = {
+    "1980": [
+        ("ALUNO", "PL", "TURMA"),
+        ("ADRIANA BURNETT ABOUD", 1980.0, 301.0),
+        ("JOSÉ DA SILVA JUNIOR (conferir)", 1980.0, 302.0),
+        (None, 1980.0, 302.0),  # linha sem nome
+    ],
+    "1981": [
+        ("ANO DE 1981", 1981.0, "PRIMARIO", 11.0),  # título no meio da aba
+        ("Adriana Burnett Aboud", 1981.0, "ENSINO MÉDIO", 301.0),
+        ("Pedro Sem Turma", 1981.0, "GINÁSIO", None),
+    ],
+    "1995 CENTRO": [("ALUNO", "PL", "TURMA", "UNIDADE"), ("Carla Centro", 1995.0, "10M", "CENTRO")],
+    "1995 RENASCENÇA": [
+        ("Bruno Renas", 1995.0, "10M", "RENASCENÇA"),
+        ("Carla Centro", 1995.0, "10M", "CENTRO"),  # a mesma pessoa repetida em outra aba
+    ],
+    "2015": [
+        ("ALUNO", "RA", "PL", "STATUS", "CURSO ", "TURMA"),
+        ("LUCAS MENINO ATUAL", "001-012345", 2015.0, "Matriculado", "EDUCAÇÃO INFANTIL 1", "MMAV"),
+    ],
+}
+
+
+class AtaTests(Base):
+    def importar(self, *args, abas=ATA):
+        out = StringIO()
+        with mock.patch("sys.stdin", mock.Mock(buffer=planilha_ata(abas))):
+            call_command("importar_ata", "-", *args, stdout=out)
+        return out.getvalue()
+
+    def test_leitura_reconhece_colunas_pelo_conteudo(self):
+        from .ata import agrupar_pessoas, ler_planilha
+
+        leitura = ler_planilha(planilha_ata(ATA))
+        self.assertEqual(leitura.ignoradas["linha sem nome"], 1)
+        self.assertGreaterEqual(leitura.ignoradas["título ou cabeçalho, não é aluno"], 1)
+        self.assertEqual(leitura.repetidas, 1)
+        pessoas = {p.nome: p for p in agrupar_pessoas(leitura.linhas)}
+        self.assertIn("José da Silva Junior", pessoas)  # caixa alta arrumada, anotação fora do nome
+        self.assertEqual(pessoas["José da Silva Junior"].historico[0].nota, "conferir")
+        adriana = pessoas["Adriana Burnett Aboud"]
+        self.assertEqual([h.ano for h in adriana.historico], [1980, 1981])  # duas grafias, uma pessoa
+        self.assertEqual((adriana.ano, adriana.turma), (1981, "301"))
+        self.assertEqual(pessoas["Pedro Sem Turma"].turma, "GINÁSIO")  # sem turma, fica o curso
+        self.assertEqual(pessoas["Bruno Renas"].turma, "10M · Renascença")  # ano com duas unidades
+        self.assertEqual(pessoas["Carla Centro"].turma, "10M · Centro")
+        self.assertEqual(pessoas["Lucas Menino Atual"].ultima.ra, "001-012345")
+
+    def test_homonimos_distantes_viram_duas_pessoas(self):
+        from .ata import agrupar_pessoas, ler_planilha
+
+        abas = {"1960": [("Maria Dias", 1960.0, 11.0)], "1961": [("Maria Dias", 1961.0, 21.0)], "1975": [("Maria Dias", 1975.0, 301.0)]}
+        pessoas = agrupar_pessoas(ler_planilha(planilha_ata(abas)).linhas)
+        self.assertEqual([[h.ano for h in p.historico] for p in pessoas], [[1960, 1961], [1975]])
+
+    def test_simular_nao_grava(self):
+        saida = self.importar("--simular")
+        self.assertIn("Cadastros novos: 6", saida)
+        self.assertFalse(Aluno.objects.exists())
+
+    def test_importa_um_por_pessoa_e_so_mostra_ate_o_ano_de_corte(self):
+        self.importar()
+        self.assertEqual(Aluno.objects.count(), 6)
+        a = Aluno.objects.get(nome="Adriana Burnett Aboud")
+        self.assertEqual((a.ano, a.turma, a.anos_ata, a.origem), (1981, "301", [1980, 1981], Aluno.Origem.IMPORTADO))
+        self.assertTrue(a.da_ata)
+        self.assertFalse(a.consentimento)
+        self.assertEqual(Aluno.objects.get(nome="Lucas Menino Atual").status, Aluno.Status.OCULTO)
+        busca = self.get("/api/memorial/alunos/").json()
+        self.assertEqual(busca["total"], 5)  # o de 2015 entra oculto
+        self.assertTrue(all(not r["novo"] for r in busca["resultados"]))  # importar não é check-in novo
+        perfil = self.get(f"/api/memorial/alunos/{a.pk}/").json()
+        self.assertEqual(perfil["anosAta"], [1980, 1981])
+        self.assertIs(perfil["fezCheckin"], False)
+        self.assertIs(perfil["recente"], False)
+
+    def test_rodar_de_novo_nao_duplica_e_remover_desfaz(self):
+        self.importar()
+        self.importar()
+        self.assertEqual(Aluno.objects.count(), 6)
+        call_command("importar_ata", "--remover", stdout=StringIO())
+        self.assertFalse(Aluno.objects.exists())
+
+    def test_check_in_completa_o_cadastro_da_ata(self):
+        self.importar()
+        da_ata = Aluno.objects.get(nome="Adriana Burnett Aboud")
+        r = self.checkin(nome="Adriana Burnett Aboud", ano="1980", turma="301")
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(Aluno.objects.filter(nome_busca="adriana burnett aboud").count(), 1)
+        a = Aluno.objects.get(pk=da_ata.pk)
+        self.assertEqual((a.email, a.ano, a.origem), (EMAIL, 1980, Aluno.Origem.CHECKIN))
+        self.assertTrue(a.consentimento and a.da_ata and a.fez_checkin and a.novo)
+        self.assertEqual(a.anos_ata, [1980, 1981])
+        self.assertTrue(Registro.objects.filter(tipo=Registro.Tipo.CHECKIN_ATUALIZADO, aluno_ref=a.pk).exists())
+        # --remover não apaga quem já completou o cadastro
+        self.importar("--remover")
+        self.assertTrue(Aluno.objects.filter(pk=a.pk).exists())
+
+    def test_check_in_em_ano_fora_da_ata_cria_outro(self):
+        self.importar()
+        self.assertEqual(self.checkin(nome="Adriana Burnett Aboud", ano="1999").status_code, 201)
+        self.assertEqual(Aluno.objects.filter(nome_busca="adriana burnett aboud").count(), 2)
+
+    def test_quem_ja_fez_check_in_ganha_o_historico_sem_duplicar(self):
+        self.checkin(nome="Adriana Burnett Aboud", ano="1980", turma="301")
+        self.importar()
+        a = Aluno.objects.get(nome_busca="adriana burnett aboud")
+        self.assertEqual(a.anos_ata, [1980, 1981])
+        self.assertEqual((a.email, a.ano), (EMAIL, 1980))

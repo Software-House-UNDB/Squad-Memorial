@@ -46,7 +46,7 @@ export function Busca({ sala, estado: st, mudar, busca, anoInicial, aoCheckin }:
       <Titulo
         sala={sala}
         titulo="Encontre seus colegas"
-        subtitulo="Todos que fizeram check-in no Memorial. Pesquise por nome ou por ano."
+        subtitulo="Ex-alunos das atas da escola e quem fez check-in no Memorial. Pesquise por nome ou por ano."
       />
 
       <div className="tt-sbar">

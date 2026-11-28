@@ -6,4 +6,5 @@ Pillow>=10.4
 pillow-heif>=0.18  # fotos HEIC/HEIF do celular no check-in
 gunicorn>=27,<28
 qrcode>=8.0
+openpyxl>=3.1  # importar_ata: planilha das ATAs
 sentry-sdk[django]>=2.18,<3
