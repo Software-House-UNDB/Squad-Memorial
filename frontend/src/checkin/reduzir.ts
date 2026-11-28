@@ -1,19 +1,35 @@
 /**
  * Reduz a foto no próprio celular antes do envio (lado maior 2560 px, JPEG): fotos de celular
  * passam fácil de 10 MB, e o envio pelo 4G fica lento. O servidor confere e reencoda de novo.
- * Se o navegador não conseguir decodificar, envia o arquivo original.
+ * Se o navegador não conseguir decodificar (HEIC no Android, por exemplo), envia o original.
+ *
+ * O resultado fica sempre na memória. O File do <input> é só uma referência ao arquivo do celular: no
+ * Android, depois de o visitante sair para o app de e-mail buscar o código, essa referência pode ter
+ * expirado (foto da nuvem, permissão revogada), e o envio falhava como "Sem conexão" mesmo com internet.
  */
 const LADO_MAXIMO = 2560;
 const SEM_REDUZIR_ATE = 1.5 * 1024 * 1024;
 
+/** Foto que o celular não deixou ler: o visitante precisa escolher de novo. */
+class FotoIlegivel extends Error {}
+
+/** Cópia do arquivo na memória da página, que não depende mais do arquivo do celular. */
+async function naMemoria(arquivo: File): Promise<File> {
+  try {
+    return new File([await arquivo.arrayBuffer()], arquivo.name, { type: arquivo.type, lastModified: arquivo.lastModified });
+  } catch {
+    throw new FotoIlegivel(arquivo.name);
+  }
+}
+
 export async function reduzirFoto(arquivo: File): Promise<File> {
-  if (!arquivo.type.startsWith('image/')) return arquivo;
+  if (!arquivo.type.startsWith('image/') && !/\.(hei[cf]|avif)$/i.test(arquivo.name)) return naMemoria(arquivo);
   try {
     const bitmap = await createImageBitmap(arquivo, { imageOrientation: 'from-image' });
     const escala = Math.min(1, LADO_MAXIMO / Math.max(bitmap.width, bitmap.height));
     if (escala === 1 && arquivo.size <= SEM_REDUZIR_ATE && /jpe?g|png|webp/.test(arquivo.type)) {
       bitmap.close();
-      return arquivo;
+      return naMemoria(arquivo);
     }
     const canvas = document.createElement('canvas');
     canvas.width = Math.round(bitmap.width * escala);
@@ -21,9 +37,9 @@ export async function reduzirFoto(arquivo: File): Promise<File> {
     canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     bitmap.close();
     const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/jpeg', 0.88));
-    if (!blob) return arquivo;
+    if (!blob) return naMemoria(arquivo);
     return new File([blob], `${arquivo.name.replace(/\.\w+$/, '')}.jpg`, { type: 'image/jpeg' });
   } catch {
-    return arquivo;
+    return naMemoria(arquivo);
   }
 }

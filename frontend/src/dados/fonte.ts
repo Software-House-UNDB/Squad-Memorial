@@ -54,6 +54,20 @@ interface Envio {
   esperado: 201 | 202;
 }
 
+/** true se o servidor responde a um GET curto (para separar "sem internet" de "o envio falhou"). */
+async function servidorResponde(): Promise<boolean> {
+  const ctrl = new AbortController();
+  const t = window.setTimeout(() => ctrl.abort(), 6_000);
+  try {
+    const r = await fetch(`${quiosque.api}/api/memorial/checkin/`, { cache: 'no-store', signal: ctrl.signal });
+    return r.status < 500;
+  } catch {
+    return false;
+  } finally {
+    window.clearTimeout(t);
+  }
+}
+
 /** Envia o formulário: no check-in direto, na etapa 1 (pedir o código) ou na etapa 2 (com o código). */
 async function enviarCheckin(d: DadosCheckin, { codigo, fotos, esperado }: Envio, limiteMs: number): Promise<ResultadoCheckin> {
   const corpo = new FormData();
@@ -77,7 +91,18 @@ async function enviarCheckin(d: DadosCheckin, { codigo, fotos, esperado }: Envio
     if (ctrl.signal.aborted) {
       return { ok: false, erros: { geral: 'O envio demorou demais. Confira a internet e tente de novo; o que você preencheu continua na tela.' } };
     }
-    return { ok: false, erros: { geral: 'Sem conexão. Confira a internet do celular e tente de novo.' } };
+    // O navegador não diz por que o envio caiu. Se o servidor responde a um pedido simples, a internet
+    // está boa e o problema foi o envio em si (no celular, quase sempre uma foto que não pôde ser lida).
+    if (!(await servidorResponde())) {
+      return { ok: false, erros: { geral: 'Sem conexão. Confira a internet do celular e tente de novo.' } };
+    }
+    if (fotos && d.fotos.length) {
+      return {
+        ok: false,
+        erros: { fotos: 'Não conseguimos enviar as fotos: o celular não deixou ler o arquivo. Remova as fotos e escolha de novo.' },
+      };
+    }
+    return { ok: false, erros: { geral: 'O check-in não foi enviado. Tente de novo em instantes.' } };
   } finally {
     window.clearTimeout(t);
   }
